@@ -1,7 +1,7 @@
 {
   "name": "validall",
   "version": "1.0.1",
-  "description": "\"Validator for objects\"",
+  "description": "\"JavaScript validator\"",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

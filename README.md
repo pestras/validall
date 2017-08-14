@@ -1,4 +1,4 @@
-JavaScript objects validator.
+JavaScript validator.
 
 ## Installation
 
