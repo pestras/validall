@@ -25,7 +25,7 @@ $ npm install validall
   ```js
   var validall = require("validall");
 
-  validall.test(user, {
+  var isValid = validall.test(user, {
     $root: { $hasKeys: ['name', 'email'] },
     name: { $is: 'string' },
     email: { $is: 'email', $message: 'Email is not valid!' },
@@ -35,13 +35,26 @@ $ npm install validall
     gender: { $in: ["male", "female" ]},
     articles: { $each: { date: { $afterDate: '07-03-2017' } } },
     'options.notificationMode': { $in: ['high', 'low'] }
-  }, true);
+  });
   ```
 
 
 ### errors:
 
-  List all the errors found in case of **test** method has returned **false**.
+  List all the errors found in the src, in case of **test** method has returned **false**.
+
+  ```js
+  var isValid = validall.test(user, {
+    $root: { $hasKeys: ['username'] },
+    email: { $is: 'email', $message: "Email is not valid!" }
+  }, true);
+
+  console.log(validall.errors())
+
+  /*
+    ["'$root' must include keys: [username]", "Email is not valid!"]
+  */
+  ```
 
 
 ### reset:
@@ -91,12 +104,24 @@ $ npm install validall
 
   **Parameters:** '*', any value to compare with.
 
+  ```js
+  var publish = validall.test(response, {
+    $root: { $identical: previousResponse, $message: null }
+  });
+  ```
+
 
 ### $match:
 
   Test the src src value with given regex.
 
   **Parameters:** 'RegExp', the regular expression to test with.
+
+  ```js
+  var isValid = validall.test(user, {
+    password: { $match: /^[a-zA-Z0-9_]{8,16}$/ },
+  });
+  ```
 
 
 ### $gt:
@@ -132,6 +157,12 @@ $ npm install validall
   Checks if the src value number is in the range specified in the given range.
 
   **Parameters:** 'Array', array with to numbers specifing the start and the end of the range.
+
+  ```js
+  var isValid = validall.test(user, {
+    age: { $inRange: [16, 40] },
+  });
+  ```
 
 
 ### $outOfRange:
@@ -336,6 +367,12 @@ $ npm install validall
 
   **Parameters:** 'Date | String'
 
+  ```js
+  var isValid = validall.test(article, {
+    publishDate: { $onDate: "02-06-2016" }
+  });
+  ```
+
 
 ### $beforeDate:
 
@@ -357,13 +394,27 @@ $ npm install validall
 
   **Parameters:** 'function', src value is passed as the first argument.
 
+  ```js
+  var isValid = validall.test(user, {
+    key: { 
+      $fn: function (keyValue) {
+        var state = false;
+        // your code
+        return state;
+      },
+      $message: 'your message'      // You should add your error message otherwise 'unhandled error message' will be pushed
+    }
+  });
+  ```
+
+
 
 ### $or:
 
-  In case you provide to operators for one key and you only need one of them to pass, then you can use '$or' operator:
+  In case you provide two operators for one key and you only need one of them to pass, then you can use '$or' operator:
 
   ```js
-  validall.test(obj, {
+  var isValid = validall.test(user, {
     age: { $or: [{ $is: 'number' }, { $is: 'string' }] }
   });
   ```
@@ -371,7 +422,7 @@ $ npm install validall
   Also you can use it at the root, to provide more than way of validations:
 
   ```js
-  validall.test(obj, {
+  var isValid = validall.test(user, {
     $or: [
       {
         gender: { $match: 'male' },
@@ -391,7 +442,7 @@ $ npm install validall
   Loop through an array and perform validall operations on each item
 
   ```js
-  validall.test(obj, {
+  var isValid = validall.test(user, {
     'family.children': { 
       $each: {
         { $root: { $is: 'object', hasKeys: ['name', 'age'] } }
@@ -409,7 +460,7 @@ $ npm install validall
   In case you need to add a custom error message, this option is for you.
 
   ```js
-  validall.test(obj, {
+  var isValid = validall.test(user, {
     married: { $equals: false, $message: 'You should get married' }
   });
   ```
@@ -428,7 +479,7 @@ $ npm install validall
   $root operator let you validate the root object
 
   ```js
-  validall.test(obj, {
+  var isValid = validall.test(user, {
     $root: { $hasKeys: ['email'], $message: 'Email is required' }
   });
   ```

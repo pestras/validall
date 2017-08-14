@@ -120,7 +120,8 @@
     $someNotIn: "'{{key}}' must have at least one item not included in: [{{value}}]",
     $onDate: "'{{key}}' must be on date: {{value}}",
     $beforeDate: "'{{key}}' must be before date: {{value}}",
-    $afterDate: "'{{key}}' must be after date: {{value}}"
+    $afterDate: "'{{key}}' must be after date: {{value}}",
+    none: "unhandled error!"
   };
 
   
@@ -370,7 +371,7 @@
         var state = operators[option](src, options[option], key);
         if (!state) {
           if (options.$message) errors.push(options.$message);
-          else if (options.$message === undefined && option !== '$or' && option !== '$each' && typeof options[option] !== 'function') {
+          else if (options.$message === undefined && option !== '$or' && option !== '$each') {
             var message = messages[option],
               data = {};
 
@@ -379,7 +380,8 @@
             else if (typeof options[option] === 'object') data = { key: key, value: JSON.stringify(options[option], null, 2) };
             else data = { key: key, value: options[option] };
 
-            errors.push(compile(message, data));
+            if (typeof options[option] === 'function') errors.push(messages.none);
+            else errors.push(compile(message, data));
           }
           if (!forceAll) return false;
         }
