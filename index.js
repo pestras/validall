@@ -117,7 +117,10 @@
     $in: "'{{key}}' all items must be included in: [{{value}}]",
     $someIn: "'{{key}}' must have at least one item included in: [{{value}}]",
     $notIn: "'{{key}}' must not have any item included in: [{{value}}]",
-    $someNotIn: "'{{key}}' must have at least one item not included in: [{{value}}]"
+    $someNotIn: "'{{key}}' must have at least one item not included in: [{{value}}]",
+    $onDate: "'{{key}}' must be on date: {{value}}",
+    $beforeDate: "'{{key}}' must be before date: {{value}}",
+    $afterDate: "'{{key}}' must be after date: {{value}}"
   };
 
   
@@ -312,6 +315,18 @@
         return false;
       }
       return false;
+    },
+    $onDate: function (src, value) {
+      if (isNaN(Date.parse(src)) || isNaN(Date.parse(value))) return false;
+      return Date.parse(src) === Date.parse(value);
+    },
+    $beforeDate: function (src, value) {
+      if (isNaN(Date.parse(src)) || isNaN(Date.parse(value))) return false;
+      return Date.parse(src) < Date.parse(value);
+    },
+    $afterDate: function (src, value) {
+      if (isNaN(Date.parse(src)) || isNaN(Date.parse(value))) return false;
+      return Date.parse(src) > Date.parse(value);
     },
     $or: function (src, arr, key) {
       for (var i = 0; i < arr.length; i++) {

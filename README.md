@@ -28,12 +28,13 @@ $ npm install validall
   validall.test(user, {
     $root: { $hasKeys: ['name', 'email'] },
     name: { $is: 'string' },
-    email: { $is: 'email' }
-    age: { $lte: 20, $message: 'Sorry.. you still young!' },
-    hopies: { $hasSome: ["swimming", "golf"], $hasNot: ["sleeping"] },
+    email: { $is: 'email', $message: 'Email is not valid!' },
+    password: { $match: /^[a-zA-Z0-9_]{8,16}$/ },
+    age: { $gte: 30 },
+    roles: { $hasSome: ["admin", "author"], $hasNot: ["subscriber"] },
     gender: { $in: ["male", "female" ]},
-    family: { $hasNotSomeKeys: ["kids", "children"] },
-    "family.kids": { $lengthRange: [1, 3], $each: { age: { $lte: 5 } } },
+    articles: { $each: { date: { $afterDate: '07-03-2017' } } },
+    'options.notificationMode': { $in: ['high', 'low'] }
   }, true);
   ```
 
@@ -327,6 +328,27 @@ $ npm install validall
   Checks if at least one of the items in the src array is not included in the giving list.
 
   **Parameters:** 'Array<Number | String>'
+
+
+### $onDate:
+
+  Checks if the src data is on the same giving date.
+
+  **Parameters:** 'Date | String'
+
+
+### $beforeDate:
+
+  Checks if the src data is before the giving date.
+
+  **Parameters:** 'Date | String'
+
+
+### $afterDate:
+
+  Checks if the src data is after the giving date.
+
+  **Parameters:** 'Date | String'
 
 
 ### $fn:
