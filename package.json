@@ -1,0 +1,22 @@
+{
+  "name": "validall",
+  "version": "1.0.0",
+  "description": "\"Validator for objects\"",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "validator",
+    "object",
+    "client",
+    "node"
+  ],
+  "author": "Ammar Mourad",
+  "email": "amrmrdb51@gmail.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ammar6885/validall"
+  },
+  "license": "ISC"
+}
