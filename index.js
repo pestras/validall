@@ -344,7 +344,7 @@
         
         for (var i = 0; i < src.length; i++) {
           rootKey = key + '[' + i + '].';
-          currentState = test(src[i], options);
+          currentState = validall.test(src[i], options);
           if (!currentState && !forceAll) return false;
           state.push(currentState);
           
