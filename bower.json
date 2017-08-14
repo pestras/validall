@@ -1,0 +1,23 @@
+{
+  "name": "validall",
+  "description": "\"JavaScript validator\"",
+  "main": "index.js",
+  "authors": [
+    "Ammar Mourad"
+  ],
+  "license": "ISC",
+  "keywords": [
+    "validator",
+    "object",
+    "client",
+    "node"
+  ],
+  "homepage": "https://github.com/ammar6885/validall",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
