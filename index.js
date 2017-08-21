@@ -22,20 +22,35 @@
     });
   }
 
-  function fromPath(obj, path, value) {
+  function fromPath(obj, path, value, inject) {
     path = path.split('.');
-    if (path.length === 1) return obj[path[0]];
+    if (path.length === 1) {
+      if (!value) return obj[path[0]];
+      else if (inject) return obj[path[0]] = value;
+      else if (obj.hasOwnProperty(path[0])) return obj[path[0]] = value;
+      else return false;
+    }
 
-    var temp = obj;
-    for (var j = 0; j < path.length; j++) {
-      if (!(temp = temp[path[j]])) return undefined;
-      if (j === path.length - 2 && value) {
-        if (temp && temp[path[j + 1]]) {
-          temp[path[j + 1]] = value;
-          return true;
-        } else return false;
+    let temp = obj;
+
+    for (let j = 0; j < path.length; j++) {
+      if (temp[path[j]]) {
+        temp = temp[path[j]];
+
+        if (j === path.length - 2 && value) {
+          if (inject || obj.hasOwnProperty(path[j + 1])) return !!(temp[path[j + 1]] = value);
+          else return false;
+
+        }
+
+        if (j === path.length - 1)
+          return temp;
+
+      } else if (inject) {
+        temp[path[j--]] = {};
+      } else {
+        return false;
       }
-      if (j === path.length - 1) return temp;
     }
   }
 
@@ -124,7 +139,7 @@
     none: "unhandled error!"
   };
 
-  
+
   var errors = [],
     rootKey = '',
     forceAll = false,
@@ -338,18 +353,18 @@
     $each: function (src, options, key) {
       if (Array.isArray(src)) {
         var state = [],
-            currentState;
-        
+          currentState;
+
         rootKey = key;
-        
+
         for (var i = 0; i < src.length; i++) {
           rootKey = key + '[' + i + '].';
           currentState = validall.test(src[i], options);
           if (!currentState && !forceAll) return false;
           state.push(currentState);
-          
+
         }
-        
+
         rootKey = "";
         return state.every(function (item) { return item === true; });
       } else {
@@ -385,7 +400,7 @@
           }
           if (!forceAll) return false;
         }
-        
+
         results.push(state);
       } else return false;
     }
@@ -393,7 +408,7 @@
     return results.every(function (state) { return state; });
   }
 
-  var validall = {    
+  var validall = {
     reset: function () {
       errors = [];
       forceAll = false;
@@ -409,9 +424,9 @@
         this.reset();
         forceAll = !!forceAll;
       }
-      
+
       level++;
-      
+
       if (!obj || typeof obj !== 'object') return ['Invalid options'];
       var results = [];
 
@@ -438,9 +453,9 @@
           if (!state) errors.push("'" + prop + "' must equals " + obj[prop]);
         }
       }
-      
+
       level--;
-      
+
       if (results.every(function (state) { return state; })) return true;
       else return false;
     }
