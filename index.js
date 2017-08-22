@@ -95,6 +95,32 @@
       return arg1 === arg2;
     }
   }
+  
+  function isSet(value) {
+    if (value === false || value === 0 || value === null) return true;
+
+    if (typeof value === "string")
+      value = value.replace(/\s/g, "");
+    
+    return !!value;
+  }
+
+  function isTrue(value)  {
+    if (typeof value === 'string')
+      value = value.replace(/\s/g, "");
+
+    return !!value;
+  }
+
+  function isFilled(value) {
+    if (!isSet(value)) return false;
+
+    if (Array.isArray(value) && !value.length)
+      return false;
+
+    if (typeof value === 'object' && !Object.keys(value).length)
+      return false;
+  }
 
   var messages = {
     $is: "'{{key}}' must be {{value}}",
@@ -149,6 +175,15 @@
     $is: function (src, type) {
       var state;
       switch (type.toLowerCase()) {
+        case 'set':
+          state = isSet(src);
+          break;
+        case 'true':
+          state = isTrue(src);
+          break;
+        case 'filled':
+          state = isTrue(src);
+          break;
         case 'number':
           state = /^\d+$/.test(src);
           break;

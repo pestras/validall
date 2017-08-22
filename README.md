@@ -73,7 +73,10 @@ $ npm install validall
   Checks the type of the value
 
   **Parameters:** 'String', can have one of the following values:
-
+  
+  * set
+  * true
+  * filled
   * number
   * string
   * boolean
@@ -84,6 +87,9 @@ $ npm install validall
   * email
   * url
 
+  **set** value checks if the src value is not undefined, "" or " ".
+  **true** value checks if the src value is not false, undefined, null, 0, "", " ", or NaN.
+  **filled** value checks if the src value is not undefined, null, [], {}, "", " ".
 
 ### $equals:
 
