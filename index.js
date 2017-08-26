@@ -257,30 +257,78 @@
 
       return state;
     },
-    $fn: function (src, fn) { return fn(src); },
-    $equals: function (src, value, msg) { return equals(src, value); },
-    $identical: function (src, value, msg) { return equals(src, value, true); },
-    $gt: function (src, value, msg) { return src > value; },
-    $gte: function (src, value, msg) { return src >= value; },
-    $lt: function (src, value, msg) { return src < value; },
-    $lte: function (src, value, msg) { return src <= value; },
-    $inRange: function (src, value, msg) { return src >= value[0] && src <= value[1]; },
-    $outOfRange: function (src, value, msg) { return src < value[0] || src > value[1]; },
-    $len: function (src, value, msg) { return src.length === value; },
-    $gtLen: function (src, value, msg) { return src.length > value; },
-    $gteLen: function (src, value, msg) { return src.length >= value; },
-    $ltLen: function (src, value, msg) { return src.length < value; },
-    $lteLen: function (src, value, msg) { return src.length <= value; },
-    $inRangeLen: function (src, value, msg) { return src.length >= value[0] && src.length <= value[1]; },
-    $outOfRangeLen: function (src, value, msg) { return src.length < value[0] || src.length > value[1]; },
-    $size: function (src, value, msg) { return Object.keys(src).length === value; },
-    $gtSize: function (src, value, msg) { return Object.keys(src).length > value; },
-    $gteSize: function (src, value, msg) { return Object.keys(src).length >= value; },
-    $ltSize: function (src, value, msg) { return Object.keys(src).length < value; },
-    $lteSize: function (src, value, msg) { return Object.keys(src).length <= value; },
-    $inRangeSize: function (src, value, msg) { return Object.keys(src).length >= value[0] && Object.keys(src).length <= value[1]; },
-    $outOfRangeSize: function (src, value, msg) { return Object.keys(src).length < value[0] || Object.keys(src).length > value[1]; },
-    $match: function (src, value, msg) { return value.test(src); },
+    $fn: function (src, fn) {
+      return fn(src);
+    },
+    $equals: function (src, value, msg) {
+      return equals(src, value);
+    },
+    $identical: function (src, value, msg) {
+      return equals(src, value, true);
+    },
+    $gt: function (src, value, msg) {
+      return src > value;
+    },
+    $gte: function (src, value, msg) {
+      return src >= value;
+    },
+    $lt: function (src, value, msg) {
+      return src < value;
+    },
+    $lte: function (src, value, msg) {
+      return src <= value;
+    },
+    $inRange: function (src, value, msg) {
+      return src >= value[0] && src <= value[1];
+    },
+    $outOfRange: function (src, value, msg) {
+      return src < value[0] || src > value[1];
+    },
+    $len: function (src, value, msg) {
+      return src.length === value;
+    },
+    $gtLen: function (src, value, msg) {
+      return src.length > value;
+    },
+    $gteLen: function (src, value, msg) {
+      return src.length >= value;
+    },
+    $ltLen: function (src, value, msg) {
+      return src.length < value;
+    },
+    $lteLen: function (src, value, msg) {
+      return src.length <= value;
+    },
+    $inRangeLen: function (src, value, msg) {
+      return src.length >= value[0] && src.length <= value[1];
+    },
+    $outOfRangeLen: function (src, value, msg) {
+      return src.length < value[0] || src.length > value[1];
+    },
+    $size: function (src, value, msg) {
+      return Object.keys(src).length === value;
+    },
+    $gtSize: function (src, value, msg) {
+      return Object.keys(src).length > value;
+    },
+    $gteSize: function (src, value, msg) {
+      return Object.keys(src).length >= value;
+    },
+    $ltSize: function (src, value, msg) {
+      return Object.keys(src).length < value;
+    },
+    $lteSize: function (src, value, msg) {
+      return Object.keys(src).length <= value;
+    },
+    $inRangeSize: function (src, value, msg) {
+      return Object.keys(src).length >= value[0] && Object.keys(src).length <= value[1];
+    },
+    $outOfRangeSize: function (src, value, msg) {
+      return Object.keys(src).length < value[0] || Object.keys(src).length > value[1];
+    },
+    $match: function (src, value, msg) {
+      return value.test(src);
+    },
     $has: function (src, value, msg) {
       value = Array.isArray(value) ? value : [value];
 
