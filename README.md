@@ -121,7 +121,7 @@ $ npm install validall
 
 ### $match:
 
-  Test the src src value with given regex.
+  Test the src value with given regex.
 
   **Parameters:** 'RegExp', the regular expression to test with.
 
@@ -164,7 +164,7 @@ $ npm install validall
 
   Checks if the src value number is in the range specified in the given range.
 
-  **Parameters:** 'Array', array with to numbers specifing the start and the end of the range.
+  **Parameters:** 'Array', array with two numbers specifing the start and the end of the range.
 
   ```js
   var isValid = validall.test(user, {
@@ -177,7 +177,7 @@ $ npm install validall
 
   Checks if the src value number is out of the range specified in the given range.
 
-  **Parameters:** 'Array', array with to numbers specifing the start and the end of the range.
+  **Parameters:** 'Array', array with two numbers specifing the start and the end of the range.
 
 
 ### $len:
@@ -215,18 +215,18 @@ $ npm install validall
   **Parameters:** 'Number', the number to compare with.
 
 
-### $innRangeLen:
+### $inRangeLen:
 
   Checks if the src value string or array length is in the range specified in the given range.
 
-  **Parameters:** 'Array', array with to numbers specifing the start and the end of the range.
+  **Parameters:** 'Array', array with two numbers specifing the start and the end of the range.
 
 
 ### $outOfRangeLen:
 
   Checks if the src value string or array length is out of the range specified in the given range.
 
-  **Parameters:** 'Array', array with to numbers specifing the start and the end of the range.
+  **Parameters:** 'Array', array with two numbers specifing the start and the end of the range.
 
 
 ### $size:
@@ -268,14 +268,14 @@ $ npm install validall
 
   Checks if the src value object keys length is in the range specified in the given range.
 
-  **Parameters:** 'Array', array with to numbers specifing the start and the end of the range.
+  **Parameters:** 'Array', array with two numbers specifing the start and the end of the range.
 
 
 ### $outOfRangeSize:
 
   Checks if the src value object keys length is out of the range specified in the given range.
 
-  **Parameters:** 'Array', array with to numbers specifing the start and the end of the range.
+  **Parameters:** 'Array', array with two numbers specifing the start and the end of the range.
 
 
 ### $has:
@@ -293,7 +293,7 @@ $ npm install validall
 
 ### $hasNot:
 
-  Checks if the src value array does not include all the items in the giving list.
+  Checks if the src value array does not include any of the items in the giving list.
 
   **Parameters:** 'Array<Number | String>'
 
@@ -325,7 +325,7 @@ $ npm install validall
 
 ### $hasNotKeys:
 
-  Checks if the src value object does not include all the keys in the giving list.
+  Checks if the src value object does not include any of the keys in the giving list.
 
   _note: nested keys are supported._
 
@@ -433,11 +433,11 @@ $ npm install validall
   var isValid = validall.test(user, {
     $or: [
       {
-        gender: { $match: 'male' },
+        gender: { $equals: 'male' },
         age: { $inRange: [28, 33] }
       },
       {
-        gender: { $match: 'female' },
+        gender: { $equals: 'female' },
         age: { $inRange: [25, 30] }
       }
     ]
@@ -451,10 +451,9 @@ $ npm install validall
 
   ```js
   var isValid = validall.test(user, {
-    'family.children': { 
+    articles: { 
       $each: {
-        { $root: { $is: 'object', hasKeys: ['name', 'age'] } }
-        { $age: { $lte: 5 } }
+        publishDate: { $onDate: "02-06-2016" }
       } 
     }
   });
@@ -491,3 +490,6 @@ $ npm install validall
     $root: { $hasKeys: ['email'], $message: 'Email is required' }
   });
   ```
+
+
+  Thank you.
