@@ -27,12 +27,12 @@ $ npm install validall
 
   var isValid = validall.test(user, {
     $root: { $hasKeys: ['name', 'email'] },
-    name: { $is: 'string' },
+    name: [{ $is: 'set' }, { $is: 'string' }],
     email: { $is: 'email', $message: 'Email is not valid!' },
     password: { $match: /^[a-zA-Z0-9_]{8,16}$/ },
-    age: { $gte: 30 },
-    roles: { $hasSome: ["admin", "author"], $hasNot: ["subscriber"] },
-    gender: { $in: ["male", "female" ]},
+    age: { $is: 'number', $gte: 30 },
+    roles: [{ $is: 'array' }, { $hasSome: ["admin", "author"] }],
+    gender: { $in: ["male", "female" ] },
     articles: { $each: { date: { $afterDate: '07-03-2017' } } },
     'options.notificationMode': { $in: ['high', 'low'] }
   });
@@ -61,7 +61,7 @@ $ npm install validall
 
   Reset all options to default.
 
-  _note: in most cases you won't use it_.
+  _in most cases you won't use it_.
 
 
 
@@ -88,7 +88,9 @@ $ npm install validall
   * url
 
   **set** value checks if the src value is not undefined, "" or " ".
+
   **true** value checks if the src value is not false, undefined, null, 0, "", " ", or NaN.
+
   **filled** value checks if the src value is not undefined, null, [], {}, "", " ".
 
 ### $equals:

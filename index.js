@@ -13,33 +13,47 @@
 
     return template.replace(reg, function (match, $1) {
       var parts = $1.split("."), temp;
-      if (parts.length == 1) return data[parts[0]];
+
+      if (parts.length == 1) 
+        return data[parts[0]];
+
       temp = data[parts[0]];
+
       for (var i = 1; i < parts.length; i++) {
         temp = temp[parts[i]];
       }
+
       return temp;
     });
   }
 
   function fromPath(obj, path, value, inject) {
     path = path.split('.');
+
     if (path.length === 1) {
-      if (!value) return obj[path[0]];
-      else if (inject) return obj[path[0]] = value;
-      else if (obj.hasOwnProperty(path[0])) return obj[path[0]] = value;
-      else return false;
+
+      if (!value) 
+        return obj[path[0]];
+      else if (inject) 
+        return obj[path[0]] = value;
+      else if (obj.hasOwnProperty(path[0])) 
+        return obj[path[0]] = value;
+      else 
+        return false;
     }
 
     let temp = obj;
 
     for (let j = 0; j < path.length; j++) {
+
       if (temp[path[j]]) {
         temp = temp[path[j]];
 
         if (j === path.length - 2 && value) {
-          if (inject || obj.hasOwnProperty(path[j + 1])) return !!(temp[path[j + 1]] = value);
-          else return false;
+          if (inject || obj.hasOwnProperty(path[j + 1])) 
+            return !!(temp[path[j + 1]] = value);
+          else 
+            return false;
 
         }
 
@@ -55,49 +69,71 @@
   }
 
   function equals(arg1, arg2, deep) {
+
     if (arg1 instanceof Array && arg2 instanceof Array) {
-      if (arg1.length !== arg2.length) return false;
+      if (arg1.length !== arg2.length) 
+        return false;
+
       for (var i = 0; i < arg1.length; i++) {
         var pass = false;
+
         for (var j = 0; j < arg2.length; j++) {
+
           if ((deep && equals(arg1[i], arg2[j])) || (!deep && arg1[i] === arg2[j])) {
+
             if (equals(arg1[i], arg2[j])) {
               pass = true;
               break;
             }
           }
         }
-        if (!pass) return false;
+
+        if (!pass) 
+          return false;
       }
+
       return true;
+
     } else if (arg1 instanceof Date && arg2 instanceof Date) {
       return arg1.toDateString() === arg2.toDateString();
     } else if (arg1 instanceof RegExp && arg2 instanceof RegExp) {
       return arg1.toString() === arg2.toString();
     } else if (arg1 instanceof Object && arg2 instanceof Object) {
-      if (Object.keys(arg1).length !== Object.keys(arg2).length) return false;
+
+      if (Object.keys(arg1).length !== Object.keys(arg2).length) 
+        return false;
+
       for (var prop1 in arg1) {
+
         if (arg1.hasOwnProperty(prop1)) {
           var pass = false;
+
           for (var prop2 in arg2) {
+
             if (arg2.hasOwnProperty(prop1)) {
+
               if ((deep && equals(arg1[prop1], arg2[prop2])) || (!deep && arg1[prop1] === arg2[prop2])) {
                 pass = true;
                 break;
               }
             }
           }
-          if (!pass) return false;
+
+          if (!pass) 
+            return false;
         }
       }
+
       return true;
+
     } else {
       return arg1 === arg2;
     }
   }
   
   function isSet(value) {
-    if (value === false || value === 0 || value === null) return true;
+    if (value === false || value === 0 || value === null) 
+      return true;
 
     if (typeof value === "string")
       value = value.replace(/\s/g, "");
@@ -113,13 +149,16 @@
   }
 
   function isFilled(value) {
-    if (!isSet(value)) return false;
+    if (!isSet(value)) 
+      return false;
 
     if (Array.isArray(value) && !value.length)
       return false;
 
     if (typeof value === 'object' && !Object.keys(value).length)
       return false;
+
+    return true;
   }
 
   var messages = {
@@ -174,6 +213,7 @@
   var operators = {
     $is: function (src, type) {
       var state;
+
       switch (type.toLowerCase()) {
         case 'set':
           state = isSet(src);
@@ -182,7 +222,7 @@
           state = isTrue(src);
           break;
         case 'filled':
-          state = isTrue(src);
+          state = isFilled(src);
           break;
         case 'number':
           state = /^\d+$/.test(src);
@@ -243,18 +283,27 @@
     $match: function (src, value, msg) { return value.test(src); },
     $has: function (src, value, msg) {
       value = Array.isArray(value) ? value : [value];
+
       if (Array.isArray(src)) {
+
         for (var i = 0; i < value.length; i++)
-          if (src.indexOf(value[i]) === -1) return false;
+          if (src.indexOf(value[i]) === -1) 
+            return false;
+
         return true;
       }
+
       return false;
     },
     $hasSome: function (src, value, msg) {
       value = Array.isArray(value) ? value : [value];
+
       if (Array.isArray(src)) {
+
         for (var i = 0; i < value.length; i++)
-          if (src.indexOf(value[i]) > -1) return true;
+          if (src.indexOf(value[i]) > -1) 
+            return true;
+
         return false;
       }
 
@@ -262,73 +311,109 @@
     },
     $hasNot: function (src, value, msg) {
       value = Array.isArray(value) ? value : [value];
+
       if (Array.isArray(src)) {
+
         for (var i = 0; i < value.length; i++)
-          if (src.indexOf(value[i]) > -1) return false
+          if (src.indexOf(value[i]) > -1) 
+            return false
 
         return true;
       }
+
       return false;
     },
     $hasNotSome: function (src, value, msg) {
       value = Array.isArray(value) ? value : [value];
+
       if (Array.isArray(src)) {
         for (var i = 0; i < value.length; i++)
-          if (src.indexOf(value[i]) === -1) return true
+          if (src.indexOf(value[i]) === -1) 
+            return true
+
         return false;
       }
+
       return false;
     },
     $hasKeys: function (src, value, msg) {
       value = Array.isArray(value) ? value : [value];
-      if (!this.$is(src, 'object')) return false;
+
+      if (!this.$is(src, 'object')) 
+        return false;
+
       for (var j = 0; j < value.length; j++) {
-        var path = value[j].split('.'),
-          temp = src;
+        var path = value[j].split('.');
+        var temp = src;
+
         for (var i = 0; i < path.length; i++) {
-          if (!temp.hasOwnProperty(path[i])) return false;
+          if (!temp.hasOwnProperty(path[i])) 
+            return false;
+
           temp = temp[path[i]];
         }
       }
+
       return true;
     },
     $hasSomeKeys: function s(src, value, msg) {
       value = Array.isArray(value) ? value : [value];
-      if (!this.$is(src, 'object')) return false;
+
+      if (!this.$is(src, 'object')) 
+        return false;
+
       for (var j = 0; j < value.length; j++) {
-        var path = value[j].split('.'),
-          temp = src;
+        var path = value[j].split('.');
+        var temp = src;
+
         for (var i = 0; i < path.length; i++) {
-          if (temp.hasOwnProperty(path[i])) return true;
+          if (temp.hasOwnProperty(path[i])) 
+            return true;
+
           temp = temp[path[i]];
         }
       }
+
       return false;
     },
     $hasNotKeys: function (src, value, msg) {
       value = Array.isArray(value) ? value : [value];
-      if (!this.$is(src, 'object')) return false;
+
+      if (!this.$is(src, 'object')) 
+        return false;
+
       for (var j = 0; j < value.length; j++) {
-        var path = value[j].split('.'),
-          temp = src;
+        var path = value[j].split('.');
+        var temp = src;
+
         for (var i = 0; i < path.length; i++) {
-          if (temp.hasOwnProperty(path[i])) return false;
+          if (temp.hasOwnProperty(path[i])) 
+            return false;
+
           temp = temp[path[i]];
         }
       }
+
       return true;
     },
     $hasNotSomeKeys: function (src, value, msg) {
       value = Array.isArray(value) ? value : [value];
-      if (!this.$is(src, 'object')) return false;
+
+      if (!this.$is(src, 'object')) 
+        return false;
+
       for (var j = 0; j < value.length; j++) {
         var path = value[j].split('.'),
           temp = src;
+
         for (var i = 0; i < path.length; i++) {
-          if (!temp.hasOwnProperty(path[i])) return true;
+          if (!temp.hasOwnProperty(path[i])) 
+            return true;
+
           temp = temp[path[i]];
         }
       }
+
       return false;
     },
     $in: function (src, value, msg) {
@@ -342,46 +427,68 @@
     },
     $someIn: function (src, value, msg) {
       src = Array.isArray(src) ? src : [src];
+
       if (Array.isArray(value)) {
+
         for (var i = 0; i < src.length; i++)
-          if (value.indexOf(src[i]) > -1) return true;
+          if (value.indexOf(src[i]) > -1) 
+            return true;
+
         return false;
       }
+
       return false;
     },
     $notIn: function (src, value, msg) {
       src = Array.isArray(src) ? src : [src];
+
       if (Array.isArray(value)) {
+
         for (var i = 0; i < src.length; i++)
-          if (value.indexOf(src[i]) > -1) return false;
+          if (value.indexOf(src[i]) > -1) 
+            return false;
+
         return true;
       }
+
       return false;
     },
     $someNotIn: function (src, value, msg) {
       src = Array.isArray(src) ? src : [src];
+
       if (Array.isArray(value)) {
+
         for (var i = 0; i < src.length; i++)
-          if (value.indexOf(src[i]) === -1) return true;
+          if (value.indexOf(src[i]) === -1) 
+            return true;
+
         return false;
       }
+
       return false;
     },
     $onDate: function (src, value) {
-      if (isNaN(Date.parse(src)) || isNaN(Date.parse(value))) return false;
+      if (isNaN(Date.parse(src)) || isNaN(Date.parse(value))) 
+        return false;
+
       return Date.parse(src) === Date.parse(value);
     },
     $beforeDate: function (src, value) {
-      if (isNaN(Date.parse(src)) || isNaN(Date.parse(value))) return false;
+      if (isNaN(Date.parse(src)) || isNaN(Date.parse(value))) 
+        return false;
+
       return Date.parse(src) < Date.parse(value);
     },
     $afterDate: function (src, value) {
-      if (isNaN(Date.parse(src)) || isNaN(Date.parse(value))) return false;
+      if (isNaN(Date.parse(src)) || isNaN(Date.parse(value))) 
+        return false;
+
       return Date.parse(src) > Date.parse(value);
     },
     $or: function (src, arr, key) {
       for (var i = 0; i < arr.length; i++) {
-        if (exec(src, arr[i], key)) return true;
+        if (exec(src, arr[i], key)) 
+          return true;
       }
       return false;
     },
@@ -395,13 +502,17 @@
         for (var i = 0; i < src.length; i++) {
           rootKey = key + '[' + i + '].';
           currentState = validall.test(src[i], options);
-          if (!currentState && !forceAll) return false;
+
+          if (!currentState && !forceAll) 
+            return false;
+
           state.push(currentState);
 
         }
 
         rootKey = "";
         return state.every(function (item) { return item === true; });
+
       } else {
         errors.push("'" + key + "' is not an array");
         return false;
@@ -411,34 +522,66 @@
 
   function exec(src, options, key) {
     var results = [];
+    var state;
 
     key = rootKey + key;
 
-    for (var option in options) {
-      if (option === '$message') continue;
+    if (Array.isArray(options)) {
 
-      if (operators[option]) {
-        var state = operators[option](src, options[option], key);
-        if (!state) {
-          if (options.$message) errors.push(options.$message);
-          else if (options.$message === undefined && option !== '$or' && option !== '$each') {
-            var message = messages[option],
-              data = {};
+      for (var i = 0; i < options.length; i++) {
+        state = exec(src, options[i], key);
 
-            if (option.toLowerCase().indexOf('range') > -1) data = { key: key, min: options[option][0], max: options[option][1] };
-            else if (Array.isArray(options[option]) || options[option] instanceof RegExp) data = { key: key, value: options[option].toString() };
-            else if (typeof options[option] === 'object') data = { key: key, value: JSON.stringify(options[option], null, 2) };
-            else data = { key: key, value: options[option] };
-
-            if (typeof options[option] === 'function') errors.push(messages.none);
-            else errors.push(compile(message, data));
-          }
-          if (!forceAll) return false;
-        }
+        if (!state && !forceAll)
+            return false;
 
         results.push(state);
-      } else return false;
+      }
+
+    } else {
+
+      for (var option in options) {
+        if (option === '$message')
+          continue;
+  
+        if (operators[option]) {
+          state = operators[option](src, options[option], key);
+
+          if (!state) {
+
+            if (options.$message)
+              errors.push(options.$message);
+
+            else if (options.$message === undefined && option !== '$or' && option !== '$each') {
+              var message = messages[option],
+                data = {};
+  
+              if (option.toLowerCase().indexOf('range') > -1)
+                data = { key: key, min: options[option][0], max: options[option][1] };
+              else if (Array.isArray(options[option]) || options[option] instanceof RegExp)
+                data = { key: key, value: options[option].toString() };
+              else if (typeof options[option] === 'object')
+                data = { key: key, value: JSON.stringify(options[option], null, 2) };
+              else
+                data = { key: key, value: options[option] };
+  
+              if (typeof options[option] === 'function')
+                errors.push(messages.none);
+              else
+                errors.push(compile(message, data));
+            }
+
+            if (!forceAll)
+              return false;
+          }
+  
+          results.push(state);
+
+        } else {
+          return false;
+        }
+      }
     }
+
 
     return results.every(function (state) { return state; });
   }
@@ -462,37 +605,45 @@
 
       level++;
 
-      if (!obj || typeof obj !== 'object') return ['Invalid options'];
+      if (!obj || typeof obj !== 'object')
+        return ['Invalid options'];
+
       var results = [];
 
       for (var prop in obj) {
         if (prop === '$or') {
           for (var i = 0; i < obj[prop].length; i++)
-            if (test.call(this, src, obj[prop][i])) return true;
+            if (test.call(this, src, obj[prop][i]))
+              return true;
 
           return false;
         }
 
         var currentValue;
 
-        if (prop === '$root') currentValue = src;
-        else currentValue = fromPath(src, prop);
-
-        if (currentValue === undefined) return false;
+        if (prop === '$root')
+          currentValue = src;
+        else
+          currentValue = fromPath(src, prop);
+        
         if (typeof obj[prop] === 'object') {
           var options = obj[prop];
           results.push(exec(currentValue, options, prop));
         } else {
           var state = currentValue === obj[prop];
           results.push(state);
-          if (!state) errors.push("'" + prop + "' must equals " + obj[prop]);
+
+          if (!state)
+            errors.push("'" + prop + "' must equals " + obj[prop]);
         }
       }
 
       level--;
 
-      if (results.every(function (state) { return state; })) return true;
-      else return false;
+      if (results.every(function (state) { return state; }))
+        return true;
+      else
+        return false;
     }
   };
 
