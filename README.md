@@ -21,16 +21,16 @@ $ npm install validall
 var validall = require("validall");
 
 var isValid = validall(user, {
-username: { $type: 'string', $required: true },
-email: { $is: 'email' },
-img: 'string',
-password: { $regex: /^[a-zA-Z0-9_]{6,}$/ },
-roles: { $all: ['admin', 'author', 'subscriber'], $message: 'unknown role!!' },
-age: { $gte: 12 },
-aricles: [{
-  $size: { lt: 15 },
-  date: { before: '22/06/1016' }
-}]
+  username: { $type: 'string', $required: true },
+  email: { $is: 'email' },
+  img: 'string',
+  password: { $regex: /^[a-zA-Z0-9_]{6,}$/ },
+  roles: { $all: ['admin', 'author', 'subscriber'], $message: 'unknown role!!' },
+  age: { $gte: 12 },
+  aricles: [{
+    $size: { lt: 15 },
+    date: { before: '22/06/1016' }
+  }]
 });
 ```
 
@@ -44,7 +44,7 @@ In case **validall()** returned false value you can access the error message thr
 
 ```js
 var isValid = validall(user, {
-email: { $is: 'email'}
+  email: { $is: 'email'}
 }, true);
 
 console.log(validall.message);
@@ -65,16 +65,16 @@ You can add your custom message as we will see later.
 Checks the type of the value.
 ```js
 var isValid = validall(user, {
-name: 'string',
-// or
-name: { $type: 'string' }
+  name: 'string',
+  // or
+  name: { $type: 'string' }
 });
 ```
 
 The second way allows you to add more options when needed.
 ```js
 var isValid = validall(user, {
-roles: { $type: { $in: ['string', 'string[]'] }
+  roles: { $type: { $in: ['string', 'string[]'] }
 });
 ```
 
@@ -105,7 +105,7 @@ Checks the type of the value.
 
 ```js
 var isValid = validall(user, {
-email: { $is: 'email' }
+  email: { $is: 'email' }
 });
 ```
 
@@ -129,7 +129,7 @@ Checks if value is not undefined.
 
 ```js
 var isValid = validall(user, {
-username: { $required: true }
+  username: { $required: true }
 });
 ```
 
@@ -142,7 +142,7 @@ Add a value to the current field if it was not set
 
 ```js
 var isValid = validall(user, {
-role: { $default: 'subscriber' }
+  role: { $default: 'subscriber' }
 });
 ```
 
@@ -155,9 +155,9 @@ Checks if the src value is equal to argumant provided.
 
 ```js
 var isValid = validall(user, {
-active: true
-// or
-active: { $equals: true }
+  active: true
+  // or
+  active: { $equals: true }
 });
 ```
 
@@ -165,8 +165,8 @@ The first way is only used with primitive types, and you should be careful with 
 
 ```js
 var isValid = validall(user, {
-username: 'string'  // check type
-role: 'admin'       // check equality
+  username: 'string'  // check type
+  role: 'admin'       // check equality
 });
 ```
 
@@ -180,7 +180,7 @@ Same as '$equals' operator, but has a deep comparative process.
 
 ```js
 var publish = validall(response, {
-$identical: previousResponse
+  $identical: previousResponse
 });
 ```
 
@@ -193,7 +193,7 @@ Tests the current value with a regular expression.
 
 ```js
 var isValid = validall(user, {
-password: { $regex: /^[a-zA-Z0-9_]{8,16}$/ }
+  password: { $regex: /^[a-zA-Z0-9_]{8,16}$/ }
 });
 ```
 
@@ -204,7 +204,7 @@ Tests if the current value number is larger than a specific number.
 
 ```js
 var isValid = validall(user, {
-rank: { $gt: 3 }
+  rank: { $gt: 3 }
 });
 ```
 
@@ -215,7 +215,7 @@ Tests if the current value number is larger than or equals to a specific number.
 
 ```js
 var isValid = validall(user, {
-rank: { $gte: 4 }
+  rank: { $gte: 4 }
 });
 ```
 
@@ -226,7 +226,7 @@ Tests if the current value number is less than a specific number.
 
 ```js
 var isValid = validall(article, {
-likes: { $lt: 50 }
+  likes: { $lt: 50 }
 });
 ```
 
@@ -237,7 +237,7 @@ Tests if the current value number is less than or equals to a specific number.
 
 ```js
 var isValid = validall(article, {
-likes: { $lte: 50 }
+  likes: { $lte: 50 }
 });
 ```
 
@@ -248,7 +248,7 @@ Tests if the current value number is between a specific range.
 
 ```js
 var isValid = validall(article, {
-read: { $range: [5, 50] }
+  read: { $range: [5, 50] }
 });
 ```
 
@@ -259,13 +259,13 @@ Checks the size or length of arrays, objects or strings!.
 
 ```js
 var isValid = validall(user, {
-aricles: { $size: 10 }
-// or
-articles: { $size: { $lg: 10 } }
-// or
-articles: { $size: { $range: [10, 20] } }
-// or
-articles: { $size: { $in: [10, 15] } }
+  aricles: { $size: 10 }
+  // or
+  articles: { $size: { $lg: 10 } }
+  // or
+  articles: { $size: { $range: [10, 20] } }
+  // or
+  articles: { $size: { $in: [10, 15] } }
 });
 ```
 
@@ -276,9 +276,9 @@ Checks if the the current value shares any items with the giving list or single 
 
 ```js
 var isValid = validall(users, [{
-_id: { $in: '5486456cadf84fa' }  // array with string
-username: { $in: ['pancake', 'cheesecake'] }  // string with array
-roles: { $in: ['admin', 'author'] } // array with array
+  _id: { $in: '5486456cadf84fa' }  // array with string
+  username: { $in: ['pancake', 'cheesecake'] }  // string with array
+  roles: { $in: ['admin', 'author'] } // array with array
 }]);
 ```
 
@@ -291,7 +291,7 @@ Checks if the the current value is all in the giving list.
 
 ```js
 var isValid = validall(articles, [{
-categories: { $all: ['news', 'sport', 'movies', 'science'] }  // no way out
+  categories: { $all: ['news', 'sport', 'movies', 'science'] }  // no way out
 }]);
 ```
 
@@ -302,9 +302,9 @@ Puts an object keys into the context
 
 ```js
 var isValid = validall(user, [{
-tools: { $keys: { $in: ['design', 'style', 'validation'] } }  // whatever
-// or
-tools: { $keys: { $size: 3 } }
+  tools: { $keys: { $in: ['design', 'style', 'validation'] } }  // whatever
+  // or
+  tools: { $keys: { $size: 3 } }
 }]);
 ```
 
@@ -315,7 +315,7 @@ Checks if the value date points to the same giving date.
 
 ```js
 var isValid = validall(article, {
-publishDate: { $on: "02-06-2016" }
+  publishDate: { $on: "02-06-2016" }
 });
 ```
 
@@ -326,7 +326,7 @@ Checks if the value data is before the giving date.
 
 ```js
 var isValid = validall(article, {
-publishDate: { $before: "02-06-2016" }
+  publishDate: { $before: "02-06-2016" }
 });
 ```
 
@@ -337,7 +337,7 @@ Checks if the value data is after the giving date.
 
 ```js
 var isValid = validall(article, {
-publishDate: { $after: "02-06-2016" }
+  publishDate: { $after: "02-06-2016" }
 });
 ```
 
@@ -349,12 +349,12 @@ you can provide your own function to validate the current value.
 ```js
 var isValid = validall(user, {
 someField: { $fn: function (someField, fieldPath) {
-    var state = false;
-    // your test goes here
-    return state;
-  },
-  $message: 'your message'      // You should add your error message otherwise 'unhandled error message' will be returned
-}
+      var state = false;
+      // your test goes here
+      return state;
+    },
+    $message: 'your message'      // You should add your error message otherwise 'unhandled error message' will be returned
+  }
 });
 ```
 
@@ -369,7 +369,7 @@ Negate children operators results.
 
 ```js
 var isValid = validall(article, {
-categories: { $not: { $in: ['news', 'sport', 'movies', 'science'] } } // no way in
+  categories: { $not: { $in: ['news', 'sport', 'movies', 'science'] } } // no way in
 });
 ```
 
@@ -381,7 +381,7 @@ Returns false when at least one operator in the list is failed.
 
 ```js
 var isValid = validall(article, {
-categories: { $not: { $in: ['news', 'sport', 'movies', 'science'] } } // no way in
+  categories: { $not: { $in: ['news', 'sport', 'movies', 'science'] } } // no way in
 });
 ```
 
@@ -393,7 +393,7 @@ Returns true when at least one operator of a list is passed.
 
 ```js
 var isValid = validall(user, {
-age: { $or: [{ $type: 'number' }, { $type: 'string' }] }
+  age: { $or: [{ $type: 'number' }, { $type: 'string' }] }
 });
 ```
 
@@ -405,7 +405,7 @@ Returns true when no operator in the list is passed.
 
 ```js
 var isValid = validall(user, {
-name: { $nor: [{ $is: 'number' }, { $size: { $gt: 15 } }] }
+  name: { $nor: [{ $is: 'number' }, { $size: { $gt: 15 } }] }
 });
 ```
 
@@ -417,8 +417,8 @@ Returns true when only one operator in the list is passed but not the others.
 
 ```js
 var isValid = validall(user, {
-// when user has admin role, he has no need for any other role.
-roles: { $xor: [{ $in: 'admin' }, { $size: { $gt: 1 } }] }
+  // when user has admin role, he has no need for any other role.
+  roles: { $xor: [{ $in: 'admin' }, { $size: { $gt: 1 } }] }
 });
 ```
 
@@ -431,7 +431,7 @@ This option allows you to add your custom error message.
 
 ```js
 var isValid = validall(user, {
-email: { $is: 'email', $message: 'invalid email' }
+  email: { $is: 'email', $message: 'invalid email' }
 });
 ```
 
@@ -439,7 +439,7 @@ email: { $is: 'email', $message: 'invalid email' }
 
 ```js
 var isValid = validall(user, {
-email: { $is: 'email', $message: 'invalid email: {{received}}' }
+  email: { $is: 'email', $message: 'invalid email: {{received}}' }
 });
 ```
 
@@ -457,7 +457,7 @@ email: { $is: 'email', $message: 'invalid email: {{received}}' }
 You can extend validall with your own messages or operators to use whenever you needed them.
 
 ```js
-validall.extend('$even', value => value % 2 === 0);
+  validall.extend('$even', value => value % 2 === 0);
 ```
 
 ### arguments:
@@ -489,7 +489,7 @@ But there is a better solution.
 Keep your function as it is, however in your error message just add the {{not}} keyword in the appropriate place.
 
 ```js
-validall.extend('$even', (value) => value % 2 === 0, "{{fieldPath}} should {{not}} be an even number!");
+  validall.extend('$even', (value) => value % 2 === 0, "{{fieldPath}} should {{not}} be an even number!");
 ```
 
 ### $or, $nor, $xor:
@@ -505,11 +505,11 @@ In some cases you do not want this type of behavior for a specific errors, like 
 expect is used only with checking types:
 
 ```js
-validall.extend('hasRole', (value, role) => {
-// you are expecting that the 'role' argument is string
-validall.expect(role, 'string');
-// or maybe both string or 'string[]'
-validall.expect(role, ['string', 'string[]']);
+  validall.extend('hasRole', (value, role) => {
+  // you are expecting that the 'role' argument is string
+  validall.expect(role, 'string');
+  // or maybe both string or 'string[]'
+  validall.expect(role, ['string', 'string[]']);
 
 }, "{{fieldPath}} should {{not}} include {{expected}}")
 ```
@@ -524,13 +524,13 @@ Throw is more general, you can throw a string message or you can throw new **val
 ```js
 validall.extend('hasRole', (value, role) => {
 
-// throwing a string
-if (!validall.util.type.string(role))
-  throw "invalid option: " + role;
+  // throwing a string
+  if (!validall.util.type.string(role))
+    throw "invalid option: " + role;
 
-// or throwing a valdiall.Error
-if (!validall.util.type.string(role))
-  throw new validall.Error('$type_error', { expected: 'string', received: typeof role });
+  // or throwing a valdiall.Error
+  if (!validall.util.type.string(role))
+    throw new validall.Error('$type_error', { expected: 'string', received: typeof role });
 
 }, "{{fieldPath}} should {{not}} include {{expected}}")
 ```
