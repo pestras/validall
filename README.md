@@ -247,7 +247,7 @@ likes: { $lte: 50 }
 Tests if the current value number is between a specific range.
 
 ```js
-var isValid = validall.test(article, {
+var isValid = validall(article, {
 read: { $range: [5, 50] }
 });
 ```
@@ -258,7 +258,7 @@ read: { $range: [5, 50] }
 Checks the size or length of arrays, objects or strings!.
 
 ```js
-var isValid = validall.test(user, {
+var isValid = validall(user, {
 aricles: { $size: 10 }
 // or
 articles: { $size: { $lg: 10 } }
@@ -275,7 +275,7 @@ articles: { $size: { $in: [10, 15] } }
 Checks if the the current value shares any items with the giving list or single value.
 
 ```js
-var isValid = validall.test(users, [{
+var isValid = validall(users, [{
 _id: { $in: '5486456cadf84fa' }  // array with string
 username: { $in: ['pancake', 'cheesecake'] }  // string with array
 roles: { $in: ['admin', 'author'] } // array with array
@@ -290,7 +290,7 @@ It is not only about strings, you can use what ever type, but the equality test 
 Checks if the the current value is all in the giving list.
 
 ```js
-var isValid = validall.test(articles, [{
+var isValid = validall(articles, [{
 categories: { $all: ['news', 'sport', 'movies', 'science'] }  // no way out
 }]);
 ```
@@ -301,7 +301,7 @@ categories: { $all: ['news', 'sport', 'movies', 'science'] }  // no way out
 Puts an object keys into the context
 
 ```js
-var isValid = validall.test(user, [{
+var isValid = validall(user, [{
 tools: { $keys: { $in: ['design', 'style', 'validation'] } }  // whatever
 // or
 tools: { $keys: { $size: 3 } }
@@ -314,7 +314,7 @@ tools: { $keys: { $size: 3 } }
 Checks if the value date points to the same giving date.
 
 ```js
-var isValid = validall.test(article, {
+var isValid = validall(article, {
 publishDate: { $on: "02-06-2016" }
 });
 ```
@@ -325,7 +325,7 @@ publishDate: { $on: "02-06-2016" }
 Checks if the value data is before the giving date.
 
 ```js
-var isValid = validall.test(article, {
+var isValid = validall(article, {
 publishDate: { $before: "02-06-2016" }
 });
 ```
@@ -336,7 +336,7 @@ publishDate: { $before: "02-06-2016" }
 Checks if the value data is after the giving date.
 
 ```js
-var isValid = validall.test(article, {
+var isValid = validall(article, {
 publishDate: { $after: "02-06-2016" }
 });
 ```
@@ -347,7 +347,7 @@ publishDate: { $after: "02-06-2016" }
 you can provide your own function to validate the current value.
 
 ```js
-var isValid = validall.test(user, {
+var isValid = validall(user, {
 someField: { $fn: function (someField, fieldPath) {
     var state = false;
     // your test goes here
@@ -368,7 +368,7 @@ someField: { $fn: function (someField, fieldPath) {
 Negate children operators results.
 
 ```js
-var isValid = validall.test(article, {
+var isValid = validall(article, {
 categories: { $not: { $in: ['news', 'sport', 'movies', 'science'] } } // no way in
 });
 ```
@@ -380,7 +380,7 @@ categories: { $not: { $in: ['news', 'sport', 'movies', 'science'] } } // no way 
 Returns false when at least one operator in the list is failed.
 
 ```js
-var isValid = validall.test(article, {
+var isValid = validall(article, {
 categories: { $not: { $in: ['news', 'sport', 'movies', 'science'] } } // no way in
 });
 ```
@@ -392,7 +392,7 @@ categories: { $not: { $in: ['news', 'sport', 'movies', 'science'] } } // no way 
 Returns true when at least one operator of a list is passed.
 
 ```js
-var isValid = validall.test(user, {
+var isValid = validall(user, {
 age: { $or: [{ $type: 'number' }, { $type: 'string' }] }
 });
 ```
@@ -404,7 +404,7 @@ age: { $or: [{ $type: 'number' }, { $type: 'string' }] }
 Returns true when no operator in the list is passed.
 
 ```js
-var isValid = validall.test(user, {
+var isValid = validall(user, {
 name: { $nor: [{ $is: 'number' }, { $size: { $gt: 15 } }] }
 });
 ```
@@ -416,7 +416,7 @@ name: { $nor: [{ $is: 'number' }, { $size: { $gt: 15 } }] }
 Returns true when only one operator in the list is passed but not the others.
 
 ```js
-var isValid = validall.test(user, {
+var isValid = validall(user, {
 // when user has admin role, he has no need for any other role.
 roles: { $xor: [{ $in: 'admin' }, { $size: { $gt: 1 } }] }
 });
@@ -430,7 +430,7 @@ When any operator fails it throws its default message.
 This option allows you to add your custom error message.
 
 ```js
-var isValid = validall.test(user, {
+var isValid = validall(user, {
 email: { $is: 'email', $message: 'invalid email' }
 });
 ```
@@ -438,7 +438,7 @@ email: { $is: 'email', $message: 'invalid email' }
 **validall** considers meseages as templates, it can pass some special keywords in them if you asked for them.
 
 ```js
-var isValid = validall.test(user, {
+var isValid = validall(user, {
 email: { $is: 'email', $message: 'invalid email: {{received}}' }
 });
 ```
