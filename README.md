@@ -379,12 +379,6 @@ var isValid = validall(article, {
 
 Returns false when at least one operator in the list is failed.
 
-```js
-var isValid = validall(article, {
-  categories: { $not: { $in: ['news', 'sport', 'movies', 'science'] } } // no way in
-});
-```
-
 
 
 ### $or:
