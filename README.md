@@ -451,7 +451,7 @@ var isValid = validall(user, {
 You can extend validall with your own messages or operators to use whenever you needed them.
 
 ```js
-  validall.extend('$even', "{{fieldPath}} should {{not}} be an even number!", value => value % 2 === 0);
+  validall.extend('$even', "{{fieldPath}} should be an even number!", value => value % 2 === 0);
 ```
 
 ### arguments:
@@ -471,7 +471,7 @@ The operator must returns a boolean value.
 
 
 
-## Errors Handling:
+## Error Handling:
 
 When extending **validall** or using the **$fn** operator, you add your own function to validate the current value.
 There are some conditions you need to be aware of:
