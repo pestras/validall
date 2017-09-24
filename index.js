@@ -8,692 +8,1017 @@
   }
 })(this || window, function () {
 
-  function compile(template, data) {
-    var reg = /\{\{([\w\.]+)\}\}/g;
+  /** Current Source to validate */
+  let currentSrc = null;
 
-    return template.replace(reg, function (match, $1) {
-      var parts = $1.split("."), temp;
+  /** List of all actions done by operators */
+  let logs = [];
 
-      if (parts.length == 1) 
-        return data[parts[0]];
+  let oppositeState = false;
 
-      temp = data[parts[0]];
+  /** validation state can be 'pending' or 'opposite' or nor */
+  let pendingLevel = 0;
+  let pendingOperator = "";
+  let pendingIterator = [];
 
-      for (var i = 1; i < parts.length; i++) {
-        temp = temp[parts[i]];
-      }
+  /** Current custom error message */
+  let currentMessage = "";
+  let currentData = { fieldPath: "", operator: "", expected: "", received: "", not: "" };
+  let errMap = [];
 
-      return temp;
-    });
-  }
 
-  function fromPath(obj, path, value, inject) {
-    path = path.split('.');
+  /** Validall Error class */
+  class ValidallError {
+    /**
+     * ValidallError Constructor
+     * @param {String | {message: String, data: any}[]} options Template message or list of messages.
+     * @param {any} [data] Data to fill the template
+     * @param {String} [connector]
+     */
+    constructor(options, data, connector) {
+      this.message = "";
+      this.map = [];
 
-    if (path.length === 1) {
+      if (typeof options === 'string')
+        options = [{ message: options, data: data }];
 
-      if (!value) 
-        return obj[path[0]];
-      else if (inject) 
-        return obj[path[0]] = value;
-      else if (obj.hasOwnProperty(path[0])) 
-        return obj[path[0]] = value;
-      else 
-        return false;
+      this._generate(options);
     }
 
-    let temp = obj;
+    _generate(options) {
+      for (let i = 0; i < options.length; i++) {
+        let message = operators[options[i].message] ? (messages[options[i].message] || "") : options[i].message;
 
-    for (let j = 0; j < path.length; j++) {
-
-      if (temp[path[j]]) {
-        temp = temp[path[j]];
-
-        if (j === path.length - 2 && value) {
-          if (inject || obj.hasOwnProperty(path[j + 1])) 
-            return !!(temp[path[j + 1]] = value);
-          else 
-            return false;
-
+        if (message) {
+          this.message += util.compile((message), Object.assign({}, currentData, options[i].data || {}));
+        } else {
+          this.message += util.compile("unknown error message: (" + options[i].message + ")", Object.assign({}, currentData, options[i].data || {}));
         }
 
-        if (j === path.length - 1)
-          return temp;
+        this.map.push(Object.assign({}, currentData, options[i].data || {}));
 
-      } else if (inject) {
-        temp[path[j--]] = {};
-      } else {
-        return false;
+        if (i < options.length - 1)
+          this.message += pendingOperator ? (" " + pendingOperator + " ") : "";
       }
+
+      if (this.map.length === 1)
+        this.map = this.map[0];
     }
-  }
+  };
 
-  function equals(arg1, arg2, deep) {
+  /** utilities for validall */
+  let util = {
 
-    if (arg1 instanceof Array && arg2 instanceof Array) {
-      if (arg1.length !== arg2.length) 
-        return false;
+    /**
+     * Compile string template with data provided
+     * @param {String} template 
+     * @param {any} data 
+     * @return {String}
+     */
+    compile(template, data) {
+      let reg = /\{\{([\w\.]+)\}\}/g;
 
-      for (var i = 0; i < arg1.length; i++) {
-        var pass = false;
+      let result = template.replace(reg, (match, $1) => {
+        let parts = $1.split("."), temp;
 
-        for (var j = 0; j < arg2.length; j++) {
+        if (parts.length == 1)
+          return data[parts[0]] || "";
 
-          if ((deep && equals(arg1[i], arg2[j])) || (!deep && arg1[i] === arg2[j])) {
+        temp = data[parts[0]];
 
-            if (equals(arg1[i], arg2[j])) {
-              pass = true;
-              break;
-            }
+        for (let i = 1; i < parts.length; i++)
+          temp = temp[parts[i]];
+
+        return temp || "";
+      });
+
+      return result.replace(/  /g, " ");
+    },
+
+    /**
+     * Get or set value from a path to an object property and returns the source object
+     * @param {any} src The source object
+     * @param {string} path the path to the property
+     * @param {any} value the new valur '_optional_'
+     * @param {boolean} inject Add the value to the object and create the path even if it is not fully exists '_optional_'
+     * @return {any}
+     */
+    fromPath(src, path, value, inject) {
+      path = path.split('.');
+
+      if (path.length === 1) {
+
+        if (!value)
+          src[path[0]];
+        else if (inject)
+          src[path[0]] = value;
+        else if (src.hasOwnProperty(path[0]))
+          src[path[0]] = value;
+
+        return src;
+      }
+
+      let temp = src;
+
+      for (let j = 0; j < path.length; j++) {
+
+        if (temp[path[j]]) {
+          temp = temp[path[j]];
+
+          if (j === path.length - 2 && value) {
+            if (inject || src.hasOwnProperty(path[j + 1]))
+              temp[path[j + 1]] = value;
+
+            return obj;
           }
-        }
 
-        if (!pass) 
-          return false;
+          if (j === path.length - 1)
+            return obj;
+
+        } else if (inject) {
+          temp[path[j--]] = {};
+        } else {
+          return obj;
+        }
       }
 
-      return true;
+      return obj;
+    },
 
-    } else if (arg1 instanceof Date && arg2 instanceof Date) {
-      return arg1.toDateString() === arg2.toDateString();
-    } else if (arg1 instanceof RegExp && arg2 instanceof RegExp) {
-      return arg1.toString() === arg2.toString();
-    } else if (arg1 instanceof Object && arg2 instanceof Object) {
+    /**
+     * Compares two objects field by field
+     * @param {any} src The source object.
+     * @param {any} target The object to compare with.
+     * @param {Boolean} deep Make a deep comparision '_optional_'.
+     * @return {Boolean}
+     */
+    equals(src, target, deep) {
+      if (src instanceof Array && target instanceof Array) {
+        if (src.length !== target.length)
+          return false;
 
-      if (Object.keys(arg1).length !== Object.keys(arg2).length) 
-        return false;
+        for (let i = 0; i < src.length; i++) {
+          let pass = false;
 
-      for (var prop1 in arg1) {
+          for (let j = 0; j < target.length; j++) {
 
-        if (arg1.hasOwnProperty(prop1)) {
-          var pass = false;
+            if ((deep && equals(src[i], target[j])) || (!deep && src[i] === target[j])) {
 
-          for (var prop2 in arg2) {
-
-            if (arg2.hasOwnProperty(prop1)) {
-
-              if ((deep && equals(arg1[prop1], arg2[prop2])) || (!deep && arg1[prop1] === arg2[prop2])) {
+              if (equals(src[i], target[j])) {
                 pass = true;
                 break;
               }
             }
           }
 
-          if (!pass) 
+          if (!pass)
             return false;
         }
+
+        return true;
+
+      } else if (src instanceof Date && target instanceof Date) {
+        return src.toDateString() === target.toDateString();
+      } else if (src instanceof RegExp && target instanceof RegExp) {
+        return src.toString() === target.toString();
+      } else if (src instanceof Object && target instanceof Object) {
+
+        if (Object.keys(src).length !== Object.keys(target).length)
+          return false;
+
+        for (let prop1 in src) {
+
+          if (src.hasOwnProperty(prop1)) {
+            let pass = false;
+
+            for (let prop2 in target) {
+
+              if (target.hasOwnProperty(prop1)) {
+
+                if ((deep && equals(src[prop1], target[prop2])) || (!deep && src[prop1] === target[prop2])) {
+                  pass = true;
+                  break;
+                }
+              }
+            }
+
+            if (!pass)
+              return false;
+          }
+        }
+
+        return true;
+
+      } else {
+        return src === target;
+      }
+    },
+
+    /**
+     * Checkss if value is not undefined.
+     * @param {any} value 
+     * @return {Boolean}
+     */
+    isSet(value) {
+      return value !== undefined || value !== null || value != "";
+    },
+
+    /**
+     * Checks if value is a true value.
+     * @param {any} value
+     * @return {Boolean}
+     */
+    isTrue(value) {
+      if (typeof value === 'string')
+        value = value.replace(/\s/g, "");
+
+      return !!value;
+    },
+
+    /**
+     * Checks if value is set and not empty string, array or object.
+     * _accepts falsy values_
+     * @param {any} value
+     * @return {Boolean}
+     */
+    isFilled(value) {
+      if (!isSet(value))
+        return false;
+
+      if (typeof value === 'string' && !value.trim().length)
+        return false;
+
+      if (Array.isArray(value) && !value.length)
+        return false;
+
+      if (typeof value === 'object' && !Object.keys(value).length)
+        return false;
+
+      return true;
+    },
+
+    getType(value) {
+      for (let prop in this.type) {
+        if (this.type[prop](value))
+          return prop;
+      }
+
+      return 'any';
+    },
+
+    type: {
+      undefined: (value) => value === undefined,
+      number: (value) => typeof value === 'number',
+      string: (value) => typeof value === 'string',
+      html: (value) => typeof value === 'string',
+      boolean: (value) => typeof value === 'boolean',
+      primitive: (value) => (typeof value === 'number' || typeof value === 'string' || typeof value === 'boolean'),
+      date: (value) => value instanceof Date,
+      regexp: (value) => value instanceof RegExp,
+      object: (value) => typeof value === "object" && value.toString() === "[object Object]",
+      function: (value) => typeof value === 'function',
+      'number[]': (value) => Array.isArray(value) && value.every(item => typeof item === 'number'),
+      'string[]': (value) => Array.isArray(value) && value.every(item => typeof item === 'string'),
+      'boolean[]': (value) => Array.isArray(value) && value.every(item => typeof item === 'boolean'),
+      'primitive[]': (value) => Array.isArray(value) && value.every(item => (typeof item === 'number' || typeof item === 'string' || typeof item === 'boolean')),
+      'date[]': (value) => Array.isArray(value) && value.every(item => item instanceof Date),
+      'regexp[]': (value) => Array.isArray(value) && value.every(item => item instanceof RegExp),
+      'object[]': (value) => Array.isArray(value) && value.every(item => typeof item === "object" && item.toString() === "[object Object]"),
+      'any[]': (value) => Array.isArray(value),
+      any: () => true
+    },
+
+    is: {
+      null: (value) => value === null,
+      number: (value) => typeof value === 'number' || Number(value),
+      set: (value) => value !== undefined,
+      'true': (value) => util.isTrue(value),
+      filled: (value) => util.isFilled(value),
+      date: (Value) => value instanceof Date || Date.parse(value),
+      email: (value) => /^([\w\-]+(?:\.[\w\-]+)*)@((?:[\w\-]+\.)*\w[\w\-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i.test(value),
+      url: (value) => /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[A-Z0-9+&@#\/%=~_|$])/igm.test(value),
+    }
+  };
+
+  /**
+   * Throws error for invalid types.
+   * @param {*} value 
+   * @param {string} type 
+   */
+  function expect(value, types) {
+    types = Array.isArray(types) ? types : [types]
+
+    for (let i = 0; i < types.length; i++) {
+      if (!util.type[types[i]])
+        throw new ValidallError("invalid type check, type: " + typs[i] + 'is unknown');
+      else if (util.type[types[i]](value))
+        return
+    }
+
+    let first = types.shift();
+    let expectedTypes = types.length ? types.reduce((prev, curr) => prev + " or " + curr, first) : first;
+
+    throw new ValidallError('invalid_option', { expected: expectedTypes, received: typeof value });
+  }
+
+  /**
+   * Seperate schema keys to fields and operators.
+   * @param {any} schema
+   * @return {{operators: any, fields: any}}
+   */
+  function separateSchema(schema) {
+    let result = { _operators: {}, fields: {} };
+
+
+    for (let prop in schema) {
+      if (operators[prop] || prop === "$message") {
+        result._operators[prop] = schema[prop];
+      } else {
+        result.fields[prop] = schema[prop];
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Pushs new error to the errors array.
+   * @param {boolean} passed
+   * @param {string} template
+   */
+  function pushLog(passed, message) {
+    // checking template name.
+    if (message && typeof message === 'string') {
+      // checking if state is pass  
+      if (passed) {
+        // checking if oppositeState
+        if (oppositeState) {
+          currentData.not = 'not';
+
+          // checking pendingLevel
+          if (pendingLevel) {
+            logs[pendingIterator[pendingLevel]] = { message, data: Object.assign({}, currentData) };
+          } else {
+            throw new ValidallError(message);
+          }
+        } else {
+          currentData.not = '';
+        }
+        // checking if state is an error
+      } else {
+        // checking if not oppositeState
+        if (!oppositeState) {
+          // checking pendingLevel
+          if (pendingLevel) {
+            logs[pendingIterator[pendingLevel]] = { message, data: Object.assign({}, currentData) };
+          } else {
+            throw new ValidallError(message);
+          }
+        }
+      }
+      // template name is not valid
+    } else {
+      throw new ValidallError('invalid_message', { message });
+    }
+  }
+
+  /** Error messages templates. */
+  const messages = {
+    invalid_message: "message is not valid: {{message}}!",
+    unknown_message: "message template name: {{templateName}}, is not found!",
+    invalid_option: "invalid option type: '{{received}}' - expecting: '{{expected}}'",
+    unmeasurable: "Unmeasurable value: {{value}}",
+    $type: "{{fieldPath}} must {{not}} be of type '{{expected}}'",
+    $is: "{{fieldPath}} must {{not}} be a valid '{{expected}}'",
+    $required: "'{{fieldPath}} is {{not}} required'",
+    $equals: "'{{fieldPath}}' must {{not}} equals '{{expected}}'",
+    $identical: "'{{fieldPath}}' must {{not}} deeply equals '{{expected}}'",
+    $gt: "'{{fieldPath}}' must {{not}} be greater than {{expected}}",
+    $gte: "'{{fieldPath}}' must {{not}} be greater than or equals to {{expected}}",
+    $lt: "'{{fieldPath}}' must {{not}} be less than {{expected}}",
+    $lte: "'{{fieldPath}}' must {{not}} be less than or equals to {{expected}}",
+    $range: "'{{fieldPath}}' must {{not}} be between '{{expected.0}}' and '{{expected.1}}'",
+    $size: "'{{fieldPath}}' size must {{not}} be {{comparative}} {{expected}}",
+    $regex: "'{{fieldPath}}' must {{not}} match pattern: {{expected}}",
+    $in: "'{{fieldPath}}' must {{not}} include any of the following values: [{{expected}}]",
+    $all: "'{{fieldPath}}' must {{not}} include all of the following values: [{{expected}}]",
+    $on: "'{{fieldPath}}' must {{not}} be on date: {{expected}}",
+    $before: "'{{fieldPath}}' must {{not}} be before date: {{expected}}",
+    $after: "'{{fieldPath}}' must {{not}} be after date: {{expected}}",
+    none: "unhandled error for operator: '{{operator}}'!"
+  };
+
+  /** Collection of function used to validate values */
+  const operators = {
+
+    /**
+     * Checks the type of the source
+     * @param {any} value 
+     * @param {string | *} options 
+     * @param {String} key Current key being validated 
+     * @return {Boolean};
+     */
+    $type(value, options, key) {
+      expect(options, ['string', 'object']);
+
+      if (typeof options === 'string')
+        if (util.type[options])
+          return util.type[options](value);
+        else
+          throw new ValidallError('invalid option type', { expected: 'type', received: options });
+
+      return pretest(util.getType(value), options, key + '.$type');
+    },
+
+    /**
+     * Checks if value match the specified option
+     * @param {any} value 
+     * @param {String} type 
+     * @param {String} key Current key being validated 
+     * @return {Boolean}
+     */
+    $is(value, type, key) {
+      expect(type, 'string');
+
+      type = type.toLowerCase();
+
+      if (util.is[type])
+        return util.is[type](value);
+
+      throw new ValidallError('invalid_option', { expected: '$is option', received: type });
+    },
+
+    /**
+     * Checks if value is not undefined.
+     * @param {any} value 
+     * @param {Boolean} required 
+     * @param {String} key Current key being validated
+     * @return {Boolean}
+     */
+    $required(value, required, key) {
+      return !required || (value && required !== undefined);
+    },
+
+    /**
+     * Add a value to the current field if it was not set
+     * @param {*} value 
+     * @param {*} defaultValue 
+     * @param {string} keyPath 
+     * @return {boolean}
+     */
+    $default(value, defaultValue, keyPath) {
+      if (!util.isSet(value)) {
+        let path = keyPath.split('.').slice(1).join('.');
+        util.fromPath(currentSrc, path, defaultValue, true);
       }
 
       return true;
+    },
 
-    } else {
-      return arg1 === arg2;
+    /**
+     * Compares two value if equals
+     * @param {*} value 
+     * @param {*} comparative 
+     * @param {string} key 
+     * @return {boolean}
+     */
+    $equals(value, comparative, key) {
+      return util.equals(value, comparative);
+    },
+
+    /**
+     * Compares two value if equals deeply
+     * @param {*} value 
+     * @param {*} comparative 
+     * @param {string} key 
+     * @return {boolean}
+     */
+    $identical(value, comparative, key) {
+      return util.equals(value, comparative, true);
+    },
+
+    /**
+     * Test value with a regular expression.
+     * @param {*} value 
+     * @param {RegExp | string} pattern 
+     * @param {string} key
+     * @return {boolean} 
+     */
+    $regex(value, pattern, key) {
+      expect(pattern, 'regexp');
+
+      currentData.expected = pattern.toString();
+      return pattern.test(value);
+    },
+
+    /**
+     * Tests if value number larger than a specific number
+     * @param {*} value 
+     * @param {number} number 
+     * @param {String} key
+     * @return {Boolean} 
+     */
+    $gt(value, number, key) {
+      expect(number, 'number');
+
+      return value > number;
+    },
+
+    /**
+     * Tests if value number larger than or equals to a specific number
+     * @param {*} value 
+     * @param {number} number 
+     * @param {String} key
+     * @return {Boolean} 
+     */
+    $gte(value, number, key) {
+      expect(number, 'number');
+
+      return value >= number;
+    },
+
+    /**
+     * Tests if value number less than a specific number
+     * @param {*} value 
+     * @param {number} number 
+     * @param {String} key
+     * @return {Boolean} 
+     */
+    $lt(value, number, key) {
+      expect(number, 'number');
+
+      return value < number;
+    },
+
+    /**
+     * Tests if value number less than or equals to a specific number
+     * @param {*} value 
+     * @param {number} number 
+     * @param {String} key
+     * @return {Boolean} 
+     */
+    $lte(value, number, key) {
+      expect(number, 'number');
+
+      return value <= number;
+    },
+
+    /**
+     * Tests if the current value number between a specific range.
+     * @param {*} value 
+     * @param {number[]} range 
+     * @param {string} key
+     * @return {Boolean}
+     */
+    $range(value, range, key) {
+      expect(range, 'number[]');
+
+      return (value >= range[0] && value <= range[1]);
+    },
+
+    /**
+     * Checks the size of an array or object.
+     * @param {*} value 
+     * @param {number | *} size 
+     * @param {string} key
+     * @return {boolean} 
+     */
+    $size(value, options, key) {
+      expect(options, ['number', 'object']);
+
+
+      let elmSize;
+
+      if (typeof value === 'string' || Array.isArray(value))
+        elmSize = value.length;
+      else if (typeof value === 'object')
+        return Object.keys(value).length;
+      else
+        throw new ValidallError('unmeasurable');
+
+      if (typeof options === 'number')
+        return elmSize === options;
+      else
+        return test(elmSize, options, key + '.$size');
+    },
+
+    /**
+     * Checks if the the current value shares any items with the giving list or single value.
+     * @param {*} values 
+     * @param {any[]} list 
+     * @param {string} key 
+     * @return {boolean}
+     */
+    $in(values, list, key) {
+      expect(list, ['primitive', 'any[]']);
+
+      values = Array.isArray(values) ? values : [values];
+      list = Array.isArray(list) ? list : [list];
+
+      for (let i = 0; i < values.length; i++)
+        if (list.indexOf(values[i]) > -1)
+          return true;
+
+      return false;
+    },
+
+    /**
+     * Checks if the the current value is all in the giving list.
+     * @param {*} values 
+     * @param {any[]} list 
+     * @param {string} key
+     * @return {boolean} 
+     */
+    $all(values, list, key) {
+      expect(list, 'any[]');
+
+      values = Array.isArray(values) ? values : [values];
+      list = Array.isArray(list) ? list : [list];
+
+      for (let i = 0; i < values.length; i++)
+        if (list.indexOf(values[i]) === -1)
+          return false;
+
+      return true;
+    },
+
+    /**
+     * Puts an object keys into the context
+     * @param {*} value 
+     * @param {number | *} size 
+     * @param {string} key
+     * @return {boolean}
+     */
+    $keys(value, options, key) {
+      expect(value, 'object');
+      expect(options, 'object');
+
+      return test(Object.keys(value), options, key + ".$keys");
+    },
+
+    /**
+     * Matches an equal date
+     * @param {Date | string} value 
+     * @param {Date | string} data
+     */
+    $on(value, data) {
+      expect(value, 'date');
+      expect(data, 'date');
+
+      return Date.parse(value) === Date.parse(date);
+    },
+
+    /**
+     * Matches an equal date;
+     * @param {Date | string} value 
+     * @param {Date | string} data
+     */
+    $before: function (value, date) {
+      expect(value, 'date');
+      expect(data, 'date');
+
+      return Date.parse(value) < Date.parse(date);
+    },
+
+    /**
+     * Matches an equal date;
+     * @param {Date | string} value 
+     * @param {Date | string} data
+     */
+    $after: function (value, date) {
+      expect(value, 'date');
+      expect(data, 'date');
+
+      return Date.parse(value) > Date.parse(date);
+    },
+
+    /**
+     * Execute a custom operator defined by the end user.
+     * @param {any} value 
+     * @param {Function} fn fn(value: any, key: String, pushLog: Function): Boolean
+     * @param {String} key
+     * @return {String} 
+     */
+    $fn(value, fn, key) {
+      expect(fn, 'function');
+
+      return fn(value, key);
+    },
+
+    /**
+     * Loops through a list of items and test each one of them.
+     * @param {*} value 
+     * @param {*} options 
+     * @param {string} key 
+     * @return {boolean}
+     */
+    $each(value, options, key) {
+      for (let i = 0; i < value.length; i++)
+        pretest(value[i], options[0], key + '[' + i + ']');
+    },
+
+    /**
+     * Negate child operators results.
+     * @param {*} value 
+     * @param {*} options 
+     * @param {string} key 
+     * @return {Boolean}
+     */
+    $not(value, options, key) {
+      oppositeState = !oppositeState;
+      let state = pretest(value, options, key);
+      oppositeState = !oppositeState;
+      return !state;
+    },
+
+    /**
+     * Returns false when only one operator of a list is failed
+     * @param {*} value 
+     * @param {any[]} options 
+     * @param {string} key
+     * @return {boolean} 
+     */
+    $and(value, options, key) {
+      expect(options, 'any[]');
+
+      for (let i = 0; i < options.length; i++)
+        pretest(value, options[i], key);
+
+      return true;
+    },
+
+    /**
+     * Returns true when only one operator of a list is passed
+     * @param {*} value 
+     * @param {any[]} options 
+     * @param {string} key
+     * @return {boolean} 
+     */
+    $or(value, options, key) {
+      expect(options, 'any[]');
+
+      let temp = pendingOperator;
+
+      pendingOperator = "or";
+      pendingLevel++;
+
+      for (pendingIterator[pendingLevel] = 0; pendingIterator[pendingLevel] < options.length; pendingIterator[pendingLevel]++) {
+        if (pretest(value, options[pendingIterator[pendingLevel]], key)) {
+          pendingIterator.splice(pendingLevel--, 1);
+          pendingOperator = temp;
+          return true;
+        }
+      }
+
+      pendingIterator.splice(pendingLevel--, 1);
+      throw new ValidallError(logs);
+      pendingOperator = temp;
+      return false;
+    },
+
+    /**
+     * Returns false when only one operator of a list is failed
+     * @param {*} value 
+     * @param {any[]} options 
+     * @param {string} key
+     * @return {boolean} 
+     */
+    $nor(value, options, key) {
+      expect(options, 'any[]');
+
+      let temp = pendingOperator;
+
+      pendingOperator = "nor";
+      pendingLevel++;
+
+      for (pendingOperator[pendingLevel] = 0; pendingOperator[pendingLevel] < options.length; i++) {
+        if (pretest(value, options[pendingOperator[pendingLevel]], key)) {
+
+          pendingIterator.splice(pendingLevel--, 1);
+          currentData.not = "not";
+          throw new ValidallError(logs);
+          pendingOperator = temp;
+          return false;
+        }
+      }
+
+      pendingIterator.splice(pendingLevel--, 1);
+      pendingOperator = temp;
+      return true;
+    },
+
+    $xor(value, options, key) {
+      expect(options, 'any[]');
+
+      let temp = pendingOperator;
+
+      pendingOperator = "or";
+      pendingLevel++;
+      state = -1;
+
+      for (pendingOperator[pendingLevel] = 0; pendingOperator[pendingLevel] < options.length; i++) {
+        let currState = pretest(value, options[pendingOperator[pendingLevel]], key) ? 1 : 0;
+
+        if (currState === 1) {
+          if (state === 1) {
+            pendingIterator.splice(pendingLevel--, 1);
+            throw new ValidallError(logs);
+            pendingOperator = temp;
+            return false;
+          } else {
+            state = 1;
+          }
+        }
+      }
+
+      pendingIterator.splice(pendingLevel--, 1);
+      pendingOperator = temp;
+      return true;
     }
-  }
-  
-  function isSet(value) {
-    if (value === false || value === 0 || value === null) 
+  };
+
+  /**
+   * Test src
+   * @param {*} value 
+   * @param {*} _operators
+   * @param {string} [fieldPath]
+   * @param {String} [message]
+   * @return {boolean}
+   */
+  function test(value, _operators, fieldPath) {
+    let message = _operators.$message || "";
+
+    if (_operators.$default) {
+      operators.$default(value, _operators.$default, fieldPath);
+      delete _operators.$default;
+    }
+
+    if (value === undefined && !_operators.$required)
       return true;
 
-    if (typeof value === "string")
-      value = value.replace(/\s/g, "");
-    
-    return !!value;
-  }
+    delete _operators.$message;
 
-  function isTrue(value)  {
-    if (typeof value === 'string')
-      value = value.replace(/\s/g, "");
+    currentData.fieldPath = fieldPath;
+    currentData.received = value;
 
-    return !!value;
-  }
+    for (let oprt in _operators) {
+      currentData.operator = oprt;
+      currentData.expected = _operators[oprt];
 
-  function isFilled(value) {
-    if (!isSet(value)) 
-      return false;
+      if (message) {
+        if (typeof message === 'string')
+          currentMessage = message;
+        else if (typeof message === 'object')
+          currentMessage = message[oprt] || "";
+      }
 
-    if (Array.isArray(value) && !value.length)
-      return false;
 
-    if (typeof value === 'object' && !Object.keys(value).length)
-      return false;
+      let state = operators[oprt](value, _operators[oprt], fieldPath, currentData);
+
+      if (currentMessage)
+        currentMessage = util.compile(currentMessage, currentData);
+
+      pushLog(state, currentMessage || oprt);
+
+      currentMessage = pendingLevel ? currentMessage : "";
+
+      if (!state)
+        return false;
+    }
 
     return true;
   }
 
-  var messages = {
-    $is: "'{{key}}' must be {{value}}",
-    $equals: "'{{key}}' must equals '{{value}}'",
-    $identical: "'{{key}}' must equals '{{value}}'",
-    $gt: "'{{key}}' must be greater than {{value}}",
-    $gte: "'{{key}}' must be greater than or equals to {{value}}",
-    $lt: "'{{key}}' must be less than {{value}}",
-    $lte: "'{{key}}' must be less than or equals to {{value}}",
-    $inRange: "'{{key}}' must be in between {{min}} and {{max}}",
-    $outOfRange: "'{{key}}' must be less than {{min}} or greater than {{max}}",
-    $len: "'{{key}}' length must equals {{value}}",
-    $gtLen: "'{{key}}' length must be greater than {{value}}",
-    $gteLen: "'{{key}}' length must be greater than or equals to {{value}}",
-    $ltLen: "'{{key}}' length must be less than {{value}}",
-    $lteLen: "'{{key}}' length must be less than or equals to {{value}}",
-    $inRangeLen: "'{{key}}' length must be in between {{min}} and {{max}}",
-    $outOfRangeLen: "'{{key}}' length must be less than {{min}} or greater than {{max}}",
-    $size: "'{{key}}' object size must equals {{value}}",
-    $gtSize: "'{{key}}' object size must be greater than {{value}}",
-    $gteSize: "'{{key}}' object size must be greater than or equals to {{value}}",
-    $ltSize: "'{{key}}' object size must be less than {{value}}",
-    $lteSize: "'{{key}}' object size must be less than or equals to {{value}}",
-    $inRangeSize: "'{{key}}' object size must be in between {{min}} and {{max}}",
-    $outOfRangeSize: "'{{key}}' object size must be less than {{min}} or greater than {{max}}",
-    $match: "'{{key}}' must match pattern {{value}}",
-    $has: "'{{key}}' must include [{{value}}]",
-    $hasSome: "'{{key}}' must include at least on of the items: [{{value}}]",
-    $hasNot: "'{{key}}' must not include [{{value}}]",
-    $hasNotSome: "'{{key}}' must not include at least on of the items: [{{value}}]",
-    $hasKeys: "'{{key}}' must include keys: [{{value}}]",
-    $hasSomeKeys: "'{{key}}' must include at least on of the keys: [{{value}}]",
-    $hasNotKeys: "'{{key}}' must not include keys [{{value}}]",
-    $hasNotSomeKeys: "'{{key}}' must not include at least on of the keys: [{{value}}]",
-    $in: "'{{key}}' all items must be included in: [{{value}}]",
-    $someIn: "'{{key}}' must have at least one item included in: [{{value}}]",
-    $notIn: "'{{key}}' must not have any item included in: [{{value}}]",
-    $someNotIn: "'{{key}}' must have at least one item not included in: [{{value}}]",
-    $onDate: "'{{key}}' must be on date: {{value}}",
-    $beforeDate: "'{{key}}' must be before date: {{value}}",
-    $afterDate: "'{{key}}' must be after date: {{value}}",
-    none: "unhandled error!"
-  };
-
-
-  var errors = [],
-    rootKey = '',
-    forceAll = false,
-    level = 0;
-
-  var operators = {
-    $is: function (src, type) {
-      var state;
-
-      switch (type.toLowerCase()) {
-        case 'set':
-          state = isSet(src);
-          break;
-        case 'true':
-          state = isTrue(src);
-          break;
-        case 'filled':
-          state = isFilled(src);
-          break;
-        case 'number':
-          state = /^\d+$/.test(src);
-          break;
-        case 'string':
-          state = typeof src === 'string';
-          break;
-        case 'boolean':
-          state = typeof src === 'boolean';
-          break;
-        case 'date':
-          state = src instanceof Date;
-          break;
-        case 'regexp':
-          state = src instanceof RegExp;
-          break;
-        case 'array':
-          state = Array.isArray(src);
-          break;
-        case 'object':
-          state = typeof src === "object" && src.toString() === "[object Object]";
-          break;
-        case 'email':
-          state = /^([\w\-]+(?:\.[\w\-]+)*)@((?:[\w\-]+\.)*\w[\w\-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i.test(src);
-          break;
-        case 'url':
-          state = /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[A-Z0-9+&@#\/%=~_|$])/igm.test(src);
-          break;
-        default:
-          state = false;
-      }
-
-      return state;
-    },
-    $fn: function (src, fn) {
-      return fn(src);
-    },
-    $equals: function (src, value, msg) {
-      return equals(src, value);
-    },
-    $identical: function (src, value, msg) {
-      return equals(src, value, true);
-    },
-    $gt: function (src, value, msg) {
-      return src > value;
-    },
-    $gte: function (src, value, msg) {
-      return src >= value;
-    },
-    $lt: function (src, value, msg) {
-      return src < value;
-    },
-    $lte: function (src, value, msg) {
-      return src <= value;
-    },
-    $inRange: function (src, value, msg) {
-      return src >= value[0] && src <= value[1];
-    },
-    $outOfRange: function (src, value, msg) {
-      return src < value[0] || src > value[1];
-    },
-    $len: function (src, value, msg) {
-      return src.length === value;
-    },
-    $gtLen: function (src, value, msg) {
-      return src.length > value;
-    },
-    $gteLen: function (src, value, msg) {
-      return src.length >= value;
-    },
-    $ltLen: function (src, value, msg) {
-      return src.length < value;
-    },
-    $lteLen: function (src, value, msg) {
-      return src.length <= value;
-    },
-    $inRangeLen: function (src, value, msg) {
-      return src.length >= value[0] && src.length <= value[1];
-    },
-    $outOfRangeLen: function (src, value, msg) {
-      return src.length < value[0] || src.length > value[1];
-    },
-    $size: function (src, value, msg) {
-      return Object.keys(src).length === value;
-    },
-    $gtSize: function (src, value, msg) {
-      return Object.keys(src).length > value;
-    },
-    $gteSize: function (src, value, msg) {
-      return Object.keys(src).length >= value;
-    },
-    $ltSize: function (src, value, msg) {
-      return Object.keys(src).length < value;
-    },
-    $lteSize: function (src, value, msg) {
-      return Object.keys(src).length <= value;
-    },
-    $inRangeSize: function (src, value, msg) {
-      return Object.keys(src).length >= value[0] && Object.keys(src).length <= value[1];
-    },
-    $outOfRangeSize: function (src, value, msg) {
-      return Object.keys(src).length < value[0] || Object.keys(src).length > value[1];
-    },
-    $match: function (src, value, msg) {
-      return value.test(src);
-    },
-    $has: function (src, value, msg) {
-      value = Array.isArray(value) ? value : [value];
-
-      if (Array.isArray(src)) {
-
-        for (var i = 0; i < value.length; i++)
-          if (src.indexOf(value[i]) === -1) 
-            return false;
-
-        return true;
-      }
-
+  /**
+   * preparations to test
+   * @param {*} src 
+   * @param {*} schema
+   * @param {string} [fieldPath=src]
+   * @return {boolean}
+   */
+  function pretest(src, schema, fieldPath) {
+    // no schema provided
+    if (schema === undefined) {
+      validall.message = "invalid schema got: " + schema;
       return false;
-    },
-    $hasSome: function (src, value, msg) {
-      value = Array.isArray(value) ? value : [value];
-
-      if (Array.isArray(src)) {
-
-        for (var i = 0; i < value.length; i++)
-          if (src.indexOf(value[i]) > -1) 
-            return true;
-
-        return false;
-      }
-
-      return false;
-    },
-    $hasNot: function (src, value, msg) {
-      value = Array.isArray(value) ? value : [value];
-
-      if (Array.isArray(src)) {
-
-        for (var i = 0; i < value.length; i++)
-          if (src.indexOf(value[i]) > -1) 
-            return false
-
-        return true;
-      }
-
-      return false;
-    },
-    $hasNotSome: function (src, value, msg) {
-      value = Array.isArray(value) ? value : [value];
-
-      if (Array.isArray(src)) {
-        for (var i = 0; i < value.length; i++)
-          if (src.indexOf(value[i]) === -1) 
-            return true
-
-        return false;
-      }
-
-      return false;
-    },
-    $hasKeys: function (src, value, msg) {
-      value = Array.isArray(value) ? value : [value];
-
-      if (!this.$is(src, 'object')) 
-        return false;
-
-      for (var j = 0; j < value.length; j++) {
-        var path = value[j].split('.');
-        var temp = src;
-
-        for (var i = 0; i < path.length; i++) {
-          if (!temp.hasOwnProperty(path[i])) 
-            return false;
-
-          temp = temp[path[i]];
-        }
-      }
-
-      return true;
-    },
-    $hasSomeKeys: function s(src, value, msg) {
-      value = Array.isArray(value) ? value : [value];
-
-      if (!this.$is(src, 'object')) 
-        return false;
-
-      for (var j = 0; j < value.length; j++) {
-        var path = value[j].split('.');
-        var temp = src;
-
-        for (var i = 0; i < path.length; i++) {
-          if (temp.hasOwnProperty(path[i])) 
-            return true;
-
-          temp = temp[path[i]];
-        }
-      }
-
-      return false;
-    },
-    $hasNotKeys: function (src, value, msg) {
-      value = Array.isArray(value) ? value : [value];
-
-      if (!this.$is(src, 'object')) 
-        return false;
-
-      for (var j = 0; j < value.length; j++) {
-        var path = value[j].split('.');
-        var temp = src;
-
-        for (var i = 0; i < path.length; i++) {
-          if (temp.hasOwnProperty(path[i])) 
-            return false;
-
-          temp = temp[path[i]];
-        }
-      }
-
-      return true;
-    },
-    $hasNotSomeKeys: function (src, value, msg) {
-      value = Array.isArray(value) ? value : [value];
-
-      if (!this.$is(src, 'object')) 
-        return false;
-
-      for (var j = 0; j < value.length; j++) {
-        var path = value[j].split('.'),
-          temp = src;
-
-        for (var i = 0; i < path.length; i++) {
-          if (!temp.hasOwnProperty(path[i])) 
-            return true;
-
-          temp = temp[path[i]];
-        }
-      }
-
-      return false;
-    },
-    $in: function (src, value, msg) {
-      src = Array.isArray(src) ? src : [src];
-      if (Array.isArray(value)) {
-        for (var i = 0; i < src.length; i++)
-          if (value.indexOf(src[i]) === -1) return false;
-        return true;
-      }
-      return false;
-    },
-    $someIn: function (src, value, msg) {
-      src = Array.isArray(src) ? src : [src];
-
-      if (Array.isArray(value)) {
-
-        for (var i = 0; i < src.length; i++)
-          if (value.indexOf(src[i]) > -1) 
-            return true;
-
-        return false;
-      }
-
-      return false;
-    },
-    $notIn: function (src, value, msg) {
-      src = Array.isArray(src) ? src : [src];
-
-      if (Array.isArray(value)) {
-
-        for (var i = 0; i < src.length; i++)
-          if (value.indexOf(src[i]) > -1) 
-            return false;
-
-        return true;
-      }
-
-      return false;
-    },
-    $someNotIn: function (src, value, msg) {
-      src = Array.isArray(src) ? src : [src];
-
-      if (Array.isArray(value)) {
-
-        for (var i = 0; i < src.length; i++)
-          if (value.indexOf(src[i]) === -1) 
-            return true;
-
-        return false;
-      }
-
-      return false;
-    },
-    $onDate: function (src, value) {
-      if (isNaN(Date.parse(src)) || isNaN(Date.parse(value))) 
-        return false;
-
-      return Date.parse(src) === Date.parse(value);
-    },
-    $beforeDate: function (src, value) {
-      if (isNaN(Date.parse(src)) || isNaN(Date.parse(value))) 
-        return false;
-
-      return Date.parse(src) < Date.parse(value);
-    },
-    $afterDate: function (src, value) {
-      if (isNaN(Date.parse(src)) || isNaN(Date.parse(value))) 
-        return false;
-
-      return Date.parse(src) > Date.parse(value);
-    },
-    $or: function (src, arr, key) {
-      for (var i = 0; i < arr.length; i++) {
-        if (exec(src, arr[i], key)) 
-          return true;
-      }
-      return false;
-    },
-    $each: function (src, options, key) {
-      if (Array.isArray(src)) {
-        var state = [],
-          currentState;
-
-        rootKey = key;
-
-        for (var i = 0; i < src.length; i++) {
-          rootKey = key + '[' + i + '].';
-          currentState = validall.test(src[i], options);
-
-          if (!currentState && !forceAll) 
-            return false;
-
-          state.push(currentState);
-
-        }
-
-        rootKey = "";
-        return state.every(function (item) { return item === true; });
-
-      } else {
-        errors.push("'" + key + "' is not an array");
-        return false;
-      }
     }
-  };
 
-  function exec(src, options, key) {
-    var results = [];
-    var state;
+    let _operators, fields;
 
-    key = rootKey + key;
+    if (util.type.string(schema)) {
 
-    if (Array.isArray(options)) {
+      if (util.type[schema])
+        _operators = { $type: schema };
+      else
+        _operators = { $equals: schema };
 
-      for (var i = 0; i < options.length; i++) {
-        state = exec(src, options[i], key);
-
-        if (!state && !forceAll)
-            return false;
-
-        results.push(state);
-      }
-
+      fields = {};
+    } else if (!util.type.object(schema)) {
+      _operators = { $equals: schema };
+      fields = {};
+    } else if (Array.isArray(schema)) {
+      _operators.$type = "any[]";
+      _operators.$each = schema;
+      fields = {};
     } else {
+      let tmp = separateSchema(schema);
+      _operators = Object.assign(tmp._operators, _operators);
+      fields = tmp.fields;
+    }
 
-      for (var option in options) {
-        if (option === '$message')
-          continue;
-  
-        if (operators[option]) {
-          state = operators[option](src, options[option], key);
+    if (Object.keys(fields).length)
+      _operators.$type = 'object';
 
-          if (!state) {
+    if (Object.keys(_operators).length) {
+      let state = test(src, _operators, fieldPath || 'root');
 
-            if (options.$message)
-              errors.push(options.$message);
+      if (!state)
+        return false;
+    }
 
-            else if (options.$message === undefined && option !== '$or' && option !== '$each') {
-              var message = messages[option],
-                data = {};
-  
-              if (option.toLowerCase().indexOf('range') > -1)
-                data = { key: key, min: options[option][0], max: options[option][1] };
-              else if (Array.isArray(options[option]) || options[option] instanceof RegExp)
-                data = { key: key, value: options[option].toString() };
-              else if (typeof options[option] === 'object')
-                data = { key: key, value: JSON.stringify(options[option], null, 2) };
-              else
-                data = { key: key, value: options[option] };
-  
-              if (typeof options[option] === 'function')
-                errors.push(messages.none);
-              else
-                errors.push(compile(message, data));
-            }
+    if (Object.keys(fields).length) {
+      for (let prop in fields) {
+        let field = fieldPath ? fieldPath + "." + prop : prop;
+        let state = pretest(src[prop], fields[prop], field);
 
-            if (!forceAll)
-              return false;
-          }
-  
-          results.push(state);
-
-        } else {
+        if (!state)
           return false;
-        }
       }
     }
 
-
-    return results.every(function (state) { return state; });
+    return true;
   }
 
-  var validall = {
-    reset: function () {
-      errors = [];
-      forceAll = false;
-      rootKey = '';
-    },
+  /**
+   * Validall
+   * @param {*} src 
+   * @param {*} schema
+   * @return {boolean}
+   */
+  function validall(src, schema) {
+    currentSrc = src;
+    validall.message = "";
+    validall.errorMap = "";
+    pendingLevel = 0;
+    pendingOperator = "";
+    pendingIterator = [];
+    oppositeState = false;
+    currentMessage = "";
+    logs = [];
 
-    errors: function () {
-      return errors;
-    },
+    try {
+      pretest(src, schema, 'root');
+    } catch (e) {
 
-    test: function test(src, obj, forceAll) {
-      if (!level) {
-        this.reset();
-        forceAll = !!forceAll;
+      if (typeof e === 'object' && !(e instanceof ValidallError)) {
+        validall.message = e;
+      } else if (e instanceof ValidallError) {
+        validall.message = e.message;
+        validall.errorMap = e.map;
+      } else {
+        validall.message = e;
       }
 
-      level++;
-
-      if (!obj || typeof obj !== 'object')
-        return ['Invalid options'];
-
-      var results = [];
-
-      for (var prop in obj) {
-        if (prop === '$or') {
-          for (var i = 0; i < obj[prop].length; i++)
-            if (test.call(this, src, obj[prop][i]))
-              return true;
-
-          return false;
-        }
-
-        var currentValue;
-
-        if (prop === '$root')
-          currentValue = src;
-        else
-          currentValue = fromPath(src, prop);
-        
-        if (typeof obj[prop] === 'object') {
-          var options = obj[prop];
-          results.push(exec(currentValue, options, prop));
-        } else {
-          var state = currentValue === obj[prop];
-          results.push(state);
-
-          if (!state)
-            errors.push("'" + prop + "' must equals " + obj[prop]);
-        }
-      }
-
-      level--;
-
-      if (results.every(function (state) { return state; }))
-        return true;
-      else
-        return false;
+      return false;
     }
+
+    return true;
+  }
+
+  /**
+   * Extends validall with a new custorm operator.
+   * @param {string} name
+   * @param {string} message
+   * @param {function} [operator]
+   * @return {boolean}
+   */
+  validall.extend = function (name, message, operator) {
+    if (!util.type.string(name))
+      throw "operator name is invalid: " + name;
+
+    if (name.charAt(0) !== '$')
+      name = '$' + name;
+
+    if (operators[name])
+      throw "'" + name + "' already in use!";
+
+
+
+    if (message)
+      messages[name] = message;
+
+    if (operator)
+      if (!util.type.function(operator))
+        throw "operator must be a function: " + operator;
+      else
+        operators[name] = operator;
   };
+
+  validall.Error = ValidallError;
+  validall.util = util;
+  validall.expect = expect;
+  validall.message = "";
+  validall.errorMap = "";
 
   return validall;
 });
