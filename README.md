@@ -451,7 +451,7 @@ var isValid = validall(user, {
 You can extend validall with your own messages or operators to use whenever you needed them.
 
 ```js
-  validall.extend('$even', value => value % 2 === 0);
+  validall.extend('$even', "{{fieldPath}} should {{not}} be an even number!", value => value % 2 === 0);
 ```
 
 ### arguments:
@@ -483,7 +483,7 @@ But there is a better solution.
 Keep your function as it is, however in your error message just add the {{not}} keyword in the appropriate place.
 
 ```js
-  validall.extend('$even', (value) => value % 2 === 0, "{{fieldPath}} should {{not}} be an even number!");
+  validall.extend('$even', "{{fieldPath}} should {{not}} be an even number!", (value) => value % 2 === 0);
 ```
 
 ### $or, $nor, $xor:
@@ -499,13 +499,13 @@ In some cases you do not want this type of behavior for a specific errors, like 
 expect is used only with checking types:
 
 ```js
-  validall.extend('hasRole', (value, role) => {
+  validall.extend('hasRole', "{{fieldPath}} should {{not}} include {{expected}}", (value, role) => {
   // you are expecting that the 'role' argument is string
   validall.expect(role, 'string');
   // or maybe both string or 'string[]'
   validall.expect(role, ['string', 'string[]']);
 
-}, "{{fieldPath}} should {{not}} include {{expected}}")
+})
 ```
 
 if **expect** failed it will throw an error accessed using **validall.message** and **validall.errMap**.
@@ -516,7 +516,7 @@ if **expect** failed it will throw an error accessed using **validall.message** 
 Throw is more general, you can throw a string message or you can throw new **validall.Error** message:
 
 ```js
-validall.extend('hasRole', (value, role) => {
+validall.extend('hasRole', "{{fieldPath}} should {{not}} include {{expected}}", (value, role) => {
 
   // throwing a string
   if (!validall.util.type.string(role))
@@ -526,7 +526,7 @@ validall.extend('hasRole', (value, role) => {
   if (!validall.util.type.string(role))
     throw new validall.Error('$type_error', { expected: 'string', received: typeof role });
 
-}, "{{fieldPath}} should {{not}} include {{expected}}")
+});
 ```
 
 
