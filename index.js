@@ -25,7 +25,6 @@
   let currentMessage = "";
   let currentData = { fieldPath: "", operator: "", expected: "", received: "", not: "" };
 
-
   /** Validall Error class */
   class ValidallError {
     /**
@@ -892,10 +891,11 @@
    * preparations to test
    * @param {*} src 
    * @param {*} schema
-   * @param {string} [fieldPath=src]
+   * @param {string} [fieldPath]
    * @return {boolean}
    */
   function pretest(src, schema, fieldPath) {
+
     // no schema provided
     if (schema === undefined) {
       validall.message = "invalid schema got: " + schema;
@@ -925,9 +925,11 @@
       fields = tmp.fields;
     }
 
-    if (Object.keys(fields).length)
+    if (Object.keys(fields).length) {
       _operators.$type = 'object';
-
+      _operators.$required = _operators.$required === false ? false : true;
+    }
+      
     if (Object.keys(_operators).length) {
       let state = test(src, _operators, fieldPath);
 
@@ -935,7 +937,7 @@
         return false;
     }
 
-    if (Object.keys(fields).length) {
+    if (src && Object.keys(fields).length) {
       for (let prop in fields) {
         let field = fieldPath ? fieldPath + "." + prop : prop;
         let state = pretest(src[prop], fields[prop], field);
@@ -967,6 +969,7 @@
     logs = [];
 
     try {
+      console.log(rootName);
       pretest(src, schema, rootName || 'root');
     } catch (e) {
 
