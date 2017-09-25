@@ -24,7 +24,6 @@
   /** Current custom error message */
   let currentMessage = "";
   let currentData = { fieldPath: "", operator: "", expected: "", received: "", not: "" };
-  let errMap = [];
 
 
   /** Validall Error class */
@@ -930,7 +929,7 @@
       _operators.$type = 'object';
 
     if (Object.keys(_operators).length) {
-      let state = test(src, _operators, fieldPath || 'root');
+      let state = test(src, _operators, fieldPath);
 
       if (!state)
         return false;
@@ -959,7 +958,7 @@
   function validall(src, schema, rootName) {
     currentSrc = src;
     validall.message = "";
-    validall.errorMap = "";
+    validall.errMap = "";
     pendingLevel = 0;
     pendingOperator = "";
     pendingIterator = [];
@@ -975,7 +974,7 @@
         validall.message = e;
       } else if (e instanceof ValidallError) {
         validall.message = e.message;
-        validall.errorMap = e.map;
+        validall.errMap = e.map;
       } else {
         validall.message = e;
       }
@@ -1019,7 +1018,7 @@
   validall.util = util;
   validall.expect = expect;
   validall.message = "";
-  validall.errorMap = "";
+  validall.errMap = "";
 
   return validall;
 });
