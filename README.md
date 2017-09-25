@@ -15,7 +15,8 @@ $ npm install validall
 **Parameters**
 
 * src: _{any}_ - the source need to be validated.
-* schema: _any_ options make the validations.
+* schema: _{any}_ options make the validations.
+* rootName: _{string} [optional]_ set the root object name for clear fieldPath default is 'root'.
 
 ```js
 var validall = require("validall");
@@ -45,13 +46,13 @@ In case **validall()** returned false value you can access the error message thr
 ```js
 var isValid = validall(user, {
   email: { $is: 'email'}
-}, true);
+}, 'user');
 
 console.log(validall.message);
-// root.email must be a valid 'email'
+// user.email must be a valid 'email'
 
 console.log(validall.errMap);
-// { fieldPath: "root.email", operator: "$is", expected: 'mail', received: "example@mailcom" }
+// { fieldPath: "user.email", operator: "$is", expected: 'mail', received: "example@mailcom" }
 ```
 
 You can add your custom message as we will see later. 

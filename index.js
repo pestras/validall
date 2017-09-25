@@ -953,9 +953,10 @@
    * Validall
    * @param {*} src 
    * @param {*} schema
+   * @param {string} rootName
    * @return {boolean}
    */
-  function validall(src, schema) {
+  function validall(src, schema, rootName) {
     currentSrc = src;
     validall.message = "";
     validall.errorMap = "";
@@ -967,7 +968,7 @@
     logs = [];
 
     try {
-      pretest(src, schema, 'root');
+      pretest(src, schema, rootName || 'root');
     } catch (e) {
 
       if (typeof e === 'object' && !(e instanceof ValidallError)) {
