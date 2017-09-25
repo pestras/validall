@@ -969,7 +969,6 @@
     logs = [];
 
     try {
-      console.log(rootName);
       pretest(src, schema, rootName || 'root');
     } catch (e) {
 
