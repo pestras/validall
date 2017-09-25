@@ -711,8 +711,14 @@
      * @return {boolean}
      */
     $each(value, options, key) {
-      for (let i = 0; i < value.length; i++)
-        pretest(value[i], options[0], key + '[' + i + ']');
+      for (let i = 0; i < value.length; i++) {
+        let state = pretest(value[i], options[0], key + '[' + i + ']');
+
+        if (!state)
+          return false;
+      }
+
+      return true;
     },
 
     /**
