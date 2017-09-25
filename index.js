@@ -241,7 +241,7 @@
      * @return {Boolean}
      */
     isFilled(value) {
-      if (!isSet(value))
+      if (!this.isSet(value))
         return false;
 
       if (typeof value === 'string' && !value.trim().length)
