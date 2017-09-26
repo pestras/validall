@@ -168,7 +168,7 @@ console.log(user);
 ### $required:
 
 By default each field in the schema is considered as required field.
-To make a field not required just set the **$required** operator to false or add a question mark at the last of the field name.
+To make a field not required just set the **$required** operator to false or add a question mark at the end of the field name.
 
 ```js
 var isValid = validall(user, {
@@ -193,7 +193,7 @@ You can set the field to the current date by passing ```Date.now``` or as a stri
 
 ```js
 var isValid = validall(user, {
-  createAt: { $default: 'Date.now' }
+  createdAt: { $default: 'Date.now' }
 });
 ```
 
@@ -222,7 +222,7 @@ var isValid = validall(user, {
 ```
 
 _note: **$equals** operator does a shallow comparative process._
-_note: it also compares arrays and objects length to pass._
+_note: it also compares arrays and objects size to pass._
 
 
 ### $identical:
@@ -230,12 +230,12 @@ _note: it also compares arrays and objects length to pass._
 Same as '$equals' operator, but has a deep comparative process.
 
 ```js
-var publish = validall(response, {
+var cancelPublish = validall(response, {
   $identical: previousResponse
 });
 ```
 
-_note: it also compares arrays and objects length to pass._
+_note: it also compares arrays and objects size to pass._
 
 
 ### $regex:
@@ -399,7 +399,7 @@ you can provide your own function to validate the current value.
 
 ```js
 var isValid = validall(user, {
-someField: { $fn: function (someField, fieldPath) {
+someField: { $fn: function (fieldValue, fieldPath) {
       var state = false;
       // your test goes here
       return state;
@@ -511,7 +511,7 @@ var isValid = validall(user, {
 });
 ```
 
-What if I want to set the 'articles' as not required _(you can use '?')_ or give it a maximum length.
+What if you want to set the 'articles' as not required _(you can use '?')_ or give it a maximum length.
 When need it you can use **$each** operator:
 
 ```js
@@ -543,7 +543,7 @@ You can extend validall with your own messages or operators to use whenever you 
 * message: the operator error message. _required_
 * operator: {function} the function that do the validation. _optional_
 
-**Giving arguments:**
+**operator arguments:**
 
 * value: current value.
 * options: options passed to the operator when used
@@ -571,27 +571,27 @@ Keep your function as it is, however in your error message just add the {{not}} 
 
 ### $or, $nor, $xor:
 
-When any of the above operators is used, any of the children operators that returns _false_ will be ignored until all operators are tested some cases.
-For example the **$or** operator will keep igonring false returning operators until it finds the true returned one.
+When any of the above operators is used, any of the children operators that returns _false_ will be ignored until all operators are tested in some cases.
+For example the **$or** operator will keep ignoring false returning operators until it finds the true returned one.
 In some cases you do not want this type of behavior for a specific errors, like when your operator gets the wrong options.
 
 **validall** gives you the option to make that kind of action useing **expect** or **throw** helpers.
 
 #### expect:
 
-expect is used only with checking types:
+expect is used only when checking types:
 
 ```js
-  validall.extend('hasRole', "{{fieldPath}} should {{not}} include {{expected}}", (value, role) => {
+validall.extend('hasRole', "{{fieldPath}} should {{not}} include {{expected}}", (value, role) => {
   // you are expecting that the 'role' argument is string
   validall.expect(role, 'string');
   // or maybe both string or 'string[]'
   validall.expect(role, ['string', 'string[]']);
-
+  ...
 })
 ```
 
-if **expect** failed it will throw an error accessed using **validall.message** and **validall.errMap**.
+when **expect** fails, it will terminate the validation process and throws an error accessed using **validall.message** and **validall.errMap**.
 
 
 #### throw:
@@ -615,7 +615,7 @@ validall.extend('hasRole', "{{fieldPath}} should {{not}} include {{expected}}", 
 
 ## Util:
 
-**validall** share its utilities if needed then:
+**validall** shares its utilities if you needed them:
 
 
 ### compile:
@@ -636,32 +636,35 @@ Gets or sets value from an object using paths.
 
 * src {object}
 * path {string} path to follow.
-* value {any} value to replace with. _optiona_
-* inject {boolean} add the value even if the path does not match. _optional_
+* value {any} value to replace with. _optional_
+* inject {boolean} add the value even if the path does not exists. _optional_
 
 ```js
 let user = { name: 'john', cred: { email: 'a@b.com' } };
 
 // getting value
-console.log(validall.util.fromPath(user, 'cred.email')); // "a@b.com"
+console.log(validall.util.fromPath(user, 'cred.email')); 
+// "a@b.com"
 
 // setting value
-console.log(validall.util.fromPath(user, 'cred.email', 'a@b.org')); // { name: 'john', cred: { email: 'a@b.org' }
+console.log(validall.util.fromPath(user, 'cred.email', 'a@b.org'));
+// { name: 'john', cred: { email: 'a@b.org' }
 
 // injecting value
-console.log(validall.util.fromPath(user, 'cred.username', 'j123')); // { name: 'john', cred: { email: 'a@b.org', username: 'j123' }
+console.log(validall.util.fromPath(user, 'cred.username', 'j123', true));
+// { name: 'john', cred: { email: 'a@b.org', username: 'j123' }
 ```
 
 
 ### equals:
 
-Compares two values equlaity.
+Compares two values equality.
 
 **Arguments:**
 
 * src {any}
 * target {any} path to follow.
-* deep {boolean} make a deep comparision. _optiona_
+* deep {boolean} make a deep comparision. _optional_
 
 ```js
 validall.util.equals({ name: 'john' }, { name: 'john' }) // true.
@@ -700,6 +703,7 @@ Same as **$is: _'option'_**.
 
 
 
+--------------------------------------------------------------------------------
 Please if any bugs found, create an issue in [github](https://github.com/ammar6885/validall "validall github repo").
 
 Thank you.
