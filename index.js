@@ -504,6 +504,9 @@
      * @return {boolean}
      */
     $default(value, defaultValue, keyPath) {
+      if (defaultValue === Date.now || defaultValue === 'Date.now')
+        defaultValue = Date.now();
+        
       if (!util.isSet(value)) {
         let path = keyPath.split('.').slice(1).join('.');
         util.fromPath(currentSrc, path, defaultValue, true);

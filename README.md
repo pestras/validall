@@ -133,7 +133,7 @@ When validating objects, any extra fields that are not specified in the schema, 
 ```js
 let user = { name: 'john', age: 30 }
 var isValid = validall(user, {
-  name: 'string
+  name: 'string'
 }, 'user');
 
 // error: user is not extendable
@@ -145,7 +145,7 @@ To reverse it just set **$extendable** operator to true;
 let user = { name: 'john', age: 30 }
 var isValid = validall(user, {
   $extendable: true,
-  name: 'string
+  name: 'string'
 }, 'user');
 
 // pass
@@ -158,7 +158,7 @@ What 'filter' option does is filtering the src from any extra fields.
 let user = { name: 'john', age: 30 }
 var isValid = validall(user, {
   $extendable: 'filter',
-  name: 'string
+  name: 'string'
 }, 'user');
 
 console.log(user);
@@ -186,6 +186,14 @@ Add a value to the current field if it was not set
 ```js
 var isValid = validall(user, {
   role: { $default: 'subscriber' }
+});
+```
+
+You can set the field to the current date by passing ```Date.now``` or as a string 'Date.now'.
+
+```js
+var isValid = validall(user, {
+  createAt: { $default: 'Date.now' }
 });
 ```
 
