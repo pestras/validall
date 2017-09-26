@@ -974,11 +974,12 @@
       let tmp = separateSchema(schema);
       _operators = Object.assign(tmp._operators, _operators);
       fields = tmp.fields;
-      _operators.$extendable = _operators.$extendable === true ? true : { fields: Object.keys(fields), action: _operators.$extendable };
     }
 
-    if (Object.keys(fields).length)
+    if (Object.keys(fields).length) {
       _operators.$type = 'object';
+      _operators.$extendable = _operators.$extendable === true ? true : { fields: Object.keys(fields), action: _operators.$extendable };
+    }
 
     if (Object.keys(_operators).length) {
       let state = test(src, _operators, fieldPath);
