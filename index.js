@@ -388,6 +388,7 @@
     unmeasurable: "Unmeasurable value: {{value}}",
     $type: "{{fieldPath}} must {{not}} be of type '{{expected}}'",
     $is: "{{fieldPath}} must {{not}} be a valid '{{expected}}'",
+    $extendable: "{{fieldPath}} is not extendable",
     $required: "'{{fieldPath}} is {{not}} required'",
     $equals: "'{{fieldPath}}' must {{not}} equals '{{expected}}'",
     $identical: "'{{fieldPath}}' must {{not}} deeply equals '{{expected}}'",
@@ -444,6 +445,44 @@
         return util.is[type](value);
 
       throw new ValidallError('invalid_option', { expected: '$is option', received: type });
+    },
+
+    /**
+     * checks if value has same keys as the passed keys array or less
+     * @param {*} value 
+     * @param {boolean | string[]} keys 
+     * @param {string} fieldPath
+     * @return {boolean}
+     */
+    $extendable(value, options, fieldPath) {
+      if (options === true)
+        return true;
+
+      let keys = options.fields || [];
+      let action = options.action || false;
+
+      for (let i = 0; i < keys.length; i++) {
+        let len = keys[i].length;
+
+        if (keys[i].charAt(len - 1) === '?')
+          keys[i] = keys[i].slice(0, len - 1);
+      }
+
+      let srcKeys = Object.keys(value || {});
+
+      for (let i = 0; i < srcKeys.length; i++) {
+        if (keys.indexOf(srcKeys[i]) === -1) {
+          if (action === 'filter') {
+            delete value[srcKeys[i]];
+          } else {
+            currentData.expected = keys;
+            currentData.received = srcKeys;
+            return false;
+          }
+        }
+      }
+
+      return true;
     },
 
     /**
@@ -904,38 +943,43 @@
 
     // no schema provided
     if (schema === undefined) {
-      validall.message = "invalid schema got: " + schema;
+      throw new ValidallError("invalid schema for '" + fieldPath + "', got: " + schema);
       return false;
     }
 
-    let _operators, fields;
+    let _operators = {}, fields = {};
+
+    // checking if field is required..
+    let fieldPathLength = fieldPath.length;
+
+    if (fieldPath.charAt(fieldPathLength - 1) !== '?') {
+      _operators.$required = true;
+    } else {
+      fieldPath = fieldPath.slice(0, fieldPathLength - 1);
+    }
 
     if (util.type.string(schema)) {
 
       if (util.type[schema])
-        _operators = { $type: schema };
+        _operators.$type = schema;
       else
-        _operators = { $equals: schema };
+        _operators.$equals = schema;
 
-      fields = {};
     } else if (!util.type.object(schema)) {
-      _operators = { $equals: schema };
-      fields = {};
+      _operators.$equals = schema;
     } else if (Array.isArray(schema)) {
       _operators.$type = "any[]";
       _operators.$each = schema;
-      fields = {};
     } else {
       let tmp = separateSchema(schema);
       _operators = Object.assign(tmp._operators, _operators);
       fields = tmp.fields;
+      _operators.$extendable = _operators.$extendable === true ? true : { fields: Object.keys(fields), action: _operators.$extendable };
     }
 
-    if (Object.keys(fields).length) {
+    if (Object.keys(fields).length)
       _operators.$type = 'object';
-      _operators.$required = _operators.$required === false ? false : true;
-    }
-      
+
     if (Object.keys(_operators).length) {
       let state = test(src, _operators, fieldPath);
 

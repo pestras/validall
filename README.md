@@ -124,20 +124,62 @@ var isValid = validall(user, {
 **date** option is not reliable when used with date string.
 
 
+
+### $extendable:
+
+When validating objects, any extra fields that are not specified in the schema, will throw an error.
+**validall** expect objects to be not extendable.
+
+```js
+let user = { name: 'john', age: 30 }
+var isValid = validall(user, {
+  name: 'string
+}, 'user');
+
+// error: user is not extendable
+```
+
+To reverse it just set **$extendable** operator to true;
+
+```js
+let user = { name: 'john', age: 30 }
+var isValid = validall(user, {
+  $extendable: true,
+  name: 'string
+}, 'user');
+
+// pass
+```
+
+Also **$extendable** operator can have a third value rather than true or false, which is 'filter'.
+What 'filter' option does is filtering the src from any extra fields.
+
+```js
+let user = { name: 'john', age: 30 }
+var isValid = validall(user, {
+  $extendable: 'filter',
+  name: 'string
+}, 'user');
+
+console.log(user);
+// { name: 'john' }
+```
+
 ### $required:
 
-Checks if value is not undefined.
+By default each field in the schema is considered as required field.
+To make a field not required just set the **$required** operator to false or add a question mark at the last of the field name.
 
 ```js
 var isValid = validall(user, {
-  username: { $required: true }
+  username: { $required: false, $type: 'string' }
+  // or
+  'username?': 'string'
 });
 ```
 
-If some field does not exists it won't be validated until you set it as required.
 
-
-### default
+### $default
 
 Add a value to the current field if it was not set
 
@@ -445,6 +487,38 @@ var isValid = validall(user, {
 * expected: the current option passed to the operaotr: _'email'_
 * received: the value that field the validation: _'example@com'_
 
+
+
+### $each:
+
+Validating objects is straightforward, however with arrays we are only validating what the array should includes, but not the array itself as in the examples below:
+
+```js
+var isValid = validall(user, {
+  articles: [{
+    name: 'string', // validating articles[$].name
+    publishDate: { $after: '07-08-2017' } // validating articles[$].publishDate
+    ...
+  }]
+});
+```
+
+What if I want to set the 'articles' as not required _(you can use '?')_ or give it a maximum length.
+When need it you can use **$each** operator:
+
+```js
+var isValid = validall(user, {
+  articles: {
+    $required: false,
+    $size: { $lt: 50 }
+    $each: {
+      name: 'string', // validating articles[$].name
+      publishDate: { $after: '07-08-2017' } // validating articles[$].publishDate
+      ...
+    }
+  }
+});
+```
 
 
 ## Extending validall:
