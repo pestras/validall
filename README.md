@@ -8,6 +8,12 @@ $ npm install validall
 
 ## Usage
 
+Starting from version 2.1.6 validall adds support fro typescript declarations.
+
+```ts
+import * as validall from "validall"
+```
+
 ### Validation:
 
 **validall()** is the main function that starts the validation process.
