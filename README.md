@@ -35,8 +35,8 @@ var isValid = validall(user, {
   roles: { $all: ['admin', 'author', 'subscriber'], $message: 'unknown role!!' },
   age: { $gte: 12 },
   aricles: [{
-    $size: { lt: 15 },
-    date: { before: '22/06/1016' }
+    title: 'string',
+    date: { $before: '01/01/2018' }
   }]
 });
 ```
