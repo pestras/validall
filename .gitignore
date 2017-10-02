@@ -1,3 +1,4 @@
 test/**
 .vscode/**
 bower.json
+validall.min.js
