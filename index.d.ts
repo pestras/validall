@@ -24,16 +24,12 @@ interface IOperators {
   $before?: Date | string;
   $after?: Date | string;
   $fn?: (value: any, fieldPath: string) => boolean;
-  $each?: [ISchema];
+  $each?: [validall.ISchema];
   $not?: IOperators;
   $and?: IOperators[];
   $or?: IOperators[];
   $nor?: IOperators[];
   $xor?: IOperators[];
-}
-
-interface ISchema extends IOperators {
-  [key: string]: any;
 }
 
 interface IMessageData {
@@ -96,11 +92,14 @@ declare namespace error {
 }
 
 export = validall;
-declare function validall(src: any, schema: ISchema, rootName?: string): boolean;
+declare function validall(src: any, schema: validall.ISchema, rootName?: string): boolean;
 declare namespace validall {
   export const message: string;
   export const errMap: string;
   export const Error: error.ValidallError;
   export function expect(value: any, type: string): void | never;
-  export const util: IUtils;  
+  export const util: IUtils;
+  export interface ISchema extends IOperators {
+    [key: string]: any;
+  }
 }
