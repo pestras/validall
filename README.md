@@ -20,9 +20,9 @@ import * as validall from "validall"
 
 **Parameters**
 
-* src: _{any}_ - the source need to be validated.
-* schema: _{any}_ options make the validations.
-* rootName: _{string} [optional]_ set the root object name for clear fieldPath default is 'root'.
+* src: _{any}_ - the source needs to be validated.
+* schema: _{any}_ options that make the validations.
+* rootName: _{string} [optional]_ set the root object name for clear field path, default is 'root'.
 
 ```js
 var validall = require("validall");
@@ -44,7 +44,7 @@ var isValid = validall(user, {
 
 ### message:
 
-In case **validall()** returned false value you can access the error message through:
+In case **validall()** returned a false value we can access the error message through:
 
 * validall.message: returns the matched error message.
 * validall.errMap: return more details about the error.
@@ -61,7 +61,7 @@ console.log(validall.errMap);
 // { fieldPath: "user.email", operator: "$is", expected: 'mail', received: "example@mailcom" }
 ```
 
-You can add your custom message as we will see later. 
+We can add our custom messages as we will see later. 
 
 
 
@@ -108,7 +108,7 @@ var isValid = validall(user, {
 
 ### $is:
 
-Checks the type of the value.
+Checks the value with ready made patterns.
 
 ```js
 var isValid = validall(user, {
@@ -127,28 +127,30 @@ var isValid = validall(user, {
 * email
 * url
 
-**date** option is not reliable when used with date string.
+**date** option is not reliable when used with 'date string'.
 
 
 
 ### $extendable:
 
 When validating objects, any extra fields that are not specified in the schema, will throw an error.
-**validall** expect objects to be not extendable.
+**validall** expects objects to be not extendable.
 
 ```js
-let user = { name: 'john', age: 30 }
+let user = { name: 'john', age: 30 };
+
 var isValid = validall(user, {
   name: 'string'
 }, 'user');
 
-// error: user is not extendable
+// errMap: { fieldPath: 'user', operator: '$extendable', expected: ['name'], received: ['name', 'age'] }
 ```
 
 To reverse it just set **$extendable** operator to true;
 
 ```js
-let user = { name: 'john', age: 30 }
+let user = { name: 'john', age: 30 };
+
 var isValid = validall(user, {
   $extendable: true,
   name: 'string'
@@ -158,10 +160,11 @@ var isValid = validall(user, {
 ```
 
 Also **$extendable** operator can have a third value rather than true or false, which is 'filter'.
-What 'filter' option does is filtering the src from any extra fields.
+What 'filter' option does is cleaning the src from any extra fields.
 
 ```js
-let user = { name: 'john', age: 30 }
+let user = { name: 'john', age: 30 };
+
 var isValid = validall(user, {
   $extendable: 'filter',
   name: 'string'
@@ -173,8 +176,8 @@ console.log(user);
 
 ### $required:
 
-By default each field in the schema is considered as required field.
-To make a field not required just set the **$required** operator to false or add a question mark at the end of the field name.
+By default each field in the schema is considered as required.
+To make a field not required just set the **$required** operator to false or add a question mark at the end of the fieldname.
 
 ```js
 var isValid = validall(user, {
@@ -187,7 +190,7 @@ var isValid = validall(user, {
 
 ### $default
 
-Add a value to the current field if it was not set
+Add a value to the current field if it was not set.
 
 ```js
 var isValid = validall(user, {
@@ -208,7 +211,7 @@ Using **$required** operator with **$default** is useless.
 
 ### $equals:
 
-Checks if the src value is equal to argumant provided.
+Checks if the src value is equal to the argumant provided.
 
 ```js
 var isValid = validall(user, {
@@ -218,17 +221,17 @@ var isValid = validall(user, {
 });
 ```
 
-The first way is only used with primitive types, and you should be careful with when passing a string value, because if the string was a valid type **validall** will check the type not the equality, type has more priority over equality.
+The first way is only used with primitive types.
+When passing a string value, if the value matches a valid type name **validall** will check the type instead of the equality, type has more priority over equality.
 
 ```js
 var isValid = validall(user, {
-  username: 'string'  // check type
-  role: 'admin'       // check equality
+  username: 'string'  // checks type
+  role: 'admin'       // checks equality
 });
 ```
 
-_note: **$equals** operator does a shallow comparative process._
-_note: it also compares arrays and objects size to pass._
+_note: **$equals** operator does a shallow comparative process, it also compares arrays and objects size to pass._
 
 
 ### $identical:
@@ -309,16 +312,18 @@ var isValid = validall(article, {
 });
 ```
 
+_note: 5 and 50 are included._
+
 
 ### $size:
 
-Checks the size or length of arrays, objects or strings!.
+Puts the size of an array, an object or a string into the context.
 
 ```js
 var isValid = validall(user, {
   aricles: { $size: 10 }
   // or
-  articles: { $size: { $lg: 10 } }
+  articles: { $size: { $gt: 10 } }
   // or
   articles: { $size: { $range: [10, 20] } }
   // or
@@ -329,7 +334,7 @@ var isValid = validall(user, {
 
 ### $in:
 
-Checks if the the current value shares any items with the giving list or single value.
+Checks if the the current value shares any items with the giving list or a single value.
 
 ```js
 var isValid = validall(users, [{
@@ -382,9 +387,7 @@ var isValid = validall(article, {
 Checks if the value data is before the giving date.
 
 ```js
-var isValid = validall(article, {
-  publishDate: { $before: "02-06-2016" }
-});
+var isValid = validall(publishDate, { $before: "02-06-2016" });
 ```
 
 
@@ -393,15 +396,13 @@ var isValid = validall(article, {
 Checks if the value data is after the giving date.
 
 ```js
-var isValid = validall(article, {
-  publishDate: { $after: "02-06-2016" }
-});
+var isValid = validall(publishDate, { $after: "02-06-2016" });
 ```
 
 
 ### $fn:
 
-you can provide your own function to validate the current value.
+We can provide Our own functions to validate the current value.
 
 ```js
 var isValid = validall(user, {
@@ -410,13 +411,15 @@ someField: { $fn: function (fieldValue, fieldPath) {
       // your test goes here
       return state;
     },
-    $message: 'your message'      // You should add your error message otherwise 'unhandled error message' will be returned
+    $message: 'your message'      // $message operator should be provided otherwise 'unhandled error message' will be returned
   }
 });
 ```
 
 * First Argument is the current field value.
 * Second Argument is the current field Path.
+
+_**$message** operator should be provided otherwise 'unhandled error message' will be returned_
 
 
 
@@ -436,6 +439,30 @@ var isValid = validall(article, {
 
 Returns false when at least one operator in the list is failed.
 
+```js
+var state = validall(article, {
+  roles: { $and: [{ $type: 'string[]' }, { $all: ['admin', 'author', 'subscriber'] }]}
+  // same as
+  roles: { $type: 'string[]', $all: ['admin', 'author', 'subscriber']}
+});
+```
+
+Both ways are the same, however using **$and** gives us the abiltity to add our custom messages for each operator we use.
+
+```js
+var state = validall(article, {
+  roles: { $and: [
+    { $type: 'string[]', $message: 'type test fail custom message' }, 
+    { $all: ['admin', 'author', 'subscriber'], $message: 'enum test fail custom message' }
+  ]}
+  // or 
+  roles: {
+    $type: 'string[]', 
+    $all: ['admin', 'author', 'subscriber'],
+    $message: 'both type and enum tests message'
+  }
+});
+```
 
 
 ### $or:
@@ -443,8 +470,8 @@ Returns false when at least one operator in the list is failed.
 Returns true when at least one operator of a list is passed.
 
 ```js
-var isValid = validall(user, {
-  age: { $or: [{ $type: 'number' }, { $type: 'string' }] }
+var isValid = validall(exam, {
+  result: { $or: [{ $type: 'number' }, { $type: 'string' }] }
 });
 ```
 
@@ -478,28 +505,32 @@ var isValid = validall(user, {
 ### $message:
 
 When any operator fails it throws its default message.
-This option allows you to add your custom error message.
+This option allows us to add our custom error messages.
 
 ```js
 var isValid = validall(user, {
-  email: { $is: 'email', $message: 'invalid email' }
+  email: { $is: 'email', $message: 'invalid user email' }
 });
 ```
 
-**validall** considers meseages as templates, it can pass some special keywords in them if you asked for them.
+**validall** considers meseages as templates, it can pass some special keywords if we asked for them.
 
 ```js
+var user = { email: 'email@there' };
+
 var isValid = validall(user, {
-  email: { $is: 'email', $message: 'invalid email: {{received}}' }
-});
+  email: { $is: 'email', $message: 'invalid user email: {{received}}' }
+}, 'user');
+
+// message output: invalid user email: email@there
 ```
 
 **Keywords List:**
 
-* fieldPath: current field path: _'root.credenials.email'_
+* fieldPath: current field path: _'user.email'_
 * operator: the operator that threw the error: _'$is'_
-* expected: the current option passed to the operaotr: _'email'_
-* received: the value that field the validation: _'example@com'_
+* expected: the current option passed to the operator: _'email'_
+* received: the value that failed the validation: _'email@there'_
 
 
 
@@ -517,8 +548,7 @@ var isValid = validall(user, {
 });
 ```
 
-What if you want to set the 'articles' as not required _(you can use '?')_ or give it a maximum length.
-When need it you can use **$each** operator:
+Using **$each** operator lets us separate the array and its contents validations.
 
 ```js
 var isValid = validall(user, {
@@ -537,15 +567,19 @@ var isValid = validall(user, {
 
 ## Extending validall:
 
-You can extend validall with your own messages or operators to use whenever you needed them.
+We can extend validall with our own messages or operators to use whenever we needed them.
 
 ```js
-  validall.extend('$even', "{{fieldPath}} should be an even number!", value => value % 2 === 0);
+  validall.extend(
+    '$even',
+    "{{fieldPath}} should be an even number!",
+    value => value % 2 === 0
+  );
 ```
 
 ### arguments:
 
-* name: {string} the name of your operator, **validall** will prefix the name with '$' if it wasn't found. _required_
+* name: {string} the name of the new operator, **validall** will prefix the name with '$' if it wasn't found. _required_
 * message: the operator error message. _required_
 * operator: {function} the function that do the validation. _optional_
 
@@ -562,35 +596,46 @@ The operator must returns a boolean value.
 
 ## Error Handling:
 
-When extending **validall** or using the **$fn** operator, you add your own function to validate the current value.
-There are some conditions you need to be aware of:
+When extending **validall** or using the **$fn** operator, we add our own functions to validate the current value.
+There are some conditions we need to be aware of:
 
 ### $not context:
 
-When your operator is used as a child of the **$not** operator, it should do the opposite validation!!.
+When our operator is used as a child of the **$not** operator, it should do the opposite validation!!.
 But there is a better solution.
-Keep your function as it is, however in your error message just add the {{not}} keyword in the appropriate place.
+we can Keep our function as it is, however in our error message we can just add the {{not}} keyword in the appropriate place.
 
 ```js
-  validall.extend('$even', "{{fieldPath}} should {{not}} be an even number!", (value) => value % 2 === 0);
+  validall.extend(
+    '$even',
+    "{{fieldPath}} should {{not}} be an even number!",
+    (value) => value % 2 === 0);
+
+  let state1 = validall.test(23, { $even: true }, 'number'); // number should be an even number!.
+  let state1 = validall.test(22, { $not { $even: true } }, 'number'); // number should not be an even number!.
 ```
 
 ### $or, $nor, $xor:
 
-When any of the above operators is used, any of the children operators that returns _false_ will be ignored until all operators are tested in some cases.
+When any of the above operators is used, any of the children operators that returns _false_ will be ignored until all operators in the list are tested in some cases.
 For example the **$or** operator will keep ignoring false returning operators until it finds the true returned one.
-In some cases you do not want this type of behavior for a specific errors, like when your operator gets the wrong options.
+In some cases we do not want this type of behavior for a specific errors, we need validall to terminate the process directly, like when our operator gets the wrong options.
 
-**validall** gives you the option to make that kind of action useing **expect** or **throw** helpers.
+**validall** gives us the option to make that kind of action using **expect** or **throw** helpers.
 
 #### expect:
 
-expect is used only when checking types:
+**expect** is used only when checking types:
 
 ```js
-validall.extend('hasRole', "{{fieldPath}} should {{not}} include {{expected}}", (value, role) => {
-  // you are expecting that the 'role' argument is string
+validall.extend(
+  'hasRole',
+  "{{fieldPath}} should {{not}} include {{expected}}",
+  (value, role) => {
+
+  // we are expecting that the 'role' argument is string
   validall.expect(role, 'string');
+
   // or maybe both string or 'string[]'
   validall.expect(role, ['string', 'string[]']);
   ...
@@ -602,7 +647,7 @@ when **expect** fails, it will terminate the validation process and throws an er
 
 #### throw:
 
-Throw is more general, you can throw a string message or you can throw new **validall.Error** message:
+Throw is more general, we can throw a string message or we can throw new **validall.Error** message:
 
 ```js
 validall.extend('hasRole', "{{fieldPath}} should {{not}} include {{expected}}", (value, role) => {
@@ -621,7 +666,7 @@ validall.extend('hasRole', "{{fieldPath}} should {{not}} include {{expected}}", 
 
 ## Util:
 
-**validall** shares its utilities if you needed them:
+**validall** shares its utilities if any needed them:
 
 
 ### compile:
