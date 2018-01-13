@@ -30,7 +30,7 @@ interface IOperators {
   $or?: IOperators[];
   $xor?: IOperators[];
   $nor?: IOperators[];
-  $each?: validall.ISchema;
+  $each?: Validall.ISchema;
 }
 
 interface ITypesUtil {
@@ -67,7 +67,10 @@ interface IValidallError {
   got: string;
   toString: () => string;
 }
-declare function Validall(src: any, schema: validall.ISchema, options?: Validall.ISchemaOptions): boolean;
+
+export = Validall;
+
+declare function Validall(src: any, schema: Validall.ISchema, options?: Validall.ISchemaOptions): boolean;
 declare namespace Validall {  
   export const Types: ITypesUtil;
   export const error: IValidallError;
@@ -83,9 +86,7 @@ declare namespace Validall {
     [key: string]: any;
   }
   export class Schema {
-    constructor(schema: ISchema, options: ISchemaOptions): Validator
+    constructor(schema: ISchema, options?: ISchemaOptions)
     test(src: any): boolean | never;
   }
 }
-
-export = Validall;
