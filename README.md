@@ -42,7 +42,7 @@ let isValid = Validall(user, {
 ```
 
 
-### message:
+### error:
 
 In case **Validall()** returned a false value we can access the error message through:
 
@@ -421,7 +421,7 @@ let isValid = Validall(user, {
   createdAt: { $cast: 'string' },   // date instance > "15-12-2017" 
   active: { $cast: 'boolean' },     // 1 > true
   birthDate: { $cast: 'date' },     // "15-12-1988" > date instance
-  pattern: { $cast: 'regexp' },     // "/abc/" > /abc/
+  pattern: { $cast: 'regexp' },     // "abc" > /abc/
   roles: { $cast: 'array' },        // "author" > ["author"]  
 })
 ```
@@ -439,7 +439,7 @@ let isValid = Validall(user, {
 
 ### $to
 
-This operator takes only function or list of functions, it call the function with current value passed and assign the return value to the current value. (* _* )
+This operator takes only a function or a list of functions, it call the function with the current value and assign the return value to the current value. (* _* )
 
 An example:
 
@@ -577,7 +577,7 @@ let isValid = Validall(user, {
 
 ## Validall Options:
 
-The third parameter in Validall function is an object including some defaults and configuration.
+The third parameter in Validall function is an object including some defaults and configurations.
 
 ### root: _string_
 
@@ -623,7 +623,7 @@ We can instantiate Validall to create schemas.
 
 
 ```js
-let Schema = new Validall.Schema({
+let userSchema = new Validall.Schema({
   username: 'string',
   password: { $regex: /^[a-zA-Z0-9_]{8,}$/ }
 }, {
@@ -632,7 +632,9 @@ let Schema = new Validall.Schema({
   $filter: true
 });
 
-Schema.test(someUser);
+userSchema.test(user);
+userSchema.test(anotherUser);
+userSchema.test(yetAnotherUser);
 ```
 
 
