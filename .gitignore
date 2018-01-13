@@ -2,3 +2,6 @@ test/**
 .vscode/**
 bower.json
 validall.min.js
+node_modules
+legacy.js
+test.js

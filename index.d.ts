@@ -1,50 +1,44 @@
-type typeOptions = "undefined" | "any" | "number" | "string" | "boolean" | "primitive" | "date" | "regexp" | "object" | "function" | "any[]" | "number[]" | "string[]" | "boolean[]" | "primitive[]" | "date[]" | "regexp[]" | "object[]";
-type isOptions = "null" | "number" | "date" | "set" | "true" | "filled" | "email" | "url";
+type typesOptions = "any" | "number" | "int" | "float" | "string" | "boolean" | "primitive" | "date" | "regexp" | "object" | "function" | "array" | "number[]" | "int[]" | "float[]" | "string[]" | "boolean[]" | "primitive[]" | "date[]" | "regexp[]" | "object[]" | "function[]";
 
 interface IOperators {
   $message?: string;
-  $type?: typeOptions;
-  $is?: isOptions;
-  $extendable?: boolean | "filter";
-  $required?: boolean;
   $default?: any;
+  $required?: boolean; 
+  $strict?: boolean;
+  $filter?: boolean;
+  $type?: typesOptions;
+  $cast?: "number" | "string" | "bolean" | "date" | "regexp" | "array";
+  $to?: (value: any) => any | ((value: any) => any)[];
   $equals?: any;
-  $identical?: any;
+  $deepEquals?: any;
   $regex?: RegExp;
   $gt?: number;
   $gte?: number;
   $lt?: number;
   $lte?: number;
-  $range?: [number, number];
+  $inRange?: [number, number];
+  $length?: number | IOperators;
   $size?: number | IOperators;
+  $in?: any;
+  $all?: any;
   $keys?: IOperators;
-  $in?: any[];
-  $all?: any[];
-  $on?: Date | string;
-  $before?: Date | string;
-  $after?: Date | string;
-  $fn?: (value: any, fieldPath: string) => boolean;
-  $each?: [validall.ISchema];
+  $on?: Date | string | number;
+  $before?: Date | string | number;
+  $after?: Date | string | number;
   $not?: IOperators;
   $and?: IOperators[];
   $or?: IOperators[];
-  $nor?: IOperators[];
   $xor?: IOperators[];
+  $nor?: IOperators[];
+  $each?: validall.ISchema;
 }
 
-interface IMessageData {
-  fieldPath?: string;
-  operator?: string;
-  expected?: any;
-  received?: any;
-  not?: "not" | ""
-}
-
-interface ITypeUtil {
-  undefined: (value: any) => boolean;
+interface ITypesUtil {
+  isValidType: (type: string) => boolean;
+  int: (value: any) => boolean;
+  float: (value: any) => boolean;
   number: (value: any) => boolean;
   string: (value: any) => boolean;
-  html: (value: any) => boolean;
   boolean: (value: any) => boolean;
   primitive: (value: any) => boolean;
   date: (value: any) => boolean;
@@ -52,54 +46,46 @@ interface ITypeUtil {
   object: (value: any) => boolean;
   function: (value: any) => boolean;
   'number[]': (value: any) => boolean;
+  'int[]': (value: any) => boolean;
+  'float[]': (value: any) => boolean;
   'string[]': (value: any) => boolean;
   'boolean[]': (value: any) => boolean;
   'primitive[]': (value: any) => boolean;
   'date[]': (value: any) => boolean;
   'regexp[]': (value: any) => boolean;
   'object[]': (value: any) => boolean;
-  'any[]': (value: any) => boolean;
+  'function[]': (value: any) => boolean;
+  'array': (value: any) => boolean;
   any: (value?: any) => boolean;
+  getTypeOf: (value: any) => typesOptions;
 }
 
-interface IIsUtil {
-  null: (value: any) => boolean;
-  number: (value: any) => boolean;
-  set: (value: any) => boolean;
-  'true': (value: any) => boolean;
-  filled: (value: any) => boolean;
-  date: (value: any) => boolean;
-  email: (value: any) => boolean;
-  url: (value: any) => boolean;
+interface IValidallError {
+  operator: string;
+  path: string;
+  message: string;
+  got: string;
+  toString: () => string;
 }
-
-interface IUtils {
-  compile: (template: string, data: any) => string;
-  fromPath: (src: object, path: string, value?: any, inject?: boolean) => any;
-  equals: (src: any, target: any, deep?: boolean) => boolean;
-  isSet: (value: any) => boolean;
-  isTrue: (value: any) => boolean;
-  isFilled: (value: any) => boolean;
-  getType: (value: any) => string;
-  type: ITypeUtil;
-  is: IIsUtil;
-}
-
-declare namespace error {
-  class ValidallError {
-    constructor(messages: string | { message: string; data?: IMessageData }[]);
+declare function Validall(src: any, schema: validall.ISchema, options?: Validall.ISchemaOptions): boolean;
+declare namespace Validall {  
+  export const Types: ITypesUtil;
+  export const error: IValidallError;
+  export interface ISchemaOptions {
+    root?: string;
+    required?: boolean;
+    filter?: boolean;
+    strict?: boolean;
+    throwMode?: boolean;
+    traceError?: boolean;
   }
-}
-
-export = validall;
-declare function validall(src: any, schema: validall.ISchema, rootName?: string): boolean;
-declare namespace validall {
-  export const message: string;
-  export const errMap: string;
-  export const Error: error.ValidallError;
-  export function expect(value: any, type: string): void | never;
-  export const util: IUtils;
   export interface ISchema extends IOperators {
     [key: string]: any;
   }
+  export class Schema {
+    constructor(schema: ISchema, options: ISchemaOptions): Validator
+    test(src: any): boolean | never;
+  }
 }
+
+export = Validall;
