@@ -86,6 +86,7 @@ declare namespace Validall {
     [key: string]: any;
   }
   export class Schema {
+    error: IValidallError;
     constructor(schema: ISchema, options?: ISchemaOptions)
     test(src: any): boolean | never;
   }
