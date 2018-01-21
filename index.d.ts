@@ -26,10 +26,10 @@ interface IOperators {
   $before?: Date | string | number;
   $after?: Date | string | number;
   $not?: IOperators;
-  $and?: IOperators[];
-  $or?: IOperators[];
-  $xor?: IOperators[];
-  $nor?: IOperators[];
+  $and?: Validall.ISchema[];
+  $or?: Validall.ISchema[];
+  $xor?: Validall.ISchema[];
+  $nor?: Validall.ISchema[];
   $each?: Validall.ISchema;
 }
 
