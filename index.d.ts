@@ -83,7 +83,7 @@ declare namespace Validall {
     traceError?: boolean;
   }
   export interface ISchema extends IOperators {
-    [key: string]: ISchema;
+    [key: string]: ISchema | any;
   }
   export class Schema {
     error: IValidallError;
