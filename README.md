@@ -28,7 +28,7 @@ import * as Validall from "Validall"
 let Validall = require("Validall");
 
 let isValid = Validall(user, {
-  username: { $type: 'string', $to: (name) => name.toLowerCase(), $required: true },
+  username: { $type: 'string', $to: ['trim', 'lowercase'], $required: true },
   email: 'string',
   password: { $regex: /^[a-zA-Z0-9_]{6,}$/ },
   roles: { $all: ['admin', 'author', 'subscriber'], $message: 'unknown role!!' },
@@ -113,6 +113,27 @@ let isValid = Validall(user, {
 * function[]
 
 
+
+### $is:
+
+Tests the current value with a ready made pattern.
+
+For now **$is** only support _name | email | url_ patterns.
+
+```js
+let user = { name: 'john', email: 'me@there.com', website: 'www.there.com' };
+
+let isValid = Validall(user, {
+  name: { $type: 'string' $is: 'name' },
+  email: { $type: 'string' $is: 'email' },
+  website: { $type: 'string' $is: 'url' }
+}, 'user');
+```
+
+It is a good practice to check wether the value of type string or not.
+
+
+
 ### $strict:
 
 If set to **true** any extra fields that are not specified in the schema, will throw an error.
@@ -135,6 +156,8 @@ let isValid = Validall(user, {
 //  }
 ```
 
+
+
 ### $filter:
 
 If set to **true** it cleans the src from any extra fields.
@@ -154,6 +177,7 @@ console.log(user);
 Using **$strict** besides **$filter** is useless.
 
 
+
 ### $required:
 
 Marks the field as required.
@@ -163,6 +187,7 @@ let isValid = Validall(user, {
   username: { $required: true, $type: 'string' }
 });
 ```
+
 
 
 ### $default
@@ -184,6 +209,7 @@ let isValid = Validall(user, {
 ```
 
 Using **$required** operator with **$default** is useless.
+
 
 
 ### $equals:
@@ -211,6 +237,7 @@ let isValid = Validall(user, {
 _note: **$equals** operator does a shallow comparative process, it also compares arrays and objects size to pass._
 
 
+
 ### $deepEquals:
 
 Same as '$equals' operator, but has a deep comparative process.
@@ -224,6 +251,7 @@ let unPublish = Validall(response, {
 _note: it also compares arrays and objects size to pass._
 
 
+
 ### $regex:
 
 Tests the current value with a regular expression.
@@ -233,6 +261,7 @@ let isValid = Validall(user, {
   password: { $regex: /^[a-zA-Z0-9_]{8,16}$/ }
 });
 ```
+
 
 
 ### $gt:
@@ -246,6 +275,7 @@ let isValid = Validall(user, {
 ```
 
 
+
 ### $gte:
 
 Tests if the current value number is larger than or equals to a specific number.
@@ -255,6 +285,7 @@ let isValid = Validall(user, {
   rank: { $gte: 4 }
 });
 ```
+
 
 
 ### $lt:
@@ -268,6 +299,7 @@ let isValid = Validall(article, {
 ```
 
 
+
 ### $lte:
 
 Tests if the current value number is less than or equals to a specific number.
@@ -277,6 +309,7 @@ let isValid = Validall(article, {
   likes: { $lte: 50 }
 });
 ```
+
 
 
 ### $inRange:
@@ -290,6 +323,7 @@ let isValid = Validall(article, {
 ```
 
 _note: 5 and 50 are included._
+
 
 
 ### $length:
@@ -309,6 +343,7 @@ let isValid = Validall(user, {
 ```
 
 
+
 ### $size:
 
 Puts the size of an object into the context.
@@ -326,6 +361,7 @@ let isValid = Validall(user, {
 ```
 
 
+
 ### $in:
 
 Checks if the the current value shares any items with the giving list or a single value.
@@ -341,6 +377,7 @@ let isValid = Validall(users, [{
 It is not only about strings, you can use what ever type, but the equality test is shallow.
 
 
+
 ### $all:
 
 Checks if the the current value is all in the giving list.
@@ -350,6 +387,7 @@ let isValid = Validall(articles, [{
   categories: { $all: ['news', 'sport', 'movies', 'science'] }  // no way out
 }]);
 ```
+
 
 
 ### $keys:
@@ -363,6 +401,7 @@ let isValid = Validall(user, [{
   tools: { $keys: { $length: 3 } }
 }]);
 ```
+
 
 
 ### $on:
@@ -380,6 +419,7 @@ let isValid = Validall(article, {
 ```
 
 
+
 ### $before:
 
 Checks if the value data is before the giving date.
@@ -393,6 +433,7 @@ let isValid = Validall(publishDate, {
   publishDate: { $before: 123657624 }  // number
 });
 ```
+
 
 
 ### $after:
@@ -439,15 +480,26 @@ let isValid = Validall(user, {
 
 ### $to
 
-This operator takes only a function or a list of functions, it call the function with the current value and assign the return value to the current value. (* _* )
+This operator takes a string, function or a list of both, it loops through list with the current value and assign the return value to the current value. (* _* )
 
 An example:
 
 ```js
 let isValid = Validall(user, {
-  role: { $type: 'string', $to: role => role.toLowerCase() }
+  fullname: { $type: 'string', $to: ['trim', 'lowercase', 'capitilizeFirstAll', (value) => 'some custom modification' ] }
 })
 ```
+
+So what is going to happern is: the fullname will run through all the modifiers in the list, it will be trimmed, lowercased, capitilize each individual name and throuh the custom method you define.
+
+#### supported methods:
+
+* lowercase: lowercase all the characters in a string.
+* uppercase: capitalize all the characters in a string.
+* capitilizeFirst: capitalize only the first character in a string.
+* capitilizeFirstAll: capitalize the first character in each string separated by a space.
+* trim: trim white space from the start and the end of a string and any repeated space in the middle.
+* path: cleans a path from duplicated or repeated slashes also remove any end slashes and any unnecessary '../' in the middle of the path.
 
 clear...
 
@@ -493,6 +545,7 @@ let state = Validall(article, {
   }
 });
 ```
+
 
 
 ### $or:
@@ -544,6 +597,7 @@ let isValid = Validall(user, {
 ```
 
 
+
 ### $each:
 
 Validating objects is straightforward, however with arrays we are only validating what the array should includes, but not the array itself as in the examples below:
@@ -573,6 +627,7 @@ let isValid = Validall(user, {
   }
 });
 ```
+
 
 
 ## Validall Options:

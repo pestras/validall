@@ -1,4 +1,7 @@
 type typesOptions = "any" | "number" | "int" | "float" | "string" | "boolean" | "primitive" | "date" | "regexp" | "object" | "function" | "array" | "number[]" | "int[]" | "float[]" | "string[]" | "boolean[]" | "primitive[]" | "date[]" | "regexp[]" | "object[]" | "function[]";
+type isOptions = 'name' | 'email' | 'url';
+type toArgs = 'lowercase' | 'uppercase' | 'trim' | 'capitlizeFirst' | 'capitlizeFirstAll' | 'path' | ((value: any) => any);
+type toOptions = toArgs | toArgs[];
 
 interface IOperators {
   $message?: string;
@@ -7,8 +10,9 @@ interface IOperators {
   $strict?: boolean;
   $filter?: boolean;
   $type?: typesOptions;
+  $is?: isOptions;
   $cast?: "number" | "string" | "bolean" | "date" | "regexp" | "array";
-  $to?: (value: any) => any | ((value: any) => any)[];
+  $to?: toOptions;
   $equals?: any;
   $deepEquals?: any;
   $regex?: RegExp;
@@ -60,6 +64,12 @@ interface ITypesUtil {
   getTypeOf: (value: any) => typesOptions;
 }
 
+interface IIsUtil {
+  name: (value: string) => boolean;
+  email: (value: string) => boolean;
+  url: (value: string) => boolean;
+}
+
 interface IValidallError {
   operator: string;
   path: string;
@@ -73,6 +83,7 @@ export = Validall;
 declare function Validall(src: any, schema: Validall.ISchema, options?: Validall.ISchemaOptions): boolean;
 declare namespace Validall {  
   export const Types: ITypesUtil;
+  export const Is: IIsUtil;
   export const error: IValidallError;
   export interface ISchemaOptions {
     root?: string;

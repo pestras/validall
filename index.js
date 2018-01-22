@@ -2,6 +2,7 @@
 
 const Validator = require('./lib/validator');
 const Types = require('./lib/util/types');
+const is = require('./lib/util/is');
 
 /**
  * types definitions
@@ -36,6 +37,7 @@ function Validall(src, schema, options) {
 
 Validall.Schema = Validator;
 Validall.Types = Types;
+Validall.Is = is;
 
 /** exporting Validall */
 module.exports = Validall;
