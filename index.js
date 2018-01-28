@@ -29,7 +29,7 @@ function Validall(src, schema, options) {
     return instance.test(src);
   } else {
     instance.schema = schema;
-    Object.assign(instance.options, options || {});
+    Object.assign(instance.options || {}, options || {});
 
     return instatnce.test(src);
   }
