@@ -6,7 +6,7 @@ const is = require('./lib/util/is');
 
 /**
  * types definitions
- * @typedef {{root?: string, throwMode?: boolean, strict?: boolean, required?: boolean, traceError?: boolean}} ValidatorOptions
+ * @typedef {{root?: string, throwMode?: boolean, strict?: boolean, filter?: boolean, required?: boolean, traceError?: boolean}} ValidatorOptions
  * @typedef {{ test: function }} Validator
  */
 

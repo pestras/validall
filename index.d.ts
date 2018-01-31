@@ -9,6 +9,7 @@ interface IOperators {
   $required?: boolean; 
   $strict?: boolean;
   $filter?: boolean;
+  $props: any;
   $type?: typesOptions;
   $is?: isOptions;
   $cast?: "number" | "string" | "bolean" | "date" | "regexp" | "array";
@@ -100,5 +101,6 @@ declare namespace Validall {
     error: IValidallError;
     constructor(schema: ISchema, options?: ISchemaOptions)
     test(src: any): boolean | never;
+    getProps(field?: string): any;
   }
 }

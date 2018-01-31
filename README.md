@@ -42,7 +42,7 @@ let isValid = Validall(user, {
 ```
 
 
-### error:
+### error:  _v2.*_
 
 In case **Validall()** returned a false value we can access the error message through:
 
@@ -69,7 +69,7 @@ We can add our custom messages as we will see later.
 
 ## Operators
 
-## $type:
+## $type:  _v1.*_
 
 Checks the type of the value.
 ```js
@@ -114,7 +114,7 @@ let isValid = Validall(user, {
 
 
 
-### $is:
+### $is:  _v1.*_
 
 Tests the current value with a ready made pattern.
 
@@ -134,7 +134,7 @@ It is a good practice to check wether the value of type string or not.
 
 
 
-### $strict:
+### $strict:  _v2.*_
 
 If set to **true** any extra fields that are not specified in the schema, will throw an error.
 
@@ -158,7 +158,7 @@ let isValid = Validall(user, {
 
 
 
-### $filter:
+### $filter: _v2.*_
 
 If set to **true** it cleans the src from any extra fields.
 
@@ -178,7 +178,7 @@ Using **$strict** besides **$filter** is useless.
 
 
 
-### $required:
+### $required: _v1.*_
 
 Marks the field as required.
 
@@ -190,7 +190,7 @@ let isValid = Validall(user, {
 
 
 
-### $default
+### $default: _v1.*_
 
 Add a value to the current field if it was undefined.
 
@@ -212,7 +212,7 @@ Using **$required** operator with **$default** is useless.
 
 
 
-### $equals:
+### $equals: _v1.*_
 
 Checks if the src value is equal to the argumant provided.
 
@@ -238,7 +238,7 @@ _note: **$equals** operator does a shallow comparative process, it also compares
 
 
 
-### $deepEquals:
+### $deepEquals: _v2.*_
 
 Same as '$equals' operator, but has a deep comparative process.
 
@@ -252,7 +252,7 @@ _note: it also compares arrays and objects size to pass._
 
 
 
-### $regex:
+### $regex: _v2.*_
 
 Tests the current value with a regular expression.
 
@@ -264,7 +264,7 @@ let isValid = Validall(user, {
 
 
 
-### $gt:
+### $gt: _v1.*_
 
 Tests if the current value number is larger than a specific number.
 
@@ -276,7 +276,7 @@ let isValid = Validall(user, {
 
 
 
-### $gte:
+### $gte: _v1.*_
 
 Tests if the current value number is larger than or equals to a specific number.
 
@@ -288,7 +288,7 @@ let isValid = Validall(user, {
 
 
 
-### $lt:
+### $lt: _v1.*_
 
 Tests if the current value number is less than a specific number.
 
@@ -300,7 +300,7 @@ let isValid = Validall(article, {
 
 
 
-### $lte:
+### $lte: _v1.*_
 
 Tests if the current value number is less than or equals to a specific number.
 
@@ -312,7 +312,7 @@ let isValid = Validall(article, {
 
 
 
-### $inRange:
+### $inRange: _v2.*_
 
 Tests if the current value number is between a specific range.
 
@@ -326,7 +326,7 @@ _note: 5 and 50 are included._
 
 
 
-### $length:
+### $length: _v2.*_
 
 Puts the length of an array or a string into the context.
 
@@ -344,7 +344,7 @@ let isValid = Validall(user, {
 
 
 
-### $size:
+### $size: _v1.*_
 
 Puts the size of an object into the context.
 
@@ -362,7 +362,7 @@ let isValid = Validall(user, {
 
 
 
-### $in:
+### $in: _v1.*_
 
 Checks if the the current value shares any items with the giving list or a single value.
 
@@ -378,7 +378,7 @@ It is not only about strings, you can use what ever type, but the equality test 
 
 
 
-### $all:
+### $all: _v1.*_
 
 Checks if the the current value is all in the giving list.
 
@@ -390,7 +390,7 @@ let isValid = Validall(articles, [{
 
 
 
-### $keys:
+### $keys: _v2.*_
 
 Puts an object keys into the context
 
@@ -404,7 +404,7 @@ let isValid = Validall(user, [{
 
 
 
-### $on:
+### $on: _v1.*_
 
 Checks if the value date points to the same giving date.
 
@@ -420,7 +420,7 @@ let isValid = Validall(article, {
 
 
 
-### $before:
+### $before: _v1.*_
 
 Checks if the value data is before the giving date.
 
@@ -436,7 +436,7 @@ let isValid = Validall(publishDate, {
 
 
 
-### $after:
+### $after: _v1.*_
 
 Checks if the value data is after the giving date.
 
@@ -452,7 +452,7 @@ let isValid = Validall(publishDate, {
 
 
 
-### $cast:
+### $cast: _v2.2.*_
 
 Forces casting types;
 
@@ -478,7 +478,7 @@ let isValid = Validall(user, {
 
 
 
-### $to
+### $to: _v2.2*_
 
 This operator takes a string, function or a list of both, it loops through list with the current value and assign the return value to the current value. (* _* )
 
@@ -505,7 +505,7 @@ clear...
 
 
 
-### $not:
+### $not: _v1.*_
 
 Negate children operators results.
 
@@ -517,7 +517,7 @@ let isValid = Validall(article, {
 
 
 
-### $and: 
+### $and: _v1.*_
 
 Returns false when at least one operator in the list is failed.
 
@@ -548,7 +548,7 @@ let state = Validall(article, {
 
 
 
-### $or:
+### $or: _v1.*_
 
 Returns true when at least one operator of a list is passed.
 
@@ -560,7 +560,7 @@ let isValid = Validall(exam, {
 
 
 
-### $nor:
+### $nor: _v1.*_
 
 Returns true when no operator in the list is passed.
 
@@ -572,7 +572,7 @@ let isValid = Validall(user, {
 
 
 
-### $xor:
+### $xor: _v1.*_
 
 Returns true when only one operator in the list is passed but not the others.
 
@@ -585,7 +585,7 @@ let isValid = Validall(user, {
 
 
 
-### $message:
+### $message: _v1.*_
 
 When any operator fails it throws its default message.
 This option allows us to add our custom error messages.
@@ -598,7 +598,7 @@ let isValid = Validall(user, {
 
 
 
-### $each:
+### $each: _v1.*_
 
 Validating objects is straightforward, however with arrays we are only validating what the array should includes, but not the array itself as in the examples below:
 
@@ -627,6 +627,33 @@ let isValid = Validall(user, {
   }
 });
 ```
+
+
+
+### $props: _v2.4.*_
+
+Adds custom properties to some field that can be retraived later, this can bel helpful some times when you need to add more info in the schema for any reason.
+This operator is mostly used when instantiating **Validall.Schema** as we will see later.
+
+```js
+let Schema = new Validall.Schema({
+  createdAt: { $props: { const: true } },
+  privates: { notes: { $props: { authorize: true } } },
+  contacts: [{ desc: { $props: 'some description' } }]
+});
+
+console.log('Properties:', Schema.getProps());
+// Properties: { createdAt: { const: true },
+//   'privates.notes': { authorize: true },
+//   'contacts.$.type': 'some description' }
+console.log('createdAt props:', Schema.getProps('createdAt'));
+// createdAt props: { const: true' }
+console.log('privates.notes props:', Schema.getProps('data.email'));
+// privates.notes props: { authorize: true }
+console.log('contacts.$.type props:', Schema.getProps('contacts.$.type'));
+// contacts.$.type props: 'some description'
+```
+
 
 
 
@@ -672,7 +699,7 @@ This option is related with the **throwMode** option, it provides tracing for th
 
 
 
-## Schema:
+## Schema: _v2.*_
 
 We can instantiate Validall to create schemas.
 
