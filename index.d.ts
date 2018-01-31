@@ -9,7 +9,7 @@ interface IOperators {
   $required?: boolean; 
   $strict?: boolean;
   $filter?: boolean;
-  $props: any;
+  $props?: any;
   $type?: typesOptions;
   $is?: isOptions;
   $cast?: "number" | "string" | "bolean" | "date" | "regexp" | "array";
