@@ -31,7 +31,7 @@ function Validall(src, schema, options) {
     instance.schema = schema;
     Object.assign(instance.options || {}, options || {});
 
-    return instatnce.test(src);
+    return instance.test(src);
   }
 }
 
