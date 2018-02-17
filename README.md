@@ -75,12 +75,8 @@ Checks the type of the value.
 ```js
 let isValid = Validall(user, {
   name: 'string',
-  // or a constructor
-  name: String
   // or
   name: { $type: 'string' }
-  // or
-  name: { $type: String }
 });
 ```
 
@@ -89,8 +85,6 @@ but constructors are not allowed.
 ```js
 let isValid = Validall(user, {
   roles: { $type: { $in: ['string', 'string[]'] }
-  // but not
-  roles: { $type: { $in: [ String, [String] ] }
 });
 ```
 
