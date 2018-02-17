@@ -1,10 +1,12 @@
 const Validall = require('./');
 
-let user = { name: '123', 'id': '1321654' };
+let user = { name: '123' };
+let schema = new Validall.Schema({ name: 'string', '_id?': 'string', active: { $type: 'boolean', $default: true } });
 
 console.log(user);
-let state = Validall(user, { name: 'string', '_id?': 'string' }, { strict: true });
+let state = schema.test(user, { name: 'string', '_id?': 'string', active: { $type: 'boolean', $default: true } });
 
 console.log(state);
-console.log(Validall.error);
+console.log(schema.error);
+console.log(schema.defaults);
 console.log(user);

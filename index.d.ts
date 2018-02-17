@@ -99,6 +99,7 @@ declare namespace Validall {
   }
   export class Schema {
     error: IValidallError;
+    defaults: { [key: string]: any };
     constructor(schema: ISchema, options?: ISchemaOptions)
     test(src: any): boolean | never;
     getProps(field?: string): any;
