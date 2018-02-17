@@ -49,7 +49,7 @@ In case **Validall()** returned a false value we can access the error message th
 * Validall.error
 
 ```js
-let user = { username: 1223 }
+let user = { username: 123 }
 let isValid = Validall(user, {
   username: 'string'
 }, { root: 'user' });
@@ -69,21 +69,28 @@ We can add our custom messages as we will see later.
 
 ## Operators
 
-## $type:  _v1.*_
+### $type:  _v1.*_
 
 Checks the type of the value.
 ```js
 let isValid = Validall(user, {
   name: 'string',
+  // or a constructor
+  name: String
   // or
   name: { $type: 'string' }
+  // or
+  name: { $type: String }
 });
 ```
 
 The second way allows you to add more options when needed.
+but constructors are not allowed.
 ```js
 let isValid = Validall(user, {
   roles: { $type: { $in: ['string', 'string[]'] }
+  // but not
+  roles: { $type: { $in: [ String, [String] ] }
 });
 ```
 
@@ -111,6 +118,15 @@ let isValid = Validall(user, {
 * regexp[]
 * object[]
 * function[]
+
+Also you can pass a constructor function and **Validall** will make an _instanceof_ check to the value
+
+```js
+let isValid = Validall(user, {
+  profile: { $type: Profile }
+  articles: { $type: [Article] }
+});
+```
 
 
 
