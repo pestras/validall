@@ -76,11 +76,15 @@ Checks the type of the value.
 let isValid = Validall(user, {
   name: 'string',
   // or
+  name: String,
+  // or
   name: { $type: 'string' }
+  // or
+  name: { $type: String }
 });
 ```
 
-The second way allows you to add more options when needed.
+Usig **$type** operator explicitly allows you to add more options when needed.
 but constructors are not allowed.
 ```js
 let isValid = Validall(user, {
@@ -90,28 +94,28 @@ let isValid = Validall(user, {
 
 **Possible options:**
 
-* any
-* number
-* int
-* float
-* string
-* boolean
-* primitive   _'number, string or boolean'_
-* date
-* regexp
-* object
-* function
-* array
-* number[]
-* int[]
-* float[]
-* string[]
-* boolean[]
-* primitive[]
-* date[]
-* regexp[]
-* object[]
-* function[]
+* 'any'
+* 'number' | Number
+* 'int'
+* 'float'
+* 'string' | String
+* 'boolean' | Boolean
+* 'primitive'   _'number, string or boolean'_
+* 'date' | Date
+* 'regexp' | RegExp
+* 'object' | Object
+* 'function' | Function
+* 'array' | Array
+* 'number[]' | [Number]
+* 'int[]'
+* 'float[]'
+* 'string[]' | [String]
+* 'boolean[]' | '[Boolean]'
+* 'primitive[]'
+* 'date[]' | [Date]
+* 'regexp[]' | [RegExp]
+* 'object[]' | [Object]
+* 'function[]' | [Function]
 
 Also you can pass a constructor function and **Validall** will make an _instanceof_ check to the value
 
@@ -328,7 +332,7 @@ Tests if the current value number is between a specific range.
 
 ```js
 let isValid = Validall(article, {
-  read: { $range: [5, 50] }
+  read: { $inRange: [5, 50] }
 });
 ```
 
@@ -378,8 +382,8 @@ Checks if the the current value shares any items with the giving list or a singl
 
 ```js
 let isValid = Validall(users, [{
-  _id: { $in: '5486456cadf84fa' }  // array with string
   username: { $in: ['pancake', 'cheesecake'] }  // string with array
+  interests: { $in: 'burger' }  // array with string
   roles: { $in: ['admin', 'author'] } // array with array
 }]);
 ```
@@ -390,11 +394,23 @@ It is not only about strings, you can use what ever type, but the equality test 
 
 ### $all: _v1.*_
 
-Checks if the the current value is all in the giving list.
+Checks if the the current list includes all items in the giving list.
 
 ```js
 let isValid = Validall(articles, [{
-  categories: { $all: ['news', 'sport', 'movies', 'science'] }  // no way out
+  categories: { $all: ['news', 'sport', 'movies', 'science'] }
+}]);
+```
+
+
+
+### $allIn: _v1.*_
+
+Checks if the the current list items are included in the giving list.
+
+```js
+let isValid = Validall(user, [{
+  roles: { $allIn: ['admin', 'author', 'subscriber'] }
 }]);
 ```
 
@@ -490,7 +506,7 @@ let isValid = Validall(user, {
 
 ### $to: _v2.2*_
 
-This operator takes a string, function or a list of both, it loops through list with the current value and assign the return value to the current value. (* _* )
+This operator takes a string, function or a list of both, it loops through the options list with the current value and assign the return value to the current value. (* _* )
 
 An example:
 
@@ -500,9 +516,9 @@ let isValid = Validall(user, {
 })
 ```
 
-So what is going to happern is: the fullname will run through all the modifiers in the list, it will be trimmed, lowercased, capitilize each individual name and throuh the custom method you define.
+So what is going to happern is: the fullname will run through all the modifiers in the list, it will be trimmed, lowercased, capitilize each individual name and through the custom method you define.
 
-#### supported methods:
+#### Built in modifiers:
 
 * lowercase: lowercase all the characters in a string.
 * uppercase: capitalize all the characters in a string.
@@ -532,10 +548,10 @@ let isValid = Validall(article, {
 Returns false when at least one operator in the list is failed.
 
 ```js
-let state = Validall(article, {
-  roles: { $and: [{ $type: 'string[]' }, { $all: ['admin', 'author', 'subscriber'] }]}
+let state = Validall(user, {
+  roles: { $and: [{ $type: 'string[]' }, { $allIn: ['admin', 'author', 'subscriber'] }]}
   // same as
-  roles: { $type: 'string[]', $all: ['admin', 'author', 'subscriber']}
+  roles: { $type: 'string[]', $allIn: ['admin', 'author', 'subscriber']}
 });
 ```
 
@@ -545,12 +561,12 @@ Both ways are the same, however using **$and** gives the abiltity to add our cus
 let state = Validall(article, {
   roles: { $and: [
     { $type: 'string[]', $message: 'type test fail custom message' }, 
-    { $all: ['admin', 'author', 'subscriber'], $message: 'enum test fail custom message' }
+    { $allIn: ['admin', 'author', 'subscriber'], $message: 'enum test fail custom message' }
   ]}
   // or 
   roles: {
     $type: 'string[]', 
-    $all: ['admin', 'author', 'subscriber'],
+    $allIn: ['admin', 'author', 'subscriber'],
     $message: 'both type and enum tests message'
   }
 });
@@ -576,7 +592,7 @@ Returns true when no operator in the list is passed.
 
 ```js
 let isValid = Validall(user, {
-  name: { $nor: [{ $is: 'number' }, { $size: { $gt: 15 } }] }
+  name: { $nor: [{ $is: 'number' }, { $length: { $gt: 15 } }] }
 });
 ```
 
@@ -602,7 +618,7 @@ This option allows us to add our custom error messages.
 
 ```js
 let isValid = Validall(user, {
-  email: { $type: 'string', $message: 'invalid user email' }
+  email: { $is: 'email', $message: 'invalid user email' }
 });
 ```
 
@@ -638,11 +654,13 @@ let isValid = Validall(user, {
 });
 ```
 
+_note: no need to use the **$type** operator here, it is done implicitly._
+
 
 
 ### $props: _v2.4.*_
 
-Adds custom properties to some field that can be retraived later, this can bel helpful some times when you need to add more info in the schema for any reason.
+Adds custom properties to some field that can be retraived later, this can be helpful some times when you need to add more info in the schema for any reason.
 This operator is mostly used when instantiating **Validall.Schema** as we will see later.
 
 ```js
@@ -655,13 +673,13 @@ let Schema = new Validall.Schema({
 console.log('Properties:', Schema.getProps());
 // Properties: { createdAt: { const: true },
 //   'privates.notes': { authorize: true },
-//   'contacts.$.type': 'some description' }
+//   'contacts.$.desc': 'some description' }
 console.log('createdAt props:', Schema.getProps('createdAt'));
 // createdAt props: { const: true' }
-console.log('privates.notes props:', Schema.getProps('data.email'));
+console.log('privates.notes props:', Schema.getProps('privates.notes'));
 // privates.notes props: { authorize: true }
-console.log('contacts.$.type props:', Schema.getProps('contacts.$.type'));
-// contacts.$.type props: 'some description'
+console.log('contacts.$.desc props:', Schema.getProps('contacts.$.desc'));
+// contacts.$.desc props: 'some description'
 ```
 
 
@@ -674,7 +692,7 @@ The third parameter in Validall function is an object including some defaults an
 ### root: _string_
 
 As default **Validall** names the source passed to it as 'root' that can be seen in error messages.
-**root** options let you change the name to what ever you need.
+**root** option let you change the name to what ever you need.
 
 ### required: _boolean_
 

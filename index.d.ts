@@ -26,6 +26,7 @@ interface IOperators {
   $size?: number | IOperators;
   $in?: any;
   $all?: any;
+  $allIn?: any;
   $keys?: IOperators;
   $on?: Date | string | number;
   $before?: Date | string | number;
