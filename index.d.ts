@@ -104,5 +104,6 @@ declare namespace Validall {
     constructor(schema: ISchema, options?: ISchemaOptions)
     test(src: any): boolean | never;
     getProps(field?: string): any;
+    getPropsByName(name: string): any[];
   }
 }

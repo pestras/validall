@@ -749,6 +749,50 @@ userSchema.test(yetAnotherUser);
 
 
 
+### Methods:
+
+
+#### getProps(field: string _optional_):
+
+If no field was provided, it returns all props defined in the schema otherwise it returns only the provided field props.
+
+```js
+let userSchema = new Validall.Schema({
+  username: 'string',
+  password: { $regex: /^[a-zA-Z0-9_]{8,}$/ },
+  active: { $type: Boolean, $default: false, $props: { internal: true } },
+  createdAt: { $type: String, $default: Data.now, $props: { constant: true } }
+});
+
+console.log(userSchema.getProps());
+// {
+//   active: { internal: true },
+//   createdAt: { constant: true }
+// }
+
+console.log(userSchema.getProps('active'));
+// { internal: true }
+```
+
+
+#### getPropsByName(name: string):
+
+Returns array of all fields that has a property with the same name.
+
+```js
+let userSchema = new Validall.Schema({
+  username: 'string',
+  password: { $regex: /^[a-zA-Z0-9_]{8,}$/ },
+  active: { $type: Boolean, $default: false, $props: { internal: true } },
+  createdAt: { $type: String, $default: Data.now, $props: { constant: true } }
+});
+
+console.log(userSchema.getPropsByName('constant'));
+// [{ field: 'createdAt', value: true }]
+```
+
+
+
 
 --------------------------------------------------------------------------------
 Please if any bugs found, create an issue in [github](https://github.com/ammar6885/Validall "Validall github repo").
