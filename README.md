@@ -29,14 +29,14 @@ let Validall = require("Validall");
 
 let isValid = Validall(user, {
   username: { $type: 'string', $to: ['trim', 'lowercase'], $required: true },
-  email: 'string',
+  email: { $is: 'email' },
   password: { $regex: /^[a-zA-Z0-9_]{6,}$/ },
-  roles: { $all: ['admin', 'author', 'subscriber'], $message: 'unknown role!!' },
+  roles: { $in: ['admin', 'author', 'subscriber'], $message: 'unknown role!!' },
   age: { $gte: 12 },
   active { $cast: 'boolean', $default: true }
   aricles: [{
     title: { $type: 'string', $length: { $lte: 50 } },
-    date: { $before: '01/01/2018' }
+    date: { $after: '01/01/2018' }
   }]
 });
 ```
@@ -130,7 +130,7 @@ let isValid = Validall(user, {
 
 ### $is:  _v1.*_
 
-Tests the current value with a ready made pattern.
+Tests the current value with a built in pattern.
 
 For now **$is** only support _name | email | url_ patterns.
 
@@ -406,7 +406,7 @@ let isValid = Validall(articles, [{
 
 ### $allIn: _v1.*_
 
-Checks if the the current list items are included in the giving list.
+Checks if the the current list items are all included in the giving list.
 
 ```js
 let isValid = Validall(user, [{
@@ -484,19 +484,19 @@ Forces casting types;
 
 ```js
 let isValid = Validall(user, {
-  age: { $cast: 'number' },         // "30" > 30
-  createdAt: { $cast: 'string' },   // date instance > "15-12-2017" 
-  active: { $cast: 'boolean' },     // 1 > true
-  birthDate: { $cast: 'date' },     // "15-12-1988" > date instance
-  pattern: { $cast: 'regexp' },     // "abc" > /abc/
-  roles: { $cast: 'array' },        // "author" > ["author"]  
+  age: { $cast: 'number' },         // "30" -> 30
+  createdAt: { $cast: 'string' },   // date instance -> "15-12-2017" 
+  active: { $cast: 'boolean' },     // 1 -> true
+  birthDate: { $cast: 'date' },     // "15-12-1988" -> date instance
+  pattern: { $cast: 'regexp' },     // "abc" -> /abc/
+  roles: { $cast: 'array' },        // "author" -> ["author"]  
 })
 ```
 
 #### supported types:
 
 * number: can be casted from strings and booleans.
-* string: can be casted from numbers, booleans, dates, regexp, and functions, however objects and arrays converted to json string.
+* string: can be casted from numbers, booleans, dates, regexp, and functions, however objects and arrays will be converted to json string.
 * boolean: can be casted from any value.
 * date: can be casted from numbers and strings.
 * regexp: can bes casted from number, strings and booleans.
@@ -545,7 +545,7 @@ let isValid = Validall(article, {
 
 ### $and: _v1.*_
 
-Returns false when at least one operator in the list is failed.
+Returns false if at least one operator in the list failed.
 
 ```js
 let state = Validall(user, {
@@ -576,7 +576,7 @@ let state = Validall(article, {
 
 ### $or: _v1.*_
 
-Returns true when at least one operator of a list is passed.
+Returns true if at least one operator of a list passed.
 
 ```js
 let isValid = Validall(exam, {
@@ -588,7 +588,7 @@ let isValid = Validall(exam, {
 
 ### $nor: _v1.*_
 
-Returns true when no operator in the list is passed.
+Returns true if no operator in the list passed.
 
 ```js
 let isValid = Validall(user, {
@@ -600,7 +600,7 @@ let isValid = Validall(user, {
 
 ### $xor: _v1.*_
 
-Returns true when only one operator in the list is passed but not the others.
+Returns true if only one operator in the list passed but not the others.
 
 ```js
 let isValid = Validall(user, {
@@ -713,7 +713,7 @@ let isValid = Validall(user, {
 
 Change the default behavior of **Validall** and apply the **$strict** option to all objects including root unless you invert it in the field options.
 
-### filter
+### filter: _boolean_
 
 Change the default behavior of **Validall** and apply the **$filter** option to all objects including root unless you invert it in the field options.
 
@@ -773,6 +773,7 @@ console.log(userSchema.getProps());
 console.log(userSchema.getProps('active'));
 // { internal: true }
 ```
+
 
 
 #### getPropsByName(name: string):
