@@ -135,8 +135,6 @@ Tests the current value with a built in pattern.
 For now **$is** only support _value | notEmpty | number | name | email | url | date_ patterns.
 
 ```js
-let user = { name: 'john', email: 'me@there.com', website: 'www.there.com' };
-
 let isValid = Validall(user, {
   // name: accepts space separated alphapatical string
   name: { $type: 'string' $is: 'name' },
