@@ -132,19 +132,30 @@ let isValid = Validall(user, {
 
 Tests the current value with a built in pattern.
 
-For now **$is** only support _name | email | url_ patterns.
+For now **$is** only support _value | notEmpty | number | name | email | url | date_ patterns.
 
 ```js
 let user = { name: 'john', email: 'me@there.com', website: 'www.there.com' };
 
 let isValid = Validall(user, {
+  // name: accepts space separated alphapatical string
   name: { $type: 'string' $is: 'name' },
+  // value: undefined, null, empty string, "0", 0 all return false
+  gender: { $is: 'value' },
+  // number: accepts number or string of digits as "33"
+  age: { $is: 'number' },
+  // notEmpty: accepts string, array, objects which are not empty
+  roles: { $is: 'notEmpty' }
+  // email: clear
   email: { $type: 'string' $is: 'email' },
-  website: { $type: 'string' $is: 'url' }
+  // url: also clear
+  website: { $type: 'string' $is: 'url' },
+  // date: accepts date instance, string date, milliseconds number
+  birth: { $is: 'date' }
 }, 'user');
 ```
 
-It is a good practice to check wether the value of type string or not.
+It is a good practice to check the type first in case of _name, email, url_ for clear error messages.
 
 
 

@@ -67,9 +67,13 @@ interface ITypesUtil {
 }
 
 interface IIsUtil {
+  value: (value: any) => boolean;
+  notEmpty: (value: any) => boolean;
+  number: (value: any) => boolean;
   name: (value: string) => boolean;
   email: (value: string) => boolean;
   url: (value: string) => boolean;
+  date: (value: string) => boolean;
 }
 
 interface IValidallError {
