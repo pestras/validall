@@ -37,6 +37,7 @@ interface IOperators {
   $xor?: Validall.ISchema[];
   $nor?: Validall.ISchema[];
   $each?: Validall.ISchema;
+  [key: string]: IOperators;
 }
 
 interface ITypesUtil {
@@ -99,9 +100,9 @@ declare namespace Validall {
     throwMode?: boolean;
     traceError?: boolean;
   }
-  export interface ISchema extends IOperators {
-    [key: string]: ISchema | any;
-  }
+  
+  export interface ISchema extends IOperators {}
+
   export class Schema {
     error: IValidallError;
     defaults: { [key: string]: any };
