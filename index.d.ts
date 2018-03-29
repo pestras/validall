@@ -32,13 +32,14 @@ interface IOperators {
   $before?: Date | string | number;
   $after?: Date | string | number;
   $not?: IOperators;
-  $and?: Validall.ISchema[];
-  $or?: Validall.ISchema[];
-  $xor?: Validall.ISchema[];
-  $nor?: Validall.ISchema[];
-  $each?: Validall.ISchema;
-  [key: string]: IOperators | [IOperators] | string | number | boolean | Function | Function[];
+  $and?: IOperators[];
+  $or?: IOperators[];
+  $xor?: IOperators[];
+  $nor?: IOperators[];
+  $each?: IOperators;
 }
+
+type ISchemaValues = IOperators | IOperators[] | string | number | boolean | Function | Function[];
 
 interface ITypesUtil {
   isValidType: (type: string) => boolean;
@@ -101,7 +102,9 @@ declare namespace Validall {
     traceError?: boolean;
   }
   
-  export interface ISchema extends IOperators {}
+  export interface ISchema extends IOperators {
+    [key: string]: ISchemaValues
+  }
 
   export class Schema {
     error: IValidallError;
