@@ -1,4 +1,4 @@
-type typesOptions = "any" | "number" | "int" | "float" | "string" | "boolean" | "primitive" | "date" | "regexp" | "object" | "function" | "array" | "number[]" | "int[]" | "float[]" | "string[]" | "boolean[]" | "primitive[]" | "date[]" | "regexp[]" | "object[]" | "function[]";
+type typesOptions = "any" | "number" | "int" | "float" | "string" | "boolean" | "primitive" | "date" | "regexp" | "object" | "function" | "array" | "number[]" | "int[]" | "float[]" | "string[]" | "boolean[]" | "primitive[]" | "date[]" | "regexp[]" | "object[]" | "function[]" | Function | Function[];
 type isOptions = 'name' | 'email' | 'url';
 type toArgs = 'lowercase' | 'uppercase' | 'trim' | 'capitlizeFirst' | 'capitlizeFirstAll' | 'path' | ((value: any) => any);
 type toOptions = toArgs | toArgs[];
@@ -37,7 +37,7 @@ interface IOperators {
   $xor?: Validall.ISchema[];
   $nor?: Validall.ISchema[];
   $each?: Validall.ISchema;
-  [key: string]: IOperators | [IOperators] | string | number | boolean;
+  [key: string]: IOperators | [IOperators] | string | number | boolean | Function | Function[];
 }
 
 interface ITypesUtil {

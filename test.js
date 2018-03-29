@@ -2,9 +2,9 @@ const Validall = require('./');
 
 let user = { name: [1] };
 let schema = new Validall.Schema({
-  name: 'string',
+  name: String,
   users: 'string[]',
-  permissions: [{ model: 'string', services: 'string[]' }]
+  permissions: [{ model: String, services: 'string[]' }]
 });
 
 // console.log(user);
