@@ -38,7 +38,7 @@ interface IOperators {
   $xor?: IOperators[];
   $nor?: IOperators[];
   $each?: IOperators;
-  [key: string]: IOperators | IOperators[] | string | number | boolean | Date | [number, number] | toOptions | Function | Function[] | RegExp;
+  [key: string]: any;
 }
 
 interface ITypesUtil {
