@@ -1,7 +1,11 @@
 const Validall = require('./');
 
 let user = { name: [1] };
-let schema = new Validall.Schema({ name: { $is: "notEmpty" } });
+let schema = new Validall.Schema({
+  name: 'string',
+  users: 'string[]',
+  permissions: [{ model: 'string', services: 'string[]' }]
+});
 
 // console.log(user);
 let state = schema.test(user);

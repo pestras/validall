@@ -37,7 +37,7 @@ interface IOperators {
   $xor?: Validall.ISchema[];
   $nor?: Validall.ISchema[];
   $each?: Validall.ISchema;
-  [key: string]: IOperators;
+  [key: string]: IOperators | [IOperators] | string | number | boolean;
 }
 
 interface ITypesUtil {
