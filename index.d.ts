@@ -2,6 +2,7 @@ type typesOptions = "any" | "number" | "int" | "float" | "string" | "boolean" | 
 type isOptions = 'name' | 'email' | 'url';
 type toArgs = 'lowercase' | 'uppercase' | 'trim' | 'capitlizeFirst' | 'capitlizeFirstAll' | 'path' | ((value: any) => any);
 type toOptions = toArgs | toArgs[];
+type castOptions = "number" | "string" | "bolean" | "date" | "regexp" | "array";
 
 interface IOperators {
   $message?: string;
@@ -12,7 +13,7 @@ interface IOperators {
   $props?: any;
   $type?: typesOptions;
   $is?: isOptions;
-  $cast?: "number" | "string" | "bolean" | "date" | "regexp" | "array";
+  $cast?: castOptions;
   $to?: toOptions;
   $equals?: any;
   $deepEquals?: any;
@@ -37,7 +38,7 @@ interface IOperators {
   $xor?: IOperators[];
   $nor?: IOperators[];
   $each?: IOperators;
-  [key: string]: IOperators | IOperators[] | string | number | boolean | Function | Function[];
+  [key: string]: IOperators | IOperators[] | string | number | boolean | Date | [number, number] | toOptions | Function | Function[] | RegExp;
 }
 
 interface ITypesUtil {
