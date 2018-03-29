@@ -37,9 +37,8 @@ interface IOperators {
   $xor?: IOperators[];
   $nor?: IOperators[];
   $each?: IOperators;
+  [key: string]: IOperators | IOperators[] | string | number | boolean | Function | Function[];
 }
-
-type ISchemaValues = IOperators | IOperators[] | string | number | boolean | Function | Function[];
 
 interface ITypesUtil {
   isValidType: (type: string) => boolean;
@@ -102,9 +101,7 @@ declare namespace Validall {
     traceError?: boolean;
   }
   
-  export interface ISchema extends IOperators {
-    [key: string]: ISchemaValues
-  }
+  export interface ISchema extends IOperators {}
 
   export class Schema {
     error: IValidallError;
