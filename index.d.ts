@@ -7,6 +7,7 @@ type castOptions = "number" | "string" | "bolean" | "date" | "regexp" | "array";
 interface IOperators {
   $message?: string;
   $default?: any;
+  $nullable?: boolean;
   $required?: boolean; 
   $strict?: boolean;
   $filter?: boolean;
@@ -98,6 +99,7 @@ declare namespace Validall {
     required?: boolean;
     filter?: boolean;
     strict?: boolean;
+    nullable?: boolean;
     throwMode?: boolean;
     traceError?: boolean;
   }
@@ -107,6 +109,7 @@ declare namespace Validall {
   export class Schema {
     error: IValidallError;
     defaults: { [key: string]: any };
+    nullables: { [key: string]: boolean };
     constructor(schema: ISchema, options?: ISchemaOptions)
     test(src: any): boolean | never;
     getProps(field?: string): any;

@@ -34,9 +34,10 @@ let isValid = Validall(user, {
   roles: { $in: ['admin', 'author', 'subscriber'], $message: 'unknown role!!' },
   age: { $gte: 12 },
   active { $cast: 'boolean', $default: true }
-  aricles: [{
-    title: { $type: 'string', $length: { $lte: 50 } },
-    date: { $after: '01/01/2018' }
+  posts: 'Post[]' // some other schema
+  addresses: [{
+    country: String,
+    state: String
   }]
 });
 ```
@@ -116,6 +117,10 @@ let isValid = Validall(user, {
 * 'regexp[]' | [RegExp]
 * 'object[]' | [Object]
 * 'function[]' | [Function]
+* 'Post' _some other schema string name - string_
+* 'Post[]'
+* Constructor | 'Constructor string name' _must be in the scope_
+* [Constructor] | 'Constructor string name[]'
 
 Also you can pass a constructor function and **Validall** will make an _instanceof_ check to the value
 
@@ -235,6 +240,21 @@ Using **$required** operator with **$default** is useless.
 
 
 
+### $nullable: _v2.7.*_
+
+Assign a value of **null** to the current field if it was undefined.
+
+```js
+let isValid = Validall(user, {
+  lastname: { $type: 'string', $nullable: true }
+});
+```
+
+Using **$required** operator with **$nullable** is useless.
+And using **$nullable** operator with **$default** is useless as well.
+
+
+
 ### $equals: _v1.*_
 
 Checks if the src value is equal to the argumant provided.
@@ -252,8 +272,9 @@ When passing a string value, if the value matches a valid type name **Validall**
 
 ```js
 let isValid = Validall(user, {
-  username: 'string'  // checks type
-  role: 'admin'       // checks equality
+  username: 'string',  // checks type
+  role: 'admin',       // checks equality
+  posts: 'Post[]',     // if the is a post schema it will be type check otherwise it is equality type
 });
 ```
 
@@ -698,10 +719,33 @@ console.log('contacts.$.desc props:', Schema.getProps('contacts.$.desc'));
 
 The third parameter in Validall function is an object including some defaults and configurations.
 
+### name: _string_
+
+This is useful when referncing the current schema in other schemas.
+
+```js
+let Posts = new Validall.Schema({ title: String, content: String }, { name: 'Posts' });
+let Users = new Validall.Schema({ username: String, posts: 'Posts[]' });
+```
+
+In case **name** is not provided, schema cannot be referenced.
+
 ### root: _string_
 
 As default **Validall** names the source passed to it as 'root' that can be seen in error messages.
 **root** option let you change the name to what ever you need.
+
+```js
+let Users = new Validall.Schema({ username: String });
+Users.test({ username: true });
+console.log(Users.error);
+
+// ...
+//  Users.name must be of type 'string'
+// ...
+```
+
+In case **root** is not provided, schema name id used instead.
 
 ### required: _boolean_
 
@@ -710,11 +754,24 @@ Change the default behavior of **Validall** and marks all fields as required unl
 ```js
 let isValid = Validall(user, {
   name: 'string',
-  age: { $type: 'number', required: false }
+  age: { $type: 'number', $required: false }
   // or
   'age?': 'number'
 }, {
   required: true
+})
+```
+
+### nullable: _boolean_
+
+Change the default behavior of **Validall** and marks all fields as nullable unless you invert it in the field options.
+
+```js
+let isValid = Validall(user, {
+  name: 'string',
+  age: { $type: 'number', $nullable: false }
+}, {
+  nullable: true
 })
 ```
 
@@ -746,9 +803,9 @@ let userSchema = new Validall.Schema({
   username: 'string',
   password: { $regex: /^[a-zA-Z0-9_]{8,}$/ }
 }, {
-  $root: 'user'
-  $required: true,
-  $filter: true
+  root: 'user'
+  required: true,
+  filter: true
 });
 
 userSchema.test(user);
