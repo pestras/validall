@@ -1,4 +1,3 @@
-type typesOptions = "any" | "number" | "int" | "float" | "string" | "boolean" | "primitive" | "date" | "regexp" | "object" | "function" | "array" | "number[]" | "int[]" | "float[]" | "string[]" | "boolean[]" | "primitive[]" | "date[]" | "regexp[]" | "object[]" | "function[]" | Function | Function[];
 type isOptions = 'name' | 'email' | 'url';
 type toArgs = 'lowercase' | 'uppercase' | 'trim' | 'capitlizeFirst' | 'capitlizeFirstAll' | 'path' | ((value: any) => any);
 type toOptions = toArgs | toArgs[];
@@ -12,7 +11,7 @@ interface IOperators {
   $strict?: boolean;
   $filter?: boolean;
   $props?: any;
-  $type?: typesOptions;
+  $type?: any;
   $is?: isOptions;
   $cast?: castOptions;
   $to?: toOptions;
@@ -66,7 +65,7 @@ interface ITypesUtil {
   'function[]': (value: any) => boolean;
   'array': (value: any) => boolean;
   any: (value?: any) => boolean;
-  getTypeOf: (value: any) => typesOptions;
+  getTypesOf: (value: any) => any[];
 }
 
 interface IIsUtil {
@@ -95,6 +94,7 @@ declare namespace Validall {
   export const Is: IIsUtil;
   export const error: IValidallError;
   export interface ISchemaOptions {
+    name?: string;
     root?: string;
     required?: boolean;
     filter?: boolean;
