@@ -190,7 +190,7 @@ export class Validall {
 
     try {
       let res = await axios(<any>request);
-      
+
       if (options.map)
         validatorOptions = getValue(res.data, options.map);
       else
@@ -207,8 +207,7 @@ export class Validall {
     if (options.id)
       validatorOptions.id = options.id;
 
-    if (options.replaceSchema)
-      validatorOptions.replaceSchema = options.replaceSchema;
+    validatorOptions.replaceSchema = !!options.replaceSchema;
 
     if (options.throwMode)
       validatorOptions.throwMode = options.throwMode;
@@ -221,7 +220,7 @@ export class Validall {
   }
 
   static ValidateSchema(options: IOptions): ValidallInvalidArgsError {
-    
+
     try {
       validateSchema(options.schema, options);
     } catch (err) {

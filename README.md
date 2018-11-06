@@ -259,7 +259,7 @@ let error = validate(user, {
   }
 }, 'user');
 
-console.log(err.message);
+console.log(error.message);
 // age is out of src keys: name
 //    method: $strict.
 //    expected: not exist.
@@ -279,7 +279,7 @@ let error = validate(user, {
   }
 }, 'user');
 
-console.log(err);
+console.log(error);
 // null
 ```
 
@@ -552,7 +552,7 @@ let error = validate(user, {
   $props: {
     tools: { $keys: { $in: ['design', 'style', 'validation'] } }  // whatever
     // or
-    tools: { $keys: { $length: 3 } }
+    tools: { $keys: { $length: { $equal: 3 } } }
   }
 });
 ```
@@ -938,7 +938,7 @@ console.log(userSchema.getAllMeta());
 Returns array of properties that include the provided meta property name;
 
 ```js
-console.log(userSchema.getAllMeta());
+console.log(userSchema.getMetaByName('desc'));
 //  [ 
 //    { field: 'username', value: 'username is unique' },
 //    { field: 'contacts.mobile', value: 'should be hidden' }
@@ -979,7 +979,7 @@ let anonymousValidator = new Validall({ id: null, schema: {
 }});
 ```
 
-If id already exist, old schema won't be overriden unless **replaceSchema** options was set to true.
+If id already exists, old schema won't be overriden unless **replaceSchema** options was set to true.
 
 ```js
 let UserValidator = new Validall({
@@ -997,7 +997,7 @@ let AuthorValidator = new Validall({
 });
 
 // later
-Validall.getSchema('User') // UserValidator
+Validall.GetValidator('User') // UserValidator
 
 // unless
 let AuthorValidator = new Validall({

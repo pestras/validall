@@ -177,8 +177,7 @@ class Validall {
                 throw '[validall error]: invalid validator options - ' + validatorOptions;
             if (options.id)
                 validatorOptions.id = options.id;
-            if (options.replaceSchema)
-                validatorOptions.replaceSchema = options.replaceSchema;
+            validatorOptions.replaceSchema = !!options.replaceSchema;
             if (options.throwMode)
                 validatorOptions.throwMode = options.throwMode;
             return new Validall(validatorOptions);
