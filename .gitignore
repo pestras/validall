@@ -1,4 +1,4 @@
 .vscode/**
-bower.json
-validall.min.js
 node_modules
+test.ts
+test.js

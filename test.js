@@ -1,27 +1,18 @@
-const Validall = require('./');
-
-let postSchema = new Validall.Schema({
-  title: 'string',
-  content: 'string'
-}, {
-  name: 'Post',
-  required: true
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const index_1 = require("./index");
+let userValidator = new index_1.Validall({
+    id: 'User',
+    schema: {
+        $meta: { title: 'User Schema' },
+        $props: {
+            username: { $meta: { desc: "username is unique" } },
+            contacts: {
+                $props: {
+                    mobile: { $meta: { desc: 'should be hidden' } }
+                }
+            }
+        }
+    }
 });
-
-let user = { name: 'ammar', posts: {
-  title: 'Some Title',
-  content: 'some content'
-} };
-
-let schema = new Validall.Schema({
-  name: 'string',
-  posts: 'Post'
-}, {
-  filter: false,
-  strict: true
-});
-
-let state = schema.test(user);
-
-console.log(state);
-console.log(schema.error);
+console.log(userValidator.getMetaByName('desc'));
