@@ -2,3 +2,6 @@ test/**
 .vscode/**
 node_modules
 test.js
+*.ts
+!*.d.ts
+*.js.map

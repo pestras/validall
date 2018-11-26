@@ -17,7 +17,7 @@ export interface IValidatorOperators {
 }
 
 export interface IContextualOperators {
-  $type?: string;
+  $type?: 'number' | 'int' | 'float' | 'string' | 'boolean' | 'primitive' | 'date' | 'regexp' | 'function' | 'object' | 'array';
   $ref?: string;
   $instanceof?: Function;
   $is?: isOptions;
