@@ -70,7 +70,7 @@ exports.Operators = {
      * Type operator
      */
     $type(src, type, path, msg, validator) {
-        if (types_1.Types.getTypesOf(src).indexOf(type) > -1)
+        if (types_1.Types.getTypesOf(src).indexOf(type) === -1)
             throw new errors_1.ValidallValidationError({
                 method: '$type',
                 expected: type,

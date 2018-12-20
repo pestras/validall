@@ -79,7 +79,7 @@ export const Operators = {
    * Type operator
    */
   $type(src: any, type: string, path: string, msg: string | string[], validator: IValidator) {
-    if (Types.getTypesOf(src).indexOf(type) > -1)
+    if (Types.getTypesOf(src).indexOf(type) === -1)
       throw new ValidallValidationError({
         method: '$type',
         expected: type,

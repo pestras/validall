@@ -5,3 +5,4 @@ test.js
 *.ts
 !*.d.ts
 *.js.map
+TODO.md
