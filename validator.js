@@ -15,19 +15,22 @@ const axios_1 = require("axios");
 const repo_1 = require("./repo");
 const validate_schema_1 = require("./validate-schema");
 const inject_value_1 = require("tools-box/object/inject-value");
+const object_from_map_1 = require("tools-box/object/object-from-map");
+const set_value_1 = require("tools-box/object/set-value");
 class Validall {
-    constructor(options) {
+    constructor(options, map) {
         this.negateMode = false;
         this.meta = {};
         this._error = null;
+        this.orgSchema = null;
         this.schema = null;
         this.options = null;
         this.isPrepared = false;
         this.defaults = {};
         this.nullables = [];
         this.src = null;
-        this.schema = options.schema || null;
         this._id = options.id || null;
+        this.orgSchema = options.schema;
         this.options = {
             strict: !!options.strict,
             filter: !!options.filter,
@@ -35,6 +38,13 @@ class Validall {
             nullable: !!options.nullable,
             throwMode: !!options.throwMode
         };
+        if (map) {
+            this.schema = object_from_map_1.objFromMap(map, {}, options.schema);
+            this.map = map;
+        }
+        else {
+            this.schema = options.schema;
+        }
         // extract meta data form schema
         this.saveMeta(this.schema);
         // before starting validate process, schema should be cleaned, pluged with default values and validated
@@ -103,6 +113,20 @@ class Validall {
             if (['$required', '$message', '$default', '$filter', '$nullable', '$meta'].indexOf(operator) > -1)
                 continue;
             operators_1.Operators[operator](src, schema[operator], path, schema.$message, this);
+        }
+    }
+    set(keyPath, value) {
+        let oldValue = get_value_1.getValue(this.map, keyPath);
+        set_value_1.setValue(this.map, keyPath, value);
+        try {
+            let schema = object_from_map_1.objFromMap(this.map, {}, this.orgSchema);
+            validate_schema_1.validateSchema(schema, this.options);
+            this.schema = schema;
+            return null;
+        }
+        catch (err) {
+            set_value_1.setValue(this.map, keyPath, oldValue);
+            return err;
         }
     }
     validate(src, throwErr = false, negateMode = false) {

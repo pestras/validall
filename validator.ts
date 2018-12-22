@@ -1,28 +1,32 @@
 import { getValue } from 'tools-box/object/get-value';
-import { ISchema, ISchemaOptions, IOptions, IImportOptions } from "./schema";
+import { ISchema, ISchemaConfig, ISchemaOptions, IImportOptions } from "./schema";
 import { ValidallValidationError, ValidallInvalidArgsError } from "./errors";
 import { Operators } from './operators';
 import axios, { AxiosRequestConfig } from 'axios';
 import { saveValidator, getValidator, hasId } from './repo';
 import { validateSchema } from './validate-schema';
 import { injectValue } from 'tools-box/object/inject-value';
+import { objFromMap } from 'tools-box/object/object-from-map';
+import { setValue } from 'tools-box/object/set-value';
 
 export class Validall {
   private _id: string;
   private negateMode = false;
   private meta: any = {};
   private _error: any = null;
+  private map: any;
+  private orgSchema: ISchema = null;
   private schema: ISchema = null;
-  private options: ISchemaOptions = null;
+  private options: ISchemaConfig = null;
   private isPrepared = false;
 
   defaults: { [key: string]: any } = {};
   nullables: string[] = [];
   src: any = null;
 
-  constructor(options: IOptions) {
-    this.schema = options.schema || null;
+  constructor(options: ISchemaOptions, map?: any) {
     this._id = options.id || null;
+    this.orgSchema = options.schema;
 
     this.options = {
       strict: !!options.strict,
@@ -30,6 +34,14 @@ export class Validall {
       required: !!options.required,
       nullable: !!options.nullable,
       throwMode: !!options.throwMode
+    }
+
+    if (map) {
+      this.schema = objFromMap(map, {}, options.schema);
+      this.map = map;
+      
+    } else {
+      this.schema = options.schema;
     }
 
     // extract meta data form schema
@@ -116,6 +128,21 @@ export class Validall {
     }
   }
 
+  set(keyPath: string, value: any): any {
+    let oldValue = getValue(this.map, keyPath);
+    setValue(this.map, keyPath, value);
+    try {
+      let schema = objFromMap(this.map, {}, this.orgSchema);
+      validateSchema(schema, this.options);
+      this.schema = schema;
+      return null;
+
+    } catch (err) {
+      setValue(this.map, keyPath, oldValue);
+      return err;
+    }
+  }
+
   validate(src: any, throwErr = false, negateMode = false) {
     this.src = src;
     this.reset();
@@ -186,7 +213,7 @@ export class Validall {
     if (!axios)
       throw "[validall error]: axios is required for 'ImportSchema' method to work properly";
 
-    let validatorOptions: IOptions;
+    let validatorOptions: ISchemaOptions;
 
     try {
       let res = await axios(<any>request);
@@ -219,7 +246,7 @@ export class Validall {
     return getValidator(id);
   }
 
-  static ValidateSchema(options: IOptions): ValidallInvalidArgsError {
+  static ValidateSchema(options: ISchemaOptions): ValidallInvalidArgsError {
 
     try {
       validateSchema(options.schema, options);

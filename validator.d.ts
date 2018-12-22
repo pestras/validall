@@ -1,4 +1,4 @@
-import { IOptions, IImportOptions } from "./schema";
+import { ISchemaOptions, IImportOptions } from "./schema";
 import { ValidallInvalidArgsError } from "./errors";
 import { AxiosRequestConfig } from 'axios';
 export declare class Validall {
@@ -6,6 +6,8 @@ export declare class Validall {
     private negateMode;
     private meta;
     private _error;
+    private map;
+    private orgSchema;
     private schema;
     private options;
     private isPrepared;
@@ -14,7 +16,7 @@ export declare class Validall {
     };
     nullables: string[];
     src: any;
-    constructor(options: IOptions);
+    constructor(options: ISchemaOptions, map?: any);
     readonly id: string;
     readonly error: Error;
     private saveMeta;
@@ -23,6 +25,7 @@ export declare class Validall {
      *
      */
     private next;
+    set(keyPath: string, value: any): any;
     validate(src: any, throwErr?: boolean, negateMode?: boolean): boolean;
     getPropMeta(prop?: string): any;
     getAllMeta(): any;
@@ -31,5 +34,5 @@ export declare class Validall {
     }[];
     static ImportSchema(request: string | AxiosRequestConfig, options?: IImportOptions): Promise<Validall>;
     static GetValidator(id: string): Validall;
-    static ValidateSchema(options: IOptions): ValidallInvalidArgsError;
+    static ValidateSchema(options: ISchemaOptions): ValidallInvalidArgsError;
 }

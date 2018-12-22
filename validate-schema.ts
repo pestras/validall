@@ -1,5 +1,5 @@
 import { Operators } from './operators';
-import { ISchema, ISchemaOptions } from './schema';
+import { ISchema, ISchemaConfig } from './schema';
 import { Types } from 'tools-box/types';
 import { setValue } from 'tools-box/object/set-value';
 import { ValidallInvalidArgsError } from './errors';
@@ -7,7 +7,7 @@ import { Is } from 'tools-box/is';
 import { To } from './to';
 import { getValidator } from './repo';
 
-export function validateSchema(schema: ISchema, options: ISchemaOptions, path = "") {
+export function validateSchema(schema: ISchema, options: ISchemaConfig, path = "") {
   schema.$required = schema.$required === false ? false : schema.$required || options.required;
   schema.$nullable = schema.$nullable === false ? false : schema.$nullable || options.nullable;
 
@@ -120,7 +120,7 @@ const operatorsValidator: any = {
       });
   },
 
-  $filter(value: any, schema: any, path: string, options: ISchemaOptions) {
+  $filter(value: any, schema: any, path: string, options: ISchemaConfig) {
     if (value && typeof value !== 'boolean')
       throw new ValidallInvalidArgsError({
         method: '$filter',
@@ -379,11 +379,11 @@ const operatorsValidator: any = {
     this.$and(value, schema, path, '$xor');
   },
 
-  $each(value: any, schema: any, path: string, options: ISchemaOptions) {
+  $each(value: any, schema: any, path: string, options: ISchemaConfig) {
     schema.$type = 'array';
   },
 
-  $props(value: any, schema: any, path: string, options: ISchemaOptions) {
+  $props(value: any, schema: any, path: string, options: ISchemaConfig) {
     if (!Types.object(value))
       throw new ValidallInvalidArgsError({
         method: '$props',

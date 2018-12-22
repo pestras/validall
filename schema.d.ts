@@ -5,46 +5,46 @@ export declare type toOptions = toArgs | toArgs[];
 export interface IValidatorOperators {
     $equals?: any;
     $deepEquals?: any;
-    $gt?: number;
-    $gte?: number;
-    $lt?: number;
-    $lte?: number;
-    $inRange?: [number, number];
-    $intersect?: any[];
-    $include?: any[];
-    $enum?: any[];
+    $gt?: number | string;
+    $gte?: number | string;
+    $lt?: number | string;
+    $lte?: number | string;
+    $inRange?: [number, number] | string;
+    $intersect?: any[] | string;
+    $include?: any[] | string;
+    $enum?: any[] | string;
 }
 export interface IContextualOperators {
     $type?: 'number' | 'int' | 'float' | 'string' | 'boolean' | 'primitive' | 'date' | 'regexp' | 'function' | 'object' | 'array';
     $ref?: string;
-    $instanceof?: Function;
+    $instanceof?: Function | string;
     $is?: isOptions;
-    $regex?: RegExp;
+    $regex?: RegExp | string;
     $on?: Date | string | number;
     $before?: Date | string | number;
     $after?: Date | string | number;
 }
 export interface IModifierOperators {
     $default?: any;
-    $nullable?: boolean;
-    $filter?: boolean;
+    $nullable?: boolean | string;
+    $filter?: boolean | string;
     $cast?: castOptions;
     $to?: toOptions;
 }
 export interface INegatableOperators {
     $equals?: any;
     $deepEquals?: any;
-    $inRange?: [number, number];
-    $intersect?: any[];
-    $include?: any[];
+    $inRange?: [number, number] | string;
+    $intersect?: any[] | string;
+    $include?: any[] | string;
 }
 export interface IReaderOperators {
     $message?: string | string[];
     $meta?: any;
 }
 export interface IStructuralOperaotrs {
-    $required?: boolean;
-    $strict?: boolean | string[];
+    $required?: boolean | string;
+    $strict?: boolean | string | string[];
     $each?: ISchema;
     $props?: {
         [key: string]: ISchema;
@@ -62,14 +62,14 @@ export interface ILogicalOperators {
 }
 export interface ISchema extends IValidatorOperators, IContextualOperators, IModifierOperators, IReaderOperators, IStructuralOperaotrs, ILogicalOperators {
 }
-export interface ISchemaOptions {
+export interface ISchemaConfig {
     required?: boolean;
     filter?: boolean;
     strict?: boolean;
     nullable?: boolean;
     throwMode?: boolean;
 }
-export interface IOptions extends ISchemaOptions {
+export interface ISchemaOptions extends ISchemaConfig {
     id: string;
     replaceSchema?: boolean;
     lazy?: boolean;

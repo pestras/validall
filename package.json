@@ -1,6 +1,6 @@
 {
   "name": "validall",
-  "version": "3.0.4",
+  "version": "3.0.6",
   "description": "JavaScript validator",
   "main": "index.js",
   "types": "index.d.ts",

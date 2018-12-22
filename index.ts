@@ -1,10 +1,10 @@
-import { ISchema, ISchemaOptions, IOptions } from './schema';
+import { ISchema, ISchemaConfig, ISchemaOptions } from './schema';
 import { Validall } from './validator';
 
 export { Validall } from './validator';
 
 export function validate(src: any, schema: ISchema, throwMode = false): Error | never {
-  let options: IOptions = {
+  let options: ISchemaOptions = {
     schema: schema,
     id: null,
     throwMode: throwMode
