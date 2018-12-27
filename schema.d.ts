@@ -1,6 +1,6 @@
 export declare type isOptions = 'name' | 'email' | 'url' | 'value' | 'notEmpty' | 'number';
 export declare type castOptions = "number" | "string" | "bolean" | "date" | "regexp" | "array";
-export declare type toArgs = 'lowercase' | 'uppercase' | 'trim' | 'capitlizeFirst' | 'capitlizeFirstAll' | 'path';
+export declare type toArgs = 'lowercase' | 'uppercase' | 'trim' | 'capitalizeFirst' | 'capitalizeFirstAll' | 'path';
 export declare type toOptions = toArgs | toArgs[];
 export interface IValidatorOperators {
     $equals?: any;

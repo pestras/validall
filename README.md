@@ -703,7 +703,7 @@ This operator accepts a pattern or list of patterns as an input, it applys all p
 ```js
 let error = validate(user, {
   $props: {
-    fullname: { $type: 'string', $to: ['trim', 'lowercase', 'capitilizeFirstAll' ] }
+    fullname: { $type: 'string', $to: ['trim', 'lowercase', 'capitalizeFirstAll' ] }
   }
 })
 ```
@@ -712,8 +712,8 @@ let error = validate(user, {
 
 * lowercase: lowercase all the characters in a string.
 * uppercase: capitalize all the characters in a string.
-* capitilizeFirst: capitalize only the first character in a string.
-* capitilizeFirstAll: capitalize the first character in each string separated by a space.
+* capitalizeFirst: capitalize only the first character in a string.
+* capitalizeFirstAll: capitalize the first character in each string separated by a space.
 * trim: trim white space from the start and the end of a string and any repeated space in the middle.
 * path: cleans a path from duplicated or repeated slashes also remove any end slashes and any unnecessary '../' in the middle of the path.
 

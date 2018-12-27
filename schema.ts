@@ -1,6 +1,6 @@
 export type isOptions = 'name' | 'email' | 'url' | 'value' | 'notEmpty' | 'number';
 export type castOptions = "number" | "string" | "bolean" | "date" | "regexp" | "array";
-export type toArgs = 'lowercase' | 'uppercase' | 'trim' | 'capitlizeFirst' | 'capitlizeFirstAll' | 'path';
+export type toArgs = 'lowercase' | 'uppercase' | 'trim' | 'capitalizeFirst' | 'capitalizeFirstAll' | 'path';
 export type toOptions = toArgs | toArgs[];
 
 export interface IValidatorOperators {
