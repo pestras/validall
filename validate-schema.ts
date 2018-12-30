@@ -401,5 +401,17 @@ const operatorsValidator: any = {
       schema.$strict = options.strict === false ? false : Object.keys(schema.$props);
     else
       schema.$strict = schema.$strict === true ? Object.keys(schema.$props) : schema.$strict;
+  },
+
+  $paths(value: any, schema: any, path: string, options: ISchemaConfig) {
+    if (!Types.object(value))
+      throw new ValidallInvalidArgsError({
+        method: '$props',
+        expected: 'object',
+        got: `${typeof value}: value`,
+        path: path
+      });
+
+    schema.$type = schema.$type || 'object';
   }
 }

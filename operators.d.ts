@@ -174,4 +174,11 @@ export declare const Operators: {
     $props(src: any, schema: {
         [key: string]: ISchema;
     }, path: string, msg: string | string[], validator: IValidator): void;
+    /**
+     * ------------------------------------------------------------------------------------------------------------------------
+     * Paths Operator
+     */
+    $paths(src: any, schema: {
+        [key: string]: ISchema;
+    }, path: string, msg: string | string[], validator: IValidator): void;
 };

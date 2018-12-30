@@ -52,7 +52,8 @@ export interface IStructuralOperaotrs {
   $required?: boolean | string;
   $strict?: boolean | string | string[];
   $each?: ISchema;
-  $props?: { [key: string]: ISchema }
+  $props?: { [key: string]: ISchema };
+  $paths?: { [key: string]: ISchema };
   $keys?: IValidatorOperators;
   $length?: IValidatorOperators;
   $size?: IValidatorOperators;

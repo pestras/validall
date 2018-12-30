@@ -8,13 +8,14 @@ import { cast } from 'tools-box/cast';
 import { omit } from 'tools-box/object/omit';
 import { ValidallValidationError } from "./errors";
 import { To } from './to';
+import { getValue } from 'tools-box/object/get-value';
 
 export const Operators = {
   // list of schema available operators
   list: [
     '$message', '$required', '$nullable', '$default', '$filter', '$strict', '$type', '$instanceof', '$ref', '$is', '$equals',
     '$deepEquals', '$regex', '$gt', '$gte', '$lt', '$lte', '$inRange', '$length', '$size', '$intersect', '$include', '$enum',
-    '$cast', '$to', '$props', '$keys', '$on', '$before', '$after', '$not', '$and', '$or', '$nor', '$xor', '$each', '$meta'
+    '$cast', '$to', '$props', '$paths', '$keys', '$on', '$before', '$after', '$not', '$and', '$or', '$nor', '$xor', '$each', '$meta'
   ],
 
   /**
@@ -746,5 +747,15 @@ export const Operators = {
     for (let prop in schema)
       if (schema.hasOwnProperty(prop))
         validator.next(src[prop], schema[prop], `${path}${path ? '.' : ''}${prop}`);
+  },
+
+  /**
+   * ------------------------------------------------------------------------------------------------------------------------
+   * Paths Operator
+   */
+  $paths(src: any, schema: { [key: string]: ISchema }, path: string, msg: string | string[], validator: IValidator) {
+    for (let prop in schema)
+      if (schema.hasOwnProperty(prop))
+        validator.next(getValue(src, prop), schema[prop], `${path}${path ? '.' : ''}${prop}`);
   }
 }

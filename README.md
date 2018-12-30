@@ -591,6 +591,24 @@ let error = validate(user, {
 Using **$props** automatically adds **$type** operater set to **object**
 **$props** is not affected by **negateMode**.
 
+### $paths: {[key: string]: ISchema} _v2.*_
+
+Puts an object path keys into the context
+
+```js
+let error = validate(user, {
+  $paths: {
+    'contacts.mobile': { $type: 'number' },
+    'details.gender': { $type: 'string', $enum: ['male', 'female'] }
+  },
+  // added automatically if not added manually
+  $type: 'object'
+});
+```
+
+Using **$paths** automatically adds **$type** operater set to **object**
+**$paths** is not affected by **negateMode**.
+
 ### $each: ISchema _v2.*_
 
 Validates each item in the input array with the provided schema

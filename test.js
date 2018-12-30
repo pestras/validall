@@ -7,17 +7,21 @@ let map = {
 let validator = new index_1.Validall({
     id: null,
     schema: {
-        $props: {
-            name: { $equals: 'ammar' },
-            age: { $inRange: '$ageRange' }
+        $paths: {
+            'family.wife.name': { $equals: 'hafsa' },
+            'family.children[1].age': { $gt: 3, $required: true }
         }
     }
-}, map);
+});
 let user = {
     name: 'ammar',
-    age: 33
+    age: 33,
+    family: {
+        wife: { name: 'hafsa' },
+        children: [
+            { name: 'amena', age: 4 }
+        ]
+    }
 };
 console.log(validator.validate(user));
-let err = validator.set('ageRange', 5);
-console.log(err);
-console.log(validator.validate(user));
+console.log(validator.error);

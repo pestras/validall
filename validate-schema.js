@@ -348,5 +348,15 @@ const operatorsValidator = {
             schema.$strict = options.strict === false ? false : Object.keys(schema.$props);
         else
             schema.$strict = schema.$strict === true ? Object.keys(schema.$props) : schema.$strict;
+    },
+    $paths(value, schema, path, options) {
+        if (!types_1.Types.object(value))
+            throw new errors_1.ValidallInvalidArgsError({
+                method: '$props',
+                expected: 'object',
+                got: `${typeof value}: value`,
+                path: path
+            });
+        schema.$type = schema.$type || 'object';
     }
 };

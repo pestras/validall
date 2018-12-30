@@ -8,12 +8,13 @@ const cast_1 = require("tools-box/cast");
 const omit_1 = require("tools-box/object/omit");
 const errors_1 = require("./errors");
 const to_1 = require("./to");
+const get_value_1 = require("tools-box/object/get-value");
 exports.Operators = {
     // list of schema available operators
     list: [
         '$message', '$required', '$nullable', '$default', '$filter', '$strict', '$type', '$instanceof', '$ref', '$is', '$equals',
         '$deepEquals', '$regex', '$gt', '$gte', '$lt', '$lte', '$inRange', '$length', '$size', '$intersect', '$include', '$enum',
-        '$cast', '$to', '$props', '$keys', '$on', '$before', '$after', '$not', '$and', '$or', '$nor', '$xor', '$each', '$meta'
+        '$cast', '$to', '$props', '$paths', '$keys', '$on', '$before', '$after', '$not', '$and', '$or', '$nor', '$xor', '$each', '$meta'
     ],
     /**
      * ------------------------------------------------------------------------------------------------------------------------
@@ -668,5 +669,14 @@ exports.Operators = {
         for (let prop in schema)
             if (schema.hasOwnProperty(prop))
                 validator.next(src[prop], schema[prop], `${path}${path ? '.' : ''}${prop}`);
+    },
+    /**
+     * ------------------------------------------------------------------------------------------------------------------------
+     * Paths Operator
+     */
+    $paths(src, schema, path, msg, validator) {
+        for (let prop in schema)
+            if (schema.hasOwnProperty(prop))
+                validator.next(get_value_1.getValue(src, prop), schema[prop], `${path}${path ? '.' : ''}${prop}`);
     }
 };

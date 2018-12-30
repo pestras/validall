@@ -67,6 +67,10 @@ class Validall {
             for (let prop in schema.$props)
                 this.saveMeta(schema.$props[prop], `${path ? path + '.' : ''}${prop}`);
         }
+        if (schema.hasOwnProperty('$paths')) {
+            for (let prop in schema.$paths)
+                this.saveMeta(schema.$paths[prop], `${path ? path + '.' : ''}${prop}`);
+        }
     }
     reset() {
         this.negateMode = false;

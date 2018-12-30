@@ -49,6 +49,9 @@ export interface IStructuralOperaotrs {
     $props?: {
         [key: string]: ISchema;
     };
+    $paths?: {
+        [key: string]: ISchema;
+    };
     $keys?: IValidatorOperators;
     $length?: IValidatorOperators;
     $size?: IValidatorOperators;
