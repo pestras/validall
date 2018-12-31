@@ -37,7 +37,7 @@ export class Validall {
     }
 
     if (map) {
-      this.schema = objFromMap(map, {}, options.schema);
+      this.schema = objFromMap(map, {}, options.schema, true);
       this.map = map;
       
     } else {
@@ -137,7 +137,7 @@ export class Validall {
     let oldValue = getValue(this.map, keyPath);
     setValue(this.map, keyPath, value);
     try {
-      let schema = objFromMap(this.map, {}, this.orgSchema);
+      let schema = objFromMap(this.map, {}, this.orgSchema, true);
       validateSchema(schema, this.options);
       this.schema = schema;
       return null;

@@ -39,7 +39,7 @@ class Validall {
             throwMode: !!options.throwMode
         };
         if (map) {
-            this.schema = object_from_map_1.objFromMap(map, {}, options.schema);
+            this.schema = object_from_map_1.objFromMap(map, {}, options.schema, true);
             this.map = map;
         }
         else {
@@ -123,7 +123,7 @@ class Validall {
         let oldValue = get_value_1.getValue(this.map, keyPath);
         set_value_1.setValue(this.map, keyPath, value);
         try {
-            let schema = object_from_map_1.objFromMap(this.map, {}, this.orgSchema);
+            let schema = object_from_map_1.objFromMap(this.map, {}, this.orgSchema, true);
             validate_schema_1.validateSchema(schema, this.options);
             this.schema = schema;
             return null;
