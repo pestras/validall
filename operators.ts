@@ -160,7 +160,7 @@ export const Operators = {
     for (let i = 0; i < methods.length; i++) {
       try {
         // try to update src
-        injectValue(validator.src, path, To[methods[i]])
+        injectValue(validator.src, path, To[methods[i]]);
       } catch (err) {
         throw new ValidallValidationError({
           method: '$to',

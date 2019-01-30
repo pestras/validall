@@ -116,6 +116,7 @@ class Validall {
             // escape already checked operators
             if (['$required', '$message', '$default', '$filter', '$nullable', '$meta'].indexOf(operator) > -1)
                 continue;
+            src = path ? get_value_1.getValue(this.src, path) : src;
             operators_1.Operators[operator](src, schema[operator], path, schema.$message, this);
         }
     }

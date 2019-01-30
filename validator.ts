@@ -129,6 +129,7 @@ export class Validall {
       if (['$required', '$message', '$default', '$filter', '$nullable', '$meta'].indexOf(operator) > -1)
         continue;
 
+      src = path ? getValue(this.src, path) : src;
       (<any>Operators)[operator](src, schema[<keyof ISchema>operator], path, schema.$message, this);
     }
   }

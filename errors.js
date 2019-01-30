@@ -15,11 +15,11 @@ class ValidallInvalidArgsError extends ValidallError {
         this.method = args.method;
         this.expected = args.expected;
         this.got = args.got;
-        this.message = this.short = `invalid ${args.method} method argument ${args.got}\n`;
-        this.message += `   method: ${args.method}\n`;
-        this.message += `   expected: ${args.expected}\n`;
-        this.message += `   got: ${args.got}\n`;
-        this.message += `   path: ${args.path}`;
+        this.message = this.short = `invalid ${args.method} method argument ${args.got}`;
+        this.message += ` method: ${args.method}`;
+        this.message += ` expected: ${args.expected}`;
+        this.message += ` got: ${args.got}`;
+        this.message += ` path: ${args.path}`;
     }
 }
 exports.ValidallInvalidArgsError = ValidallInvalidArgsError;
@@ -38,11 +38,11 @@ class ValidallValidationError extends ValidallError {
             this.short = this.message;
         }
         else {
-            this.message = this.short = prefix + '\n';
-            this.message += `   method: ${args.method}.\n`;
-            this.message += `   expected: ${args.expected}.\n`;
-            this.message += `   got: ${args.got}.\n`;
-            this.message += `   path: ${args.path}.\n`;
+            this.message = this.short = prefix;
+            this.message += ` method: ${args.method}.`;
+            this.message += ` expected: ${args.expected}.`;
+            this.message += ` got: ${args.got}.`;
+            this.message += ` path: ${args.path}.`;
         }
     }
 }

@@ -7,14 +7,17 @@ let map = {
 let validator = new index_1.Validall({
     id: null,
     schema: {
-        $paths: {
-            'family.wife.name': { $equals: 'hafsa' },
-            'family.children[1].age': { $gt: 3, $required: true }
+        $props: {
+            name: {
+                $type: 'string',
+                $to: 'lowercase',
+                $regex: /^[a-z]+$/g
+            }
         }
     }
 });
 let user = {
-    name: 'ammar',
+    name: 'Ammar',
     age: 33,
     family: {
         wife: { name: 'hafsa' },
@@ -24,4 +27,5 @@ let user = {
     }
 };
 console.log(validator.validate(user));
+console.log(user.name);
 console.log(validator.error);
