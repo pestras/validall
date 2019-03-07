@@ -11,12 +11,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const get_value_1 = require("tools-box/object/get-value");
 const errors_1 = require("./errors");
 const operators_1 = require("./operators");
-const axios_1 = require("axios");
 const repo_1 = require("./repo");
 const validate_schema_1 = require("./validate-schema");
 const inject_value_1 = require("tools-box/object/inject-value");
 const object_from_map_1 = require("tools-box/object/object-from-map");
 const set_value_1 = require("tools-box/object/set-value");
+const fetch_1 = require("tools-box/fetch");
 class Validall {
     constructor(options, map) {
         this.negateMode = false;
@@ -134,7 +134,7 @@ class Validall {
             return err;
         }
     }
-    validate(src, throwErr = false, negateMode = false) {
+    validate(src, throwErr = false) {
         this.src = src;
         this.reset();
         if (!this.isPrepared) {
@@ -186,13 +186,11 @@ class Validall {
                 });
         return results;
     }
-    static ImportSchema(request, options = {}) {
+    static ImportSchema(config, options = {}) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!axios_1.default)
-                throw "[validall error]: axios is required for 'ImportSchema' method to work properly";
             let validatorOptions;
             try {
-                let res = yield axios_1.default(request);
+                let res = yield fetch_1.default(config);
                 if (options.map)
                     validatorOptions = get_value_1.getValue(res.data, options.map);
                 else

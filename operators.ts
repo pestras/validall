@@ -95,7 +95,7 @@ export const Operators = {
    */
   $ref(src: any, vali: Validall, path: string, msg: string | string[], validator: IValidator) {
     try {
-      vali.validate(src, true, validator.negateMode);
+      vali.validate(src, true);
     } catch (err) {
       throw new ValidallValidationError({
         expected: err.expected,

@@ -85,7 +85,7 @@ exports.Operators = {
      */
     $ref(src, vali, path, msg, validator) {
         try {
-            vali.validate(src, true, validator.negateMode);
+            vali.validate(src, true);
         }
         catch (err) {
             throw new errors_1.ValidallValidationError({

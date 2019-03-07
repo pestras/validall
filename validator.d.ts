@@ -1,6 +1,6 @@
 import { ISchemaOptions, IImportOptions } from "./schema";
 import { ValidallInvalidArgsError } from "./errors";
-import { AxiosRequestConfig } from 'axios';
+import { IFetchOptions } from 'tools-box/fetch';
 export declare class Validall {
     private _id;
     private negateMode;
@@ -26,13 +26,13 @@ export declare class Validall {
      */
     private next;
     set(keyPath: string, value: any): any;
-    validate(src: any, throwErr?: boolean, negateMode?: boolean): boolean;
+    validate(src: any, throwErr?: boolean): boolean;
     getPropMeta(prop?: string): any;
     getAllMeta(): any;
     getMetaByName(name: string): {
         [key: string]: any;
     }[];
-    static ImportSchema(request: string | AxiosRequestConfig, options?: IImportOptions): Promise<Validall>;
+    static ImportSchema(config: IFetchOptions, options?: IImportOptions): Promise<Validall>;
     static GetValidator(id: string): Validall;
     static ValidateSchema(options: ISchemaOptions): ValidallInvalidArgsError;
 }

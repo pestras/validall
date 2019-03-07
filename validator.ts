@@ -2,12 +2,12 @@ import { getValue } from 'tools-box/object/get-value';
 import { ISchema, ISchemaConfig, ISchemaOptions, IImportOptions } from "./schema";
 import { ValidallValidationError, ValidallInvalidArgsError } from "./errors";
 import { Operators } from './operators';
-import axios, { AxiosRequestConfig } from 'axios';
 import { saveValidator, getValidator, hasId } from './repo';
 import { validateSchema } from './validate-schema';
 import { injectValue } from 'tools-box/object/inject-value';
 import { objFromMap } from 'tools-box/object/object-from-map';
 import { setValue } from 'tools-box/object/set-value';
+import fetch, { IFetchOptions } from 'tools-box/fetch';
 
 export class Validall {
   private _id: string;
@@ -137,6 +137,7 @@ export class Validall {
   set(keyPath: string, value: any): any {
     let oldValue = getValue(this.map, keyPath);
     setValue(this.map, keyPath, value);
+    
     try {
       let schema = objFromMap(this.map, {}, this.orgSchema, true);
       validateSchema(schema, this.options);
@@ -149,7 +150,7 @@ export class Validall {
     }
   }
 
-  validate(src: any, throwErr = false, negateMode = false) {
+  validate(src: any, throwErr = false) {
     this.src = src;
     this.reset();
 
@@ -215,14 +216,11 @@ export class Validall {
     return results;
   }
 
-  static async ImportSchema(request: string | AxiosRequestConfig, options: IImportOptions = {}): Promise<Validall> {
-    if (!axios)
-      throw "[validall error]: axios is required for 'ImportSchema' method to work properly";
-
+  static async ImportSchema(config: IFetchOptions, options: IImportOptions = {}): Promise<Validall> {
     let validatorOptions: ISchemaOptions;
 
     try {
-      let res = await axios(<any>request);
+      let res = await fetch(config);
 
       if (options.map)
         validatorOptions = getValue(res.data, options.map);

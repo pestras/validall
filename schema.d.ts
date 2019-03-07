@@ -19,7 +19,7 @@ export interface IContextualOperators {
     $ref?: string;
     $instanceof?: Function | string;
     $is?: isOptions;
-    $regex?: RegExp | string;
+    $regex?: RegExp | string | [string, string?];
     $on?: Date | string | number;
     $before?: Date | string | number;
     $after?: Date | string | number;

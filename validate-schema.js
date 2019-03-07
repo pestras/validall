@@ -29,8 +29,6 @@ function validateSchema(schema, options, path = "") {
     }
 }
 exports.validateSchema = validateSchema;
-function validateOperator(operator, value) {
-}
 const operatorsValidator = {
     $message(value, schema, path) {
         if (value && typeof value !== 'string' || types_1.Types.function(value))
@@ -243,7 +241,10 @@ const operatorsValidator = {
         }
     },
     $regex(value, schema, path) {
-        if (!types_1.Types.regexp(value))
+        if (Array.isArray(value)) {
+            set_value_1.setValue(schema, '$regex', new RegExp(value[0], value[1]));
+        }
+        else if (!types_1.Types.regexp(value))
             throw new errors_1.ValidallInvalidArgsError({
                 expected: 'RegExp',
                 got: typeof value + ': ' + value,
