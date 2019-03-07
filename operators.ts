@@ -370,7 +370,7 @@ export const Operators = {
         method: '$length',
         path: path
       }, `${path} must be of type string or array`, msg);
-
+      
     validator.next(src.length, options, `${path}.$length`);
   },
 
