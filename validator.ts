@@ -37,7 +37,7 @@ export class Validall {
     }
 
     if (map) {
-      this.schema = objFromMap(map, {}, options.schema, true);
+      this.schema = objFromMap(map, {}, options.schema, { ignoreKeys: true });
       this.map = map;
       
     } else {
@@ -139,7 +139,7 @@ export class Validall {
     setValue(this.map, keyPath, value);
     
     try {
-      let schema = objFromMap(this.map, {}, this.orgSchema, true);
+      let schema = objFromMap(this.map, {}, this.orgSchema, { ignoreKeys: true });
       validateSchema(schema, this.options);
       this.schema = schema;
       return null;

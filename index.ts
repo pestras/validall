@@ -1,4 +1,4 @@
-import { ISchema, ISchemaConfig, ISchemaOptions } from './schema';
+import { ISchema, ISchemaOptions } from './schema';
 import { Validall } from './validator';
 
 export { Validall } from './validator';
