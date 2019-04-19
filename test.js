@@ -1,23 +1,55 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("./index");
-const object_from_map_1 = require("tools-box/object/object-from-map");
 let schema = {
-    $filter: true,
     $props: {
-        emailTemplate: { $type: 'string', $required: true },
-        to: { $each: { $type: 'string', $is: 'email' }, $required: true, $length: { $gte: 1 } },
-        subject: { $type: 'string', $required: true },
-        data: { $type: 'object' }
+        privileges: {
+            $include: [
+                "WRITE_STRATEGY"
+            ]
+        },
+        user: {
+            $props: {
+                accountId: { $equals: "$payload.accountId" }
+            }
+        }
     }
 };
 let data = {
-    "emailTemplate": "activation_email",
-    "to": ["amrmrd111spcl@hotmail.com"],
-    "subject": "Activation Email From Pestras",
-    "data": {
-        "user": { "email": "amrmrd111spcl@hotmail.com" }
-    }
+    "user": {
+        "_id": "5c8156cd612d725be08a4cd3",
+        "email": "amrmrd111spcl@hotmail.com",
+        "password": "rnqtl77a1a7PGOKxVsiU8DX2lj2DtnzxgODwKUkoPfgeO+ZI4wasOgDSlq7Z3Hw3GdPoJTLgq0zRs4O3uq8tVw==",
+        "active": true,
+        "salt": "LIqcH1bY9XyCGimMb0RYJA==",
+        "updatedAt": 1552242448356,
+        "createdAt": 1551980237446,
+        "accountId": "5c8156cd612d725be08a4cd0",
+        "orgUnitId": "5c8156cd612d725be08a4cd2",
+        "updatedBy": "5c8156cd612d725be08a4cd3"
+    },
+    "groups": [
+        "superAdmin"
+    ],
+    "service": "strategy",
+    "capability": "create",
+    "payload": {
+        "accountId": "5c8156cd612d725be08a4cd0",
+        "title": "Test",
+        "description": "Test strategy",
+        "startDate": 1553018975384,
+        "endDate": 1584565200000
+    },
+    "privileges": [
+        "WRITE_ADMIN",
+        "WRITE_USER",
+        "WRITE_ORG_UNIT",
+        "WRITE_STRATEGY",
+        "WRITE_GOAL",
+        "WRITE_PROJECT",
+        "WRITE_INDICATOR",
+        "WRITE_PARTNER",
+        "READ"
+    ]
 };
-let err = index_1.validate(data, object_from_map_1.objFromMap(data, {}, schema, true));
-console.log(err);
+let validator = new index_1.Validall({ id: null, schema: schema });
