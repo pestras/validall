@@ -58,7 +58,7 @@ export class Validall {
   }
 
   get id(): string { return this._id; }
-  get error(): Error {
+  get error(): ValidallValidationError {
     return this._error;
   }
 

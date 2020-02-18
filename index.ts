@@ -1,9 +1,10 @@
 import { ISchema, ISchemaOptions } from './schema';
 import { Validall } from './validator';
+import { ValidallValidationError } from './errors';
 
 export { Validall } from './validator';
 
-export function validate(src: any, schema: ISchema, map?: any, throwMode = false): Error | never {
+export function validate(src: any, schema: ISchema, map?: any, throwMode = false): ValidallValidationError | never {
   let options: ISchemaOptions = {
     schema: schema,
     id: null,

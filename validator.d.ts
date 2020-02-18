@@ -1,5 +1,5 @@
 import { ISchemaOptions, IImportOptions } from "./schema";
-import { ValidallInvalidArgsError } from "./errors";
+import { ValidallValidationError, ValidallInvalidArgsError } from "./errors";
 import { IFetchOptions } from 'tools-box/fetch';
 export declare class Validall {
     private _id;
@@ -18,7 +18,7 @@ export declare class Validall {
     src: any;
     constructor(options: ISchemaOptions, map?: any);
     readonly id: string;
-    readonly error: Error;
+    readonly error: ValidallValidationError;
     private saveMeta;
     private reset;
     /**
