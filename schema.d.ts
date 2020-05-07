@@ -73,7 +73,7 @@ export interface ISchemaConfig {
     throwMode?: boolean;
 }
 export interface ISchemaOptions extends ISchemaConfig {
-    id: string;
+    id?: string;
     replaceSchema?: boolean;
     lazy?: boolean;
     schema: ISchema;

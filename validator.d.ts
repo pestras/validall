@@ -17,8 +17,8 @@ export declare class Validall {
     nullables: string[];
     src: any;
     constructor(options: ISchemaOptions, map?: any);
-    readonly id: string;
-    readonly error: ValidallValidationError;
+    get id(): string;
+    get error(): ValidallValidationError;
     private saveMeta;
     private reset;
     /**

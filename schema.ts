@@ -85,7 +85,7 @@ export interface ISchemaConfig {
 }
 
 export interface ISchemaOptions extends ISchemaConfig {
-  id: string;
+  id?: string;
   replaceSchema?: boolean;
   lazy?: boolean;
   schema: ISchema;
