@@ -1,13 +1,13 @@
-import { getValue } from 'tools-box/object/get-value';
+import { getValue } from '@pestras/toolbox/object/get-value';
 import { ISchema, ISchemaConfig, ISchemaOptions, IImportOptions } from "./schema";
 import { ValidallValidationError, ValidallInvalidArgsError } from "./errors";
 import { Operators } from './operators';
 import { saveValidator, getValidator, hasId } from './repo';
 import { validateSchema } from './validate-schema';
-import { injectValue } from 'tools-box/object/inject-value';
-import { objFromMap } from 'tools-box/object/object-from-map';
-import { setValue } from 'tools-box/object/set-value';
-import fetch, { IFetchOptions } from 'tools-box/fetch';
+import { injectValue } from '@pestras/toolbox/object/inject-value';
+import { objFromMap } from '@pestras/toolbox/object/object-from-map';
+import { setValue } from '@pestras/toolbox/object/set-value';
+import { fetch, IFetchOptions } from '@pestras/toolbox/fetch';
 
 export class Validall {
   private _id: string;

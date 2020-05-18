@@ -1,6 +1,6 @@
 import { ISchemaOptions, IImportOptions } from "./schema";
 import { ValidallValidationError, ValidallInvalidArgsError } from "./errors";
-import { IFetchOptions } from 'tools-box/fetch';
+import { IFetchOptions } from '@pestras/toolbox/fetch';
 export declare class Validall {
     private _id;
     private negateMode;

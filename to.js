@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const url_1 = require("tools-box/url");
+const url_1 = require("@pestras/toolbox/url");
 exports.To = {
     lowercase(value) { return value.toLowerCase(); },
     uppercase(value) { return value.toUpperCase(); },

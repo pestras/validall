@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const operators_1 = require("./operators");
-const types_1 = require("tools-box/types");
-const set_value_1 = require("tools-box/object/set-value");
+const types_1 = require("@pestras/toolbox/types");
+const set_value_1 = require("@pestras/toolbox/object/set-value");
 const errors_1 = require("./errors");
-const is_1 = require("tools-box/is");
+const is_1 = require("@pestras/toolbox/is");
 const to_1 = require("./to");
 const repo_1 = require("./repo");
 function validateSchema(schema, options, path = "") {

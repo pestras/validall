@@ -1,9 +1,9 @@
 import { Operators } from './operators';
 import { ISchema, ISchemaConfig } from './schema';
-import { Types } from 'tools-box/types';
-import { setValue } from 'tools-box/object/set-value';
+import { Types } from '@pestras/toolbox/types';
+import { setValue } from '@pestras/toolbox/object/set-value';
 import { ValidallInvalidArgsError } from './errors';
-import { Is } from 'tools-box/is';
+import { Is } from '@pestras/toolbox/is';
 import { To } from './to';
 import { getValidator } from './repo';
 

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const compile_1 = require("tools-box/string/compile");
+const compile_1 = require("@pestras/toolbox/string/compile");
 class ValidallError extends Error {
     constructor() {
         super();

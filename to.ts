@@ -1,4 +1,4 @@
-import {URL} from 'tools-box/url';
+import {URL} from '@pestras/toolbox/url';
 
 export const To = {
   lowercase(value: string): string { return value.toLowerCase(); },

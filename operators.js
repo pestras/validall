@@ -1,14 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const types_1 = require("tools-box/types");
-const is_1 = require("tools-box/is");
-const equals_1 = require("tools-box/object/equals");
-const inject_value_1 = require("tools-box/object/inject-value");
-const cast_1 = require("tools-box/cast");
-const omit_1 = require("tools-box/object/omit");
+const types_1 = require("@pestras/toolbox/types");
+const is_1 = require("@pestras/toolbox/is");
+const equals_1 = require("@pestras/toolbox/object/equals");
+const inject_value_1 = require("@pestras/toolbox/object/inject-value");
+const cast_1 = require("@pestras/toolbox/cast");
+const omit_1 = require("@pestras/toolbox/object/omit");
 const errors_1 = require("./errors");
 const to_1 = require("./to");
-const get_value_1 = require("tools-box/object/get-value");
+const get_value_1 = require("@pestras/toolbox/object/get-value");
 exports.Operators = {
     // list of schema available operators
     list: [

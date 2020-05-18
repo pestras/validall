@@ -9,15 +9,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const get_value_1 = require("tools-box/object/get-value");
+const get_value_1 = require("@pestras/toolbox/object/get-value");
 const errors_1 = require("./errors");
 const operators_1 = require("./operators");
 const repo_1 = require("./repo");
 const validate_schema_1 = require("./validate-schema");
-const inject_value_1 = require("tools-box/object/inject-value");
-const object_from_map_1 = require("tools-box/object/object-from-map");
-const set_value_1 = require("tools-box/object/set-value");
-const fetch_1 = require("tools-box/fetch");
+const inject_value_1 = require("@pestras/toolbox/object/inject-value");
+const object_from_map_1 = require("@pestras/toolbox/object/object-from-map");
+const set_value_1 = require("@pestras/toolbox/object/set-value");
+const fetch_1 = require("@pestras/toolbox/fetch");
 class Validall {
     constructor(options, map) {
         this.negateMode = false;
@@ -191,7 +191,7 @@ class Validall {
         return __awaiter(this, void 0, void 0, function* () {
             let validatorOptions;
             try {
-                let res = yield fetch_1.default(config);
+                let res = yield fetch_1.fetch(config);
                 if (options.map)
                     validatorOptions = get_value_1.getValue(res.data, options.map);
                 else

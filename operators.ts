@@ -1,14 +1,14 @@
 import { Validall } from './validator';
-import { Types } from 'tools-box/types';
-import { Is } from 'tools-box/is';
-import { equals } from 'tools-box/object/equals';
+import { Types } from '@pestras/toolbox/types';
+import { Is } from '@pestras/toolbox/is';
+import { equals } from '@pestras/toolbox/object/equals';
 import { ISchema, IValidator, isOptions, toArgs, IValidatorOperators, INegatableOperators } from "./schema";
-import { injectValue } from 'tools-box/object/inject-value';
-import { cast } from 'tools-box/cast';
-import { omit } from 'tools-box/object/omit';
+import { injectValue } from '@pestras/toolbox/object/inject-value';
+import { cast } from '@pestras/toolbox/cast';
+import { omit } from '@pestras/toolbox/object/omit';
 import { ValidallValidationError } from "./errors";
 import { To } from './to';
-import { getValue } from 'tools-box/object/get-value';
+import { getValue } from '@pestras/toolbox/object/get-value';
 
 export const Operators = {
   // list of schema available operators
