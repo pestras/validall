@@ -17,6 +17,8 @@ function validateSchema(schema, options, path = "") {
             if (operator === '$props')
                 for (let prop in schema[operator])
                     validateSchema(schema.$props[prop], options, `${currentPath}.${prop}`);
+            if (operator === "$each")
+                validateSchema(schema.$each, options, `${currentPath}`);
         }
         else {
             throw new errors_1.ValidallInvalidArgsError({
@@ -345,10 +347,12 @@ const operatorsValidator = {
         schema.$type = schema.$type || 'object';
         if (schema.$filter === undefined)
             schema.$filter = options.filter;
+        // if (schema.$strict === undefined)
+        //   schema.$strict = options.strict === false ? false : Object.keys(schema.$props);
+        // else
+        //   schema.$strict = schema.$strict === true ? Object.keys(schema.$props) : schema.$strict;
         if (schema.$strict === undefined)
-            schema.$strict = options.strict === false ? false : Object.keys(schema.$props);
-        else
-            schema.$strict = schema.$strict === true ? Object.keys(schema.$props) : schema.$strict;
+            schema.$strict = !!options.strict;
     },
     $paths(value, schema, path, options) {
         if (!types_1.Types.object(value))

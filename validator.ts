@@ -16,7 +16,7 @@ export class Validall {
   private _error: any = null;
   private map: any;
   private orgSchema: ISchema = null;
-  private schema: ISchema = null;
+  private _schema: ISchema = null;
   private options: ISchemaConfig = null;
   private isPrepared = false;
 
@@ -37,19 +37,19 @@ export class Validall {
     }
 
     if (map) {
-      this.schema = objFromMap(map, {}, options.schema, { ignoreKeys: true });
+      this._schema = objFromMap(map, {}, options.schema, { ignoreKeys: true });
       this.map = map;
       
     } else {
-      this.schema = options.schema;
+      this._schema = options.schema;
     }
 
     // extract meta data form schema
-    this.saveMeta(this.schema);
+    this.saveMeta(this._schema);
 
     // before starting validate process, schema should be cleaned, pluged with default values and validated
     if (!options.lazy) {
-      validateSchema(this.schema, this.options);
+      validateSchema(this._schema, this.options);
       this.isPrepared = true;
     }
 
@@ -61,6 +61,8 @@ export class Validall {
   get error(): ValidallValidationError {
     return this._error;
   }
+
+  get schema() { return {...this._schema}; }
 
   private saveMeta(schema: ISchema, path: string = '') {
     // register meta with the current path if exist
@@ -86,7 +88,7 @@ export class Validall {
   /**
    *  
    */
-  private next(src: any, schema: ISchema = this.schema, path: string = '') {
+  private next(src: any, schema: ISchema = this._schema, path: string = '') {
     if (src === undefined) {
       // if src was not set && $default operator was set, use the default value
       if (schema.$default !== undefined)
@@ -120,13 +122,15 @@ export class Validall {
 
     // if $filter was set to true
     // remove all unnecessary custom values
-    if (schema.$props && schema.$filter)
-      Operators.$filter(src, Object.keys(schema.$props));
+    if (schema.$props) {
+      if (schema.$filter) Operators.$filter(src, Object.keys(schema.$props));
+      else if (schema.$strict) Operators.$strict(src, Object.keys(schema.$props), path, schema.$message);
+    }
 
     // run the rest operaotrs
     for (let operator in schema) {
       // escape already checked operators
-      if (['$required', '$message', '$default', '$filter', '$nullable', '$meta'].indexOf(operator) > -1)
+      if (['$required', '$message', '$default', '$strict', '$filter', '$nullable', '$meta'].indexOf(operator) > -1)
         continue;
         
       src = path ? getValue(this.src, path) || src : src;
@@ -141,7 +145,7 @@ export class Validall {
     try {
       let schema = objFromMap(this.map, {}, this.orgSchema, { ignoreKeys: true });
       validateSchema(schema, this.options);
-      this.schema = schema;
+      this._schema = schema;
       return null;
 
     } catch (err) {
@@ -155,12 +159,12 @@ export class Validall {
     this.reset();
 
     if (!this.isPrepared) {
-      validateSchema(this.schema, this.options)
+      validateSchema(this._schema, this.options)
       this.isPrepared = true;
     }
 
     if (src === undefined) {
-      if (this.schema === undefined)
+      if (this._schema === undefined)
         return true;
 
       this._error = new ValidallValidationError({
@@ -168,7 +172,7 @@ export class Validall {
         expected: 'not undefined',
         got: src,
         path: '.',
-      }, 'undefined src', this.schema.$message);
+      }, 'undefined src', this._schema.$message);
 
       if (this.options.throwMode || throwErr)
         throw this._error;

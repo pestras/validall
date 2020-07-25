@@ -1,6 +1,6 @@
 .vscode/**
 node_modules
-test.ts
+test
 *.js
 *.js.map
 *.d.ts

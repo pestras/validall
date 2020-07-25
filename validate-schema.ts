@@ -20,6 +20,9 @@ export function validateSchema(schema: ISchema, options: ISchemaConfig, path = "
         for (let prop in schema[operator])
           validateSchema(schema.$props[prop], options, `${currentPath}.${prop}`);
 
+      if (operator === "$each")
+        validateSchema(schema.$each, options, `${currentPath}`);
+
     } else {
       throw new ValidallInvalidArgsError({
         method: 'validateSchema',
@@ -164,7 +167,7 @@ const operatorsValidator: any = {
         got: `${typeof value}: ${value}`,
         path: path
       });
-
+      
     let validator = getValidator(value);
 
     if (!validator)
@@ -395,10 +398,12 @@ const operatorsValidator: any = {
     if (schema.$filter === undefined)
       schema.$filter = options.filter;
 
+    // if (schema.$strict === undefined)
+    //   schema.$strict = options.strict === false ? false : Object.keys(schema.$props);
+    // else
+    //   schema.$strict = schema.$strict === true ? Object.keys(schema.$props) : schema.$strict;
     if (schema.$strict === undefined)
-      schema.$strict = options.strict === false ? false : Object.keys(schema.$props);
-    else
-      schema.$strict = schema.$strict === true ? Object.keys(schema.$props) : schema.$strict;
+      schema.$strict = !!options.strict;
   },
 
   $paths(value: any, schema: any, path: string, options: ISchemaConfig) {

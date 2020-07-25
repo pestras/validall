@@ -24,7 +24,7 @@ class Validall {
         this.meta = {};
         this._error = null;
         this.orgSchema = null;
-        this.schema = null;
+        this._schema = null;
         this.options = null;
         this.isPrepared = false;
         this.defaults = {};
@@ -40,17 +40,17 @@ class Validall {
             throwMode: !!options.throwMode
         };
         if (map) {
-            this.schema = object_from_map_1.objFromMap(map, {}, options.schema, { ignoreKeys: true });
+            this._schema = object_from_map_1.objFromMap(map, {}, options.schema, { ignoreKeys: true });
             this.map = map;
         }
         else {
-            this.schema = options.schema;
+            this._schema = options.schema;
         }
         // extract meta data form schema
-        this.saveMeta(this.schema);
+        this.saveMeta(this._schema);
         // before starting validate process, schema should be cleaned, pluged with default values and validated
         if (!options.lazy) {
-            validate_schema_1.validateSchema(this.schema, this.options);
+            validate_schema_1.validateSchema(this._schema, this.options);
             this.isPrepared = true;
         }
         if (this._id && (!repo_1.hasId(this._id) || options.replaceSchema))
@@ -60,6 +60,7 @@ class Validall {
     get error() {
         return this._error;
     }
+    get schema() { return Object.assign({}, this._schema); }
     saveMeta(schema, path = '') {
         // register meta with the current path if exist
         if (schema.hasOwnProperty('$meta'))
@@ -80,7 +81,7 @@ class Validall {
     /**
      *
      */
-    next(src, schema = this.schema, path = '') {
+    next(src, schema = this._schema, path = '') {
         if (src === undefined) {
             // if src was not set && $default operator was set, use the default value
             if (schema.$default !== undefined)
@@ -110,12 +111,16 @@ class Validall {
             return;
         // if $filter was set to true
         // remove all unnecessary custom values
-        if (schema.$props && schema.$filter)
-            operators_1.Operators.$filter(src, Object.keys(schema.$props));
+        if (schema.$props) {
+            if (schema.$filter)
+                operators_1.Operators.$filter(src, Object.keys(schema.$props));
+            else if (schema.$strict)
+                operators_1.Operators.$strict(src, Object.keys(schema.$props), path, schema.$message);
+        }
         // run the rest operaotrs
         for (let operator in schema) {
             // escape already checked operators
-            if (['$required', '$message', '$default', '$filter', '$nullable', '$meta'].indexOf(operator) > -1)
+            if (['$required', '$message', '$default', '$strict', '$filter', '$nullable', '$meta'].indexOf(operator) > -1)
                 continue;
             src = path ? get_value_1.getValue(this.src, path) || src : src;
             operators_1.Operators[operator](src, schema[operator], path, schema.$message, this);
@@ -127,7 +132,7 @@ class Validall {
         try {
             let schema = object_from_map_1.objFromMap(this.map, {}, this.orgSchema, { ignoreKeys: true });
             validate_schema_1.validateSchema(schema, this.options);
-            this.schema = schema;
+            this._schema = schema;
             return null;
         }
         catch (err) {
@@ -139,18 +144,18 @@ class Validall {
         this.src = src;
         this.reset();
         if (!this.isPrepared) {
-            validate_schema_1.validateSchema(this.schema, this.options);
+            validate_schema_1.validateSchema(this._schema, this.options);
             this.isPrepared = true;
         }
         if (src === undefined) {
-            if (this.schema === undefined)
+            if (this._schema === undefined)
                 return true;
             this._error = new errors_1.ValidallValidationError({
                 method: 'validate',
                 expected: 'not undefined',
                 got: src,
                 path: '.',
-            }, 'undefined src', this.schema.$message);
+            }, 'undefined src', this._schema.$message);
             if (this.options.throwMode || throwErr)
                 throw this._error;
             return false;

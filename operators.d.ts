@@ -21,7 +21,7 @@ export declare const Operators: {
      * ------------------------------------------------------------------------------------------------------------------------
      * Strict operator
      */
-    $strict(src: any, keys: any, path: string, msg: string | string[], validator: any): void;
+    $strict(src: any, keys: any, path: string, msg: string | string[]): void;
     /**
      * ------------------------------------------------------------------------------------------------------------------------
      * Type operator

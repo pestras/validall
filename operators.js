@@ -51,7 +51,7 @@ exports.Operators = {
      * ------------------------------------------------------------------------------------------------------------------------
      * Strict operator
      */
-    $strict(src, keys, path, msg, validator) {
+    $strict(src, keys, path, msg) {
         // if no keys then strict mode is off
         if (!keys || keys.length === 0)
             return;
@@ -60,7 +60,7 @@ exports.Operators = {
             if (keys.indexOf(prop) === -1)
                 throw new errors_1.ValidallValidationError({
                     method: '$strict',
-                    path: path,
+                    path: path ? path + '.' + prop : prop,
                     expected: 'not exist',
                     got: prop
                 }, `${path ? path + '.' + prop : prop} is not allowed.`, msg);
@@ -658,8 +658,9 @@ exports.Operators = {
      * Each Operator
      */
     $each(src, schema, path, msg, validator) {
-        for (let i = 0; i < src.length; i++)
+        for (let i = 0; i < src.length; i++) {
             validator.next(src[i], schema, `${path}[${i}]`);
+        }
     },
     /**
      * ------------------------------------------------------------------------------------------------------------------------
