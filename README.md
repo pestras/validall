@@ -331,9 +331,9 @@ let error = validate(user, {
 
 **$instanceof** is not affected by **negateMode**.
 
-### $ref: string  _v3.*_
+### $ref: string | Validall  _v3.*_
 
-**$ref** operator accepts an id of another Validall instance or imported schema.
+**$ref** operator accepts an id or a reference of another Validall instance or imported schema.
 
 ```js
 let ArticleValidator = new Validall({
@@ -342,11 +342,11 @@ let ArticleValidator = new Validall({
 });
 
 let UserSchema = new Validall({
-  id: 'User',
   schema: {
     $props: {
       name: { $type: 'string' },
       articles: { $each: { $ref: 'Article' } }
+     //  articles: { $each: { $ref: ArticleValidator } }  # accepted as well
     }
   }
 });

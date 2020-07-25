@@ -6,6 +6,7 @@ import { ValidallInvalidArgsError } from './errors';
 import { Is } from '@pestras/toolbox/is';
 import { To } from './to';
 import { getValidator } from './repo';
+import { Validall } from './validator';
 
 export function validateSchema(schema: ISchema, options: ISchemaConfig, path = "") {
   schema.$required = schema.$required === false ? false : schema.$required || options.required;
@@ -160,15 +161,15 @@ const operatorsValidator: any = {
   },
 
   $ref(value: any, schema: any, path: string) {
-    if (typeof value !== 'string')
+    if (typeof value !== 'string' && value?.constructor !== Validall)
       throw new ValidallInvalidArgsError({
         method: '$ref',
-        expected: 'string',
+        expected: 'string or Validall instance',
         got: `${typeof value}: ${value}`,
         path: path
       });
       
-    let validator = getValidator(value);
+    let validator = typeof value === 'string' ? getValidator(value) : value;
 
     if (!validator)
       throw new ValidallInvalidArgsError({

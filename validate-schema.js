@@ -7,6 +7,7 @@ const errors_1 = require("./errors");
 const is_1 = require("@pestras/toolbox/is");
 const to_1 = require("./to");
 const repo_1 = require("./repo");
+const validator_1 = require("./validator");
 function validateSchema(schema, options, path = "") {
     schema.$required = schema.$required === false ? false : schema.$required || options.required;
     schema.$nullable = schema.$nullable === false ? false : schema.$nullable || options.nullable;
@@ -145,14 +146,14 @@ const operatorsValidator = {
             });
     },
     $ref(value, schema, path) {
-        if (typeof value !== 'string')
+        if (typeof value !== 'string' && (value === null || value === void 0 ? void 0 : value.constructor) !== validator_1.Validall)
             throw new errors_1.ValidallInvalidArgsError({
                 method: '$ref',
-                expected: 'string',
+                expected: 'string or Validall instance',
                 got: `${typeof value}: ${value}`,
                 path: path
             });
-        let validator = repo_1.getValidator(value);
+        let validator = typeof value === 'string' ? repo_1.getValidator(value) : value;
         if (!validator)
             throw new errors_1.ValidallInvalidArgsError({
                 method: '$ref',

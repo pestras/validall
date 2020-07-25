@@ -1,3 +1,4 @@
+import { Validall } from "./validator";
 export declare type isOptions = 'name' | 'email' | 'url' | 'value' | 'notEmpty' | 'number';
 export declare type castOptions = "number" | "string" | "bolean" | "date" | "regexp" | "array";
 export declare type toArgs = 'lowercase' | 'uppercase' | 'trim' | 'capitalizeFirst' | 'capitalizeFirstAll' | 'path';
@@ -16,7 +17,7 @@ export interface IValidatorOperators {
 }
 export interface IContextualOperators {
     $type?: 'number' | 'int' | 'float' | 'string' | 'boolean' | 'primitive' | 'date' | 'regexp' | 'function' | 'object' | 'array';
-    $ref?: string;
+    $ref?: string | Validall;
     $instanceof?: Function | string;
     $is?: isOptions;
     $regex?: RegExp | string | [string, string?];

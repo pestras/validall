@@ -30,8 +30,8 @@ export declare class Validall {
         $intersect?: string | any[];
         $include?: string | any[];
         $enum?: string | any[];
-        $type?: "string" | "number" | "boolean" | "object" | "function" | "int" | "float" | "primitive" | "date" | "regexp" | "array";
-        $ref?: string;
+        $type?: "string" | "number" | "boolean" | "object" | "function" | "date" | "regexp" | "array" | "int" | "float" | "primitive";
+        $ref?: string | Validall;
         $instanceof?: TimerHandler;
         $is?: import("./schema").isOptions;
         $regex?: string | RegExp | [string, string?];
