@@ -1,6 +1,6 @@
 import { Validall } from "./validator";
 
-export type isOptions = 'name' | 'email' | 'url' | 'value' | 'notEmpty' | 'number';
+export type isOptions = 'name' | 'email' | 'url' | 'value' | 'notEmpty' | 'number' | 'date';
 export type castOptions = "number" | "string" | "bolean" | "date" | "regexp" | "array";
 export type toArgs = 'lowercase' | 'uppercase' | 'trim' | 'capitalizeFirst' | 'capitalizeFirstAll' | 'path';
 export type toOptions = toArgs | toArgs[];

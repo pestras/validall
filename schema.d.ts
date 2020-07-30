@@ -1,5 +1,5 @@
 import { Validall } from "./validator";
-export declare type isOptions = 'name' | 'email' | 'url' | 'value' | 'notEmpty' | 'number';
+export declare type isOptions = 'name' | 'email' | 'url' | 'value' | 'notEmpty' | 'number' | 'date';
 export declare type castOptions = "number" | "string" | "bolean" | "date" | "regexp" | "array";
 export declare type toArgs = 'lowercase' | 'uppercase' | 'trim' | 'capitalizeFirst' | 'capitalizeFirstAll' | 'path';
 export declare type toOptions = toArgs | toArgs[];
