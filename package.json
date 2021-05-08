@@ -1,6 +1,7 @@
 {
   "name": "@pestras/validall",
-  "version": "1.1.2",
+  "version": "1.2.0",
+  "type": "module",
   "description": "JavaScript validator",
   "main": "index.js",
   "types": "index.d.ts",
@@ -23,9 +24,10 @@
   },
   "license": "ISC",
   "dependencies": {
-    "@pestras/toolbox": "^1.0.4"
+    "@pestras/toolbox": "^1.1.12"
   },
   "devDependencies": {
-    "@types/node": "^14.0.1"
+    "@types/node": "^14.0.1",
+    "typescript": "^4.2.4"
   }
 }

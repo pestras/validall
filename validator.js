@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,17 +7,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-const get_value_1 = require("@pestras/toolbox/object/get-value");
-const errors_1 = require("./errors");
-const operators_1 = require("./operators");
-const repo_1 = require("./repo");
-const validate_schema_1 = require("./validate-schema");
-const inject_value_1 = require("@pestras/toolbox/object/inject-value");
-const object_from_map_1 = require("@pestras/toolbox/object/object-from-map");
-const set_value_1 = require("@pestras/toolbox/object/set-value");
-const fetch_1 = require("@pestras/toolbox/fetch");
-class Validall {
+import { getValue } from '@pestras/toolbox/object/get-value';
+import { ValidallValidationError } from "./errors";
+import { Operators } from './operators';
+import { saveValidator, getValidator, hasId } from './repo';
+import { validateSchema } from './validate-schema';
+import { injectValue } from '@pestras/toolbox/object/inject-value';
+import { objFromMap } from '@pestras/toolbox/object/object-from-map';
+import { setValue } from '@pestras/toolbox/object/set-value';
+import { fetch } from '@pestras/toolbox/fetch';
+export class Validall {
     constructor(options, map) {
         this.negateMode = false;
         this.meta = {};
@@ -40,7 +38,7 @@ class Validall {
             throwMode: !!options.throwMode
         };
         if (map) {
-            this._schema = object_from_map_1.objFromMap(map, {}, options.schema, { ignoreKeys: true });
+            this._schema = objFromMap(map, {}, options.schema, { ignoreKeys: true });
             this.map = map;
         }
         else {
@@ -50,11 +48,11 @@ class Validall {
         this.saveMeta(this._schema);
         // before starting validate process, schema should be cleaned, pluged with default values and validated
         if (!options.lazy) {
-            validate_schema_1.validateSchema(this._schema, this.options);
+            validateSchema(this._schema, this.options);
             this.isPrepared = true;
         }
-        if (this._id && (!repo_1.hasId(this._id) || options.replaceSchema))
-            repo_1.saveValidator(this._id, this);
+        if (this._id && (!hasId(this._id) || options.replaceSchema))
+            saveValidator(this._id, this);
     }
     get id() { return this._id; }
     get error() {
@@ -85,7 +83,7 @@ class Validall {
         if (src === undefined) {
             // if src was not set && $default operator was set, use the default value
             if (schema.$default !== undefined)
-                operators_1.Operators.$default(this.src, schema.$default, path, this);
+                Operators.$default(this.src, schema.$default, path, this);
             // if $default was not set
             // check if $nullable operator is set to true or validator instance option nullable was set true
             // then assign null value to the src
@@ -93,11 +91,11 @@ class Validall {
                 if (!path)
                     src = null;
                 else
-                    inject_value_1.injectValue(this.src, path, null);
+                    injectValue(this.src, path, null);
                 // if field is required throw a validation error
             }
             else if (schema.$required)
-                throw new errors_1.ValidallValidationError({
+                throw new ValidallValidationError({
                     method: '$required',
                     expected: 'value',
                     got: src,
@@ -113,30 +111,30 @@ class Validall {
         // remove all unnecessary custom values
         if (schema.$props) {
             if (schema.$filter)
-                operators_1.Operators.$filter(src, Object.keys(schema.$props));
+                Operators.$filter(src, Object.keys(schema.$props));
             else if (schema.$strict)
-                operators_1.Operators.$strict(src, Object.keys(schema.$props), path, schema.$message);
+                Operators.$strict(src, Object.keys(schema.$props), path, schema.$message);
         }
         // run the rest operaotrs
         for (let operator in schema) {
             // escape already checked operators
             if (['$required', '$message', '$default', '$strict', '$filter', '$nullable', '$meta'].indexOf(operator) > -1)
                 continue;
-            src = path ? get_value_1.getValue(this.src, path) || src : src;
-            operators_1.Operators[operator](src, schema[operator], path, schema.$message, this);
+            src = path ? getValue(this.src, path) || src : src;
+            Operators[operator](src, schema[operator], path, schema.$message, this);
         }
     }
     set(keyPath, value) {
-        let oldValue = get_value_1.getValue(this.map, keyPath);
-        set_value_1.setValue(this.map, keyPath, value);
+        let oldValue = getValue(this.map, keyPath);
+        setValue(this.map, keyPath, value);
         try {
-            let schema = object_from_map_1.objFromMap(this.map, {}, this.orgSchema, { ignoreKeys: true });
-            validate_schema_1.validateSchema(schema, this.options);
+            let schema = objFromMap(this.map, {}, this.orgSchema, { ignoreKeys: true });
+            validateSchema(schema, this.options);
             this._schema = schema;
             return null;
         }
         catch (err) {
-            set_value_1.setValue(this.map, keyPath, oldValue);
+            setValue(this.map, keyPath, oldValue);
             return err;
         }
     }
@@ -144,13 +142,13 @@ class Validall {
         this.src = src;
         this.reset();
         if (!this.isPrepared) {
-            validate_schema_1.validateSchema(this._schema, this.options);
+            validateSchema(this._schema, this.options);
             this.isPrepared = true;
         }
         if (src === undefined) {
             if (this._schema === undefined)
                 return true;
-            this._error = new errors_1.ValidallValidationError({
+            this._error = new ValidallValidationError({
                 method: 'validate',
                 expected: 'not undefined',
                 got: src,
@@ -196,9 +194,9 @@ class Validall {
         return __awaiter(this, void 0, void 0, function* () {
             let validatorOptions;
             try {
-                let res = yield fetch_1.fetch(config);
+                let res = yield fetch(config);
                 if (options.map)
-                    validatorOptions = get_value_1.getValue(res.data, options.map);
+                    validatorOptions = getValue(res.data, options.map);
                 else
                     validatorOptions = res.data;
             }
@@ -217,11 +215,11 @@ class Validall {
         });
     }
     static GetValidator(id) {
-        return repo_1.getValidator(id);
+        return getValidator(id);
     }
     static ValidateSchema(options) {
         try {
-            validate_schema_1.validateSchema(options.schema, options);
+            validateSchema(options.schema, options);
         }
         catch (err) {
             return err;
@@ -229,4 +227,3 @@ class Validall {
         return null;
     }
 }
-exports.Validall = Validall;

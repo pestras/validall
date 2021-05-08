@@ -46,7 +46,7 @@ export declare const Operators: {
      * ------------------------------------------------------------------------------------------------------------------------
      * Cast operator
      */
-    $cast(src: any, type: "string" | "number" | "boolean" | "date" | "regexp" | "array", path: string, msg: string | string[], validator: IValidator): void;
+    $cast(src: any, type: 'boolean' | 'string' | 'number' | 'date' | 'regexp' | 'array', path: string, msg: string | string[], validator: IValidator): void;
     /**
      * ------------------------------------------------------------------------------------------------------------------------
      * To Operator

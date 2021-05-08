@@ -32,7 +32,7 @@ export declare class Validall {
         $enum?: string | any[];
         $type?: "string" | "number" | "boolean" | "object" | "function" | "date" | "regexp" | "array" | "int" | "float" | "primitive";
         $ref?: string | Validall;
-        $instanceof?: TimerHandler;
+        $instanceof?: string | Function;
         $is?: import("./schema").isOptions;
         $regex?: string | RegExp | [string, string?];
         $on?: string | number | Date;
