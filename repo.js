@@ -1,12 +1,18 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.hasId = exports.getValidator = exports.saveValidator = void 0;
 const schemaRepo = {};
-export function saveValidator(id, schema) {
+function saveValidator(id, schema) {
     schemaRepo[id] = schema;
 }
-export function getValidator(id) {
+exports.saveValidator = saveValidator;
+function getValidator(id) {
     if (!id)
         return null;
     return schemaRepo[id] || null;
 }
-export function hasId(id) {
+exports.getValidator = getValidator;
+function hasId(id) {
     return schemaRepo.hasOwnProperty(id);
 }
+exports.hasId = hasId;

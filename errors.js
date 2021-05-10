@@ -1,11 +1,15 @@
-import { compile } from '@pestras/toolbox/string/compile';
-export class ValidallError extends Error {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ValidallValidationError = exports.ValidallInvalidArgsError = exports.ValidallError = void 0;
+const compile_1 = require("@pestras/toolbox/string/compile");
+class ValidallError extends Error {
     constructor() {
         super();
         this.name = this.constructor.name;
     }
 }
-export class ValidallInvalidArgsError extends ValidallError {
+exports.ValidallError = ValidallError;
+class ValidallInvalidArgsError extends ValidallError {
     constructor(args) {
         super();
         this.path = args.path;
@@ -19,7 +23,8 @@ export class ValidallInvalidArgsError extends ValidallError {
         this.message += ` path: ${args.path}`;
     }
 }
-export class ValidallValidationError extends ValidallError {
+exports.ValidallInvalidArgsError = ValidallInvalidArgsError;
+class ValidallValidationError extends ValidallError {
     constructor(args, prefix, msg) {
         super();
         this.code = '0';
@@ -29,7 +34,7 @@ export class ValidallValidationError extends ValidallError {
         this.got = args.got;
         if (msg) {
             msg = Array.isArray(msg) ? msg : [msg];
-            this.message = compile(msg[0], args);
+            this.message = compile_1.compile(msg[0], args);
             this.code = msg[1] || '0';
             this.short = this.message;
         }
@@ -42,3 +47,4 @@ export class ValidallValidationError extends ValidallError {
         }
     }
 }
+exports.ValidallValidationError = ValidallValidationError;

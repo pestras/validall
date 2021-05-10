@@ -1,13 +1,16 @@
-import { Types } from '@pestras/toolbox/types';
-import { Is } from '@pestras/toolbox/is';
-import { equals } from '@pestras/toolbox/object/equals';
-import { injectValue } from '@pestras/toolbox/object/inject-value';
-import { cast } from '@pestras/toolbox/cast';
-import { omit } from '@pestras/toolbox/object/omit';
-import { ValidallValidationError } from "./errors";
-import { To } from './to';
-import { getValue } from '@pestras/toolbox/object/get-value';
-export const Operators = {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Operators = void 0;
+const types_1 = require("@pestras/toolbox/types");
+const is_1 = require("@pestras/toolbox/is");
+const equals_1 = require("@pestras/toolbox/object/equals");
+const inject_value_1 = require("@pestras/toolbox/object/inject-value");
+const cast_1 = require("@pestras/toolbox/cast");
+const omit_1 = require("@pestras/toolbox/object/omit");
+const errors_1 = require("./errors");
+const to_1 = require("./to");
+const get_value_1 = require("@pestras/toolbox/object/get-value");
+exports.Operators = {
     // list of schema available operators
     list: [
         '$message', '$required', '$nullable', '$default', '$filter', '$strict', '$type', '$instanceof', '$ref', '$is', '$equals',
@@ -30,7 +33,7 @@ export const Operators = {
         if (defaultValue === Date.now || defaultValue === 'Date.now')
             defaultValue = Date.now();
         // inject the default value into the src
-        injectValue(src, path, defaultValue);
+        inject_value_1.injectValue(src, path, defaultValue);
     },
     /**
      * ------------------------------------------------------------------------------------------------------------------------
@@ -43,7 +46,7 @@ export const Operators = {
             if (keepList.indexOf(srcKeys[i]) === -1)
                 omitList.push(srcKeys[i]);
         if (omitList.length)
-            omit(src, omitList);
+            omit_1.omit(src, omitList);
     },
     /**
      * ------------------------------------------------------------------------------------------------------------------------
@@ -56,7 +59,7 @@ export const Operators = {
         // loop through src keys and find invalid keys
         for (let prop in src) {
             if (keys.indexOf(prop) === -1)
-                throw new ValidallValidationError({
+                throw new errors_1.ValidallValidationError({
                     method: '$strict',
                     path: path ? path + '.' + prop : prop,
                     expected: 'not exist',
@@ -69,8 +72,8 @@ export const Operators = {
      * Type operator
      */
     $type(src, type, path, msg, validator) {
-        if (Types.getTypesOf(src).indexOf(type) === -1)
-            throw new ValidallValidationError({
+        if (types_1.Types.getTypesOf(src).indexOf(type) === -1)
+            throw new errors_1.ValidallValidationError({
                 method: '$type',
                 expected: type,
                 got: src,
@@ -86,7 +89,7 @@ export const Operators = {
             vali.validate(src, true);
         }
         catch (err) {
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 expected: err.expected,
                 got: err.got,
                 method: err.method,
@@ -100,7 +103,7 @@ export const Operators = {
      */
     $instanceof(src, constructor, path, msg, validator) {
         if (!(src instanceof constructor))
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 expected: 'instance of ' + constructor.name,
                 got: src,
                 method: '$instanceOf',
@@ -112,8 +115,8 @@ export const Operators = {
      * Is operator
      */
     $is(src, patternName, path, msg, validator) {
-        if (!Is[patternName](src))
-            throw new ValidallValidationError({
+        if (!is_1.Is[patternName](src))
+            throw new errors_1.ValidallValidationError({
                 method: '$is',
                 expected: patternName,
                 got: src,
@@ -127,10 +130,10 @@ export const Operators = {
     $cast(src, type, path, msg, validator) {
         try {
             // try to cast src
-            injectValue(validator.src, path, cast(src, type));
+            inject_value_1.injectValue(validator.src, path, cast_1.cast(src, type));
         }
         catch (err) {
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$cast',
                 expected: 'castable type to ' + type,
                 got: src,
@@ -146,10 +149,10 @@ export const Operators = {
         for (let i = 0; i < methods.length; i++) {
             try {
                 // try to update src
-                injectValue(validator.src, path, To[methods[i]]);
+                inject_value_1.injectValue(validator.src, path, to_1.To[methods[i]]);
             }
             catch (err) {
-                throw new ValidallValidationError({
+                throw new errors_1.ValidallValidationError({
                     method: '$to',
                     expected: methods[i],
                     got: src,
@@ -167,7 +170,7 @@ export const Operators = {
         let areEqual = src === target;
         // if src and target are equal and negate mode is on throw validation error
         if (areEqual && validator.negateMode)
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$equals',
                 expected: 'src and target are not equal',
                 got: src,
@@ -175,7 +178,7 @@ export const Operators = {
             }, `expected ${path} not equal to ${target}`, msg);
         // if src and target are not equal and negate mode is off throw validation error
         if (!areEqual && !validator.negateMode)
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$equals',
                 expected: 'src and target are equal',
                 got: src,
@@ -188,10 +191,10 @@ export const Operators = {
      */
     $deepEquals(src, target, path, msg, validator) {
         // save equality result
-        let areEqual = equals(src, target, true);
+        let areEqual = equals_1.equals(src, target, true);
         // if src and target are equal and negate mode is on throw validation error
         if (areEqual && validator.negateMode)
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$equals',
                 expected: 'src and target are not deeply equal',
                 got: src,
@@ -199,7 +202,7 @@ export const Operators = {
             }, `expected ${path} not deeply equal to ${target}`, msg);
         // if src and target are not equal and negate mode is off throw validation error
         if (!areEqual && !validator.negateMode)
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$equals',
                 expected: 'src and target are deeply equal',
                 got: src,
@@ -212,14 +215,14 @@ export const Operators = {
      */
     $gt(src, limit, path, msg, validator) {
         if (typeof src !== 'number')
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 expected: 'number',
                 got: typeof src + ': ' + src,
                 method: '$gt',
                 path: path
             }, `${src} is not a number`, msg);
         if (src <= limit)
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$gt',
                 expected: 'src is greate than limit',
                 got: src,
@@ -232,14 +235,14 @@ export const Operators = {
      */
     $gte(src, limit, path, msg, validator) {
         if (typeof src !== 'number')
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 expected: 'number',
                 got: typeof src + ': ' + src,
                 method: '$gte',
                 path: path
             }, `${src} is not a number`, msg);
         if (src < limit)
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$gte',
                 expected: 'src is greate than or equal limit',
                 got: src,
@@ -252,14 +255,14 @@ export const Operators = {
      */
     $lt(src, limit, path, msg, validator) {
         if (typeof src !== 'number')
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 expected: 'number',
                 got: typeof src + ': ' + src,
                 method: '$lt',
                 path: path
             }, `${src} is not a number`, msg);
         if (src >= limit)
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$lt',
                 expected: 'src is less than limit',
                 got: src,
@@ -272,14 +275,14 @@ export const Operators = {
      */
     $lte(src, limit, path, msg, validator) {
         if (typeof src !== 'number')
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 expected: 'number',
                 got: typeof src + ': ' + src,
                 method: '$lte',
                 path: path
             }, `${src} is not a number`, msg);
         if (src > limit)
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$lte',
                 expected: 'src is less than or equal limit',
                 got: src,
@@ -292,21 +295,21 @@ export const Operators = {
      */
     $inRange(src, range, path, msg, validator) {
         if (typeof src !== 'number')
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 expected: 'number',
                 got: typeof src + ': ' + src,
                 method: '$inRange',
                 path: path
             }, `${path} must be a number!`, msg);
         if (src >= range[0] && src <= range[1] && validator.negateMode)
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$inRange',
                 expected: 'src must not be in range',
                 got: src,
                 path: path
             }, `${path} must not be in range between ${range}`, msg);
         if ((src < range[0] || src > range[1]) && !validator.negateMode)
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$inRange',
                 expected: 'src must be in range',
                 got: src,
@@ -319,7 +322,7 @@ export const Operators = {
      */
     $regex(src, pattern, path, msg, validator) {
         if (!pattern.test(src))
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$regex',
                 expected: `match pattern ${pattern}`,
                 got: src,
@@ -332,7 +335,7 @@ export const Operators = {
      */
     $length(src, options, path, msg, validator) {
         if (typeof src !== 'string' && !Array.isArray(src))
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 expected: 'string or array',
                 got: typeof src + ': ' + src,
                 method: '$length',
@@ -345,8 +348,8 @@ export const Operators = {
      * Size Operator
      */
     $size(src, options, path, msg, validator) {
-        if (!Types.object(src))
-            throw new ValidallValidationError({
+        if (!types_1.Types.object(src))
+            throw new errors_1.ValidallValidationError({
                 expected: 'object',
                 got: typeof src + ': ' + src,
                 method: '$size',
@@ -359,8 +362,8 @@ export const Operators = {
      * Keys Operator
      */
     $keys(src, options, path, msg, validator) {
-        if (!Types.object(src))
-            throw new ValidallValidationError({
+        if (!types_1.Types.object(src))
+            throw new errors_1.ValidallValidationError({
                 expected: 'object',
                 got: typeof src + ': ' + src,
                 method: '$keys',
@@ -380,7 +383,7 @@ export const Operators = {
         for (let i = 0; i < looper.length; i++)
             if (checker.indexOf(looper[i]) > -1)
                 if (validator.negateMode)
-                    throw new ValidallValidationError({
+                    throw new errors_1.ValidallValidationError({
                         method: '$intersect',
                         expected: 'no shared values',
                         got: src,
@@ -389,7 +392,7 @@ export const Operators = {
                 else
                     return;
         if (!validator.negateMode)
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$intersect',
                 expected: 'intersect some values',
                 got: src,
@@ -407,7 +410,7 @@ export const Operators = {
         for (let i = 0; i < src.length; i++)
             if (list.indexOf(src[i]) === -1) {
                 if (!validator.negateMode)
-                    throw new ValidallValidationError({
+                    throw new errors_1.ValidallValidationError({
                         method: '$enum',
                         expected: 'included value',
                         got: src,
@@ -416,7 +419,7 @@ export const Operators = {
                 allIncluded = false;
             }
         if (validator.negateMode && allIncluded)
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$enum',
                 expected: 'not all values included',
                 got: src,
@@ -434,7 +437,7 @@ export const Operators = {
         for (let i = 0; i < list.length; i++)
             if (src.indexOf(list[i]) === -1) {
                 if (!validator.negateMode)
-                    throw new ValidallValidationError({
+                    throw new errors_1.ValidallValidationError({
                         method: '$include',
                         expected: 'include all values',
                         got: src,
@@ -443,7 +446,7 @@ export const Operators = {
                 allIncluded = false;
             }
         if (validator.negateMode && allIncluded)
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$include',
                 expected: 'not included any value',
                 got: src,
@@ -455,8 +458,8 @@ export const Operators = {
      * On Operator
      */
     $on(src, date, path, msg, validator) {
-        if (!Types.date(src) && typeof src !== 'string' && typeof src !== 'number')
-            throw new ValidallValidationError({
+        if (!types_1.Types.date(src) && typeof src !== 'string' && typeof src !== 'number')
+            throw new errors_1.ValidallValidationError({
                 expected: 'date instance, string or number',
                 got: typeof src + ': ' + src,
                 method: '$on',
@@ -465,7 +468,7 @@ export const Operators = {
         if (typeof src === 'string') {
             let d = new Date(src);
             if (d.toString() === "Invalid Date")
-                throw new ValidallValidationError({
+                throw new errors_1.ValidallValidationError({
                     method: '$on',
                     expected: 'a valid date',
                     got: src,
@@ -475,7 +478,7 @@ export const Operators = {
         if (typeof src === 'number')
             src = new Date(src);
         if (Date.parse(src) !== Date.parse(date))
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$on',
                 expected: 'on time date',
                 got: src,
@@ -487,8 +490,8 @@ export const Operators = {
      * Before Operator
      */
     $before(src, date, path, msg, validator) {
-        if (!Types.date(src) && typeof src !== 'string' && typeof src !== 'number')
-            throw new ValidallValidationError({
+        if (!types_1.Types.date(src) && typeof src !== 'string' && typeof src !== 'number')
+            throw new errors_1.ValidallValidationError({
                 expected: 'date instance, string or number',
                 got: typeof src + ': ' + src,
                 method: '$before',
@@ -497,7 +500,7 @@ export const Operators = {
         if (typeof src === 'string') {
             let d = new Date(src);
             if (d.toString() === "Invalid Date")
-                throw new ValidallValidationError({
+                throw new errors_1.ValidallValidationError({
                     method: '$before',
                     expected: 'a valid date',
                     got: src,
@@ -507,7 +510,7 @@ export const Operators = {
         if (typeof src === 'number')
             src = new Date(src);
         if (Date.parse(src) >= Date.parse(date))
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$before',
                 expected: 'before ' + date,
                 got: src,
@@ -519,8 +522,8 @@ export const Operators = {
      * After Operator
      */
     $after(src, date, path, msg, validator) {
-        if (!Types.date(src) && typeof src !== 'string' && typeof src !== 'number')
-            throw new ValidallValidationError({
+        if (!types_1.Types.date(src) && typeof src !== 'string' && typeof src !== 'number')
+            throw new errors_1.ValidallValidationError({
                 expected: 'date instance, string or number',
                 got: typeof src + ': ' + src,
                 method: '$after',
@@ -529,7 +532,7 @@ export const Operators = {
         if (typeof src === 'string') {
             let d = new Date(src);
             if (d.toString() === "Invalid Date")
-                throw new ValidallValidationError({
+                throw new errors_1.ValidallValidationError({
                     method: '$after',
                     expected: 'a valid date',
                     got: src,
@@ -539,7 +542,7 @@ export const Operators = {
         if (typeof src === 'number')
             src = new Date(src);
         if (Date.parse(src) <= Date.parse(date))
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$after',
                 expected: 'after ' + date,
                 got: src,
@@ -578,7 +581,7 @@ export const Operators = {
                 errors.push(err.short);
             }
         }
-        throw new ValidallValidationError({
+        throw new errors_1.ValidallValidationError({
             method: '$or',
             expected: 'at least one validation passes',
             got: 'all validations failed',
@@ -606,7 +609,7 @@ export const Operators = {
         if (passed.length === 1)
             return;
         if (passed.length === 0) {
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$xor',
                 expected: 'only one validation passes',
                 got: 'all validations failed',
@@ -617,7 +620,7 @@ export const Operators = {
             let errorMsg = '';
             for (let i = 0; i < passed.length; i++)
                 errorMsg += 'passed: ' + JSON.stringify(passed[i]) + '\n';
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$xor',
                 expected: 'only one validation passes',
                 got: 'multible validations passed',
@@ -643,7 +646,7 @@ export const Operators = {
         }
         validator.negateMode = false;
         if (error) {
-            throw new ValidallValidationError({
+            throw new errors_1.ValidallValidationError({
                 method: '$nor',
                 expected: 'none of validations passes',
                 got: 'some validations passed',
@@ -676,6 +679,6 @@ export const Operators = {
     $paths(src, schema, path, msg, validator) {
         for (let prop in schema)
             if (schema.hasOwnProperty(prop))
-                validator.next(getValue(src, prop), schema[prop], `${path}${path ? '.' : ''}${prop}`);
+                validator.next(get_value_1.getValue(src, prop), schema[prop], `${path}${path ? '.' : ''}${prop}`);
     }
 };
