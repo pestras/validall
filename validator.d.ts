@@ -48,6 +48,7 @@ export declare class Validall {
         $required?: string | boolean;
         $strict?: string | boolean | string[];
         $each?: ISchema;
+        $map?: ISchema;
         $props?: {
             [key: string]: ISchema;
         };

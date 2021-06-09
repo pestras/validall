@@ -13,7 +13,7 @@ import { getValue } from '@pestras/toolbox/object/get-value';
 export const Operators = {
   // list of schema available operators
   list: [
-    '$message', '$required', '$nullable', '$default', '$filter', '$strict', '$type', '$instanceof', '$ref', '$is', '$equals',
+    '$message', '$required', '$nullable', '$default', '$filter', '$strict', '$type', '$instanceof', '$ref', '$is', '$equals', '$map',
     '$deepEquals', '$regex', '$gt', '$gte', '$lt', '$lte', '$inRange', '$length', '$size', '$intersect', '$include', '$enum',
     '$cast', '$to', '$props', '$paths', '$keys', '$on', '$before', '$after', '$not', '$and', '$or', '$nor', '$xor', '$each', '$meta'
   ],
@@ -734,7 +734,17 @@ export const Operators = {
    * ------------------------------------------------------------------------------------------------------------------------
    * Each Operator
    */
-  $each(src: any, schema: ISchema, path: string, msg: string | string[], validator: IValidator) {
+  $map(src: { [key: string]: any }, schema: ISchema, path: string, msg: string | string[], validator: IValidator) {
+    for (let prop in src) {
+      validator.next(src[prop], schema, `${path}.${prop}`);
+    }
+  },
+
+  /**
+   * ------------------------------------------------------------------------------------------------------------------------
+   * Each Operator
+   */
+  $each(src: any[], schema: ISchema, path: string, msg: string | string[], validator: IValidator) {
     for (let i = 0; i < src.length; i++) {
       validator.next(src[i], schema, `${path}[${i}]`);
     }

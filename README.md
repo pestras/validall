@@ -632,6 +632,26 @@ let error = validate(user, {
 Using **$each** automatically adds **$type** operater set to **array**
 **$each** is not affected by **negateMode**.
 
+### $map: ISchema _v3_
+
+Validates maps values, ignoring keys.  
+
+```js
+let error = validate(checklist, {
+  $map: {
+    $props: {
+      value: { $type: 'boolean' },
+      disabled: { $type: 'boolean' }
+    },
+    // added automatically if not added manually
+    $type: 'object'
+  }
+});
+```
+
+Using **$map** automatically adds **$type** operater set to **object**
+**$map** is not affected by **negateMode**.
+
 ### $on: number | string | Date _v1.*_
 
 Checks if the input date points to the same giving date.

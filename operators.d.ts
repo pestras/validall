@@ -166,7 +166,14 @@ export declare const Operators: {
      * ------------------------------------------------------------------------------------------------------------------------
      * Each Operator
      */
-    $each(src: any, schema: ISchema, path: string, msg: string | string[], validator: IValidator): void;
+    $map(src: {
+        [key: string]: any;
+    }, schema: ISchema, path: string, msg: string | string[], validator: IValidator): void;
+    /**
+     * ------------------------------------------------------------------------------------------------------------------------
+     * Each Operator
+     */
+    $each(src: any[], schema: ISchema, path: string, msg: string | string[], validator: IValidator): void;
     /**
      * ------------------------------------------------------------------------------------------------------------------------
      * Properties Operator

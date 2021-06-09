@@ -381,6 +381,10 @@ const operatorsValidator: any = {
     this.$and(value, schema, path, '$xor');
   },
 
+  $map(value: any, schema: any, path: string, options: ISchemaConfig) {
+    schema.$type = 'object';
+  },
+
   $each(value: any, schema: any, path: string, options: ISchemaConfig) {
     schema.$type = 'array';
   },

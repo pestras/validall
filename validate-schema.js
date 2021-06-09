@@ -335,6 +335,9 @@ const operatorsValidator = {
     $xor(value, schema, path) {
         this.$and(value, schema, path, '$xor');
     },
+    $map(value, schema, path, options) {
+        schema.$type = 'object';
+    },
     $each(value, schema, path, options) {
         schema.$type = 'array';
     },

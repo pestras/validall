@@ -13,7 +13,7 @@ const get_value_1 = require("@pestras/toolbox/object/get-value");
 exports.Operators = {
     // list of schema available operators
     list: [
-        '$message', '$required', '$nullable', '$default', '$filter', '$strict', '$type', '$instanceof', '$ref', '$is', '$equals',
+        '$message', '$required', '$nullable', '$default', '$filter', '$strict', '$type', '$instanceof', '$ref', '$is', '$equals', '$map',
         '$deepEquals', '$regex', '$gt', '$gte', '$lt', '$lte', '$inRange', '$length', '$size', '$intersect', '$include', '$enum',
         '$cast', '$to', '$props', '$paths', '$keys', '$on', '$before', '$after', '$not', '$and', '$or', '$nor', '$xor', '$each', '$meta'
     ],
@@ -652,6 +652,15 @@ exports.Operators = {
                 got: 'some validations passed',
                 path: path
             }, error, msg);
+        }
+    },
+    /**
+     * ------------------------------------------------------------------------------------------------------------------------
+     * Each Operator
+     */
+    $map(src, schema, path, msg, validator) {
+        for (let prop in src) {
+            validator.next(src[prop], schema, `${path}.${prop}`);
         }
     },
     /**

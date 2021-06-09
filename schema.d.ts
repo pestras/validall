@@ -47,6 +47,7 @@ export interface IStructuralOperaotrs {
     $required?: boolean | string;
     $strict?: boolean | string | string[];
     $each?: ISchema;
+    $map?: ISchema;
     $props?: {
         [key: string]: ISchema;
     };
