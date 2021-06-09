@@ -13,11 +13,11 @@ class ValidallInvalidArgsError extends ValidallError {
     constructor(args) {
         super();
         this.path = args.path;
-        this.method = args.method;
+        this.operator = args.opoerator;
         this.expected = args.expected;
         this.got = args.got;
-        this.message = this.short = `invalid ${args.method} method argument ${args.got}`;
-        this.message += ` method: ${args.method}`;
+        this.message = this.short = `invalid ${args.opoerator} method argument ${args.got}`;
+        this.message += ` method: ${args.opoerator}`;
         this.message += ` expected: ${args.expected}`;
         this.message += ` got: ${args.got}`;
         this.message += ` path: ${args.path}`;
@@ -29,7 +29,7 @@ class ValidallValidationError extends ValidallError {
         super();
         this.code = '0';
         this.path = args.path;
-        this.method = args.method;
+        this.operator = args.method;
         this.expected = args.expected;
         this.got = args.got;
         if (msg) {

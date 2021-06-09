@@ -6,7 +6,7 @@ export interface IValidallError {
 
 export class ValidallError extends Error {
   path: string;
-  method: string;
+  operator: string;
   expected: string;
   got: any;
   short: string;
@@ -23,7 +23,7 @@ export class ValidallError extends Error {
  * Validall Invalid Args Error
  */
 export interface IInvalidArgs extends IValidallError {
-  method: string;
+  opoerator: string;
   expected: string;
   got: any;
 }
@@ -34,12 +34,12 @@ export class ValidallInvalidArgsError extends ValidallError {
     super();
 
     this.path = args.path;
-    this.method = args.method;
+    this.operator = args.opoerator;
     this.expected = args.expected;
     this.got = args.got;
 
-    this.message = this.short = `invalid ${args.method} method argument ${args.got}`;
-    this.message += ` method: ${args.method}`;
+    this.message = this.short = `invalid ${args.opoerator} method argument ${args.got}`;
+    this.message += ` method: ${args.opoerator}`;
     this.message += ` expected: ${args.expected}`;
     this.message += ` got: ${args.got}`;
     this.message += ` path: ${args.path}`;
@@ -64,7 +64,7 @@ export class ValidallValidationError extends ValidallError {
     super();
 
     this.path = args.path;
-    this.method = args.method;
+    this.operator = args.method;
     this.expected = args.expected;
     this.got = args.got;
 

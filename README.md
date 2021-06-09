@@ -22,14 +22,11 @@ let validator = new Validall({
       username: { $type: 'string', $to: ['trim', 'lowercase'], $required: true },
       email: { $is: 'email' },
       password: { $regex: /^[a-zA-Z0-9_]{6,}$/ },
-      roles: { $enum: ['admin', 'author', 'subscriber'], $inRange: [1, 2] $message: 'unknown role!!' },
+      roles: { $enum: ['admin', 'author', 'subscriber'], $message: 'unknown role!!' },
       age: { $gte: 18 },
-      active: { $cast: 'boolean', $default: true }
+      active: { $cast: 'boolean', $default: true },
       posts: { $length: { $lte: 20 }, $each: { $ref: 'Post' } },
-      address: {
-        $required: true,
-        $instanceof: Address
-      }
+      address: { $required: true, $instanceof: Address }
     }
   }
 });
@@ -61,17 +58,17 @@ try {
   });
 } catch (err) {
   console.log(err.message);
-  // ValidallInvalidArgsError: invalid $type method argument 5
-  //  method: $type
+  // ValidallInvalidArgsError: invalid $type operator argument 5
+  //  operator: $type
   //  expected: valid type name
   //  got: 5
   //  path: $props.name.$type
   console.log(err.short);
-  // invalid $type method argument 5
+  // invalid $type operator argument 5
 }
 ```
 
-Other properties can be accessed are _err.method, err.expected, err.got, err.path_.
+Other properties can be accessed are _err.operator, err.expected, err.got, err.path_.
 
 #### ValidallValidationError
 
@@ -83,7 +80,7 @@ let isValid = validator.validate(user);
 
 console.log(validator.error.message);
 // ValidallValidationError: expected name of type string
-//    method: $type.
+//    operator: $type.
 //    expected: string.
 //    got: 123.
 //    path: name.
@@ -91,13 +88,13 @@ console.log(validator.error.short);
 // expected name of type string
 ```
 
-Other properties can be accessed are _err.method, err.expected, err.got, err.path_.
+Other properties can be accessed are _err.operator, err.expected, err.got, err.path_.
 
 We can add our custom messages as we will see later.
 
 ### validate: (src: any, schema: ISchema, throwMode?: boolean): Error | never
 
-Validall also provide a fast validate method for easy use validations **validate**.
+Validall also provide a fast validate operator for easy use validations **validate**.
 
 ```js
 import { validate } from 'validall';
@@ -167,7 +164,7 @@ let error = validate(user, {
 });
 ```
 
-Keywords are the same properties in **ValidallValidationError** _method, expected, got, path_.
+Keywords are the same properties in **ValidallValidationError** _operator, expected, got, path_.
 
 Messages can be an array of two string length, first is the actual message, and the other is some custom code for any reason.
 
@@ -268,7 +265,7 @@ let error = validate(user, {
 
 console.log(error.message);
 // age is out of src keys: name
-//    method: $strict.
+//    operator: $strict.
 //    expected: not exist.
 //    got: age.
 //    path: .

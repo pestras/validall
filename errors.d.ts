@@ -3,7 +3,7 @@ export interface IValidallError {
 }
 export declare class ValidallError extends Error {
     path: string;
-    method: string;
+    operator: string;
     expected: string;
     got: any;
     short: string;
@@ -14,7 +14,7 @@ export declare class ValidallError extends Error {
  * Validall Invalid Args Error
  */
 export interface IInvalidArgs extends IValidallError {
-    method: string;
+    opoerator: string;
     expected: string;
     got: any;
 }

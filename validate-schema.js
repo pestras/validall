@@ -24,7 +24,7 @@ function validateSchema(schema, options, path = "") {
         }
         else {
             throw new errors_1.ValidallInvalidArgsError({
-                method: 'validateSchema',
+                opoerator: 'validateSchema',
                 expected: 'valid operator',
                 got: operator,
                 path: path
@@ -37,7 +37,7 @@ const operatorsValidator = {
     $message(value, schema, path) {
         if (value && typeof value !== 'string' || types_1.Types.function(value))
             throw new errors_1.ValidallInvalidArgsError({
-                method: '$message',
+                opoerator: '$message',
                 expected: 'string or function',
                 got: `${typeof value}: ${value}`,
                 path: path
@@ -46,7 +46,7 @@ const operatorsValidator = {
     $required(value, schema, path) {
         if (value && typeof value !== 'boolean')
             throw new errors_1.ValidallInvalidArgsError({
-                method: '$required',
+                opoerator: '$required',
                 expected: 'boolean',
                 got: `${typeof value}: ${value}`,
                 path: path
@@ -55,7 +55,7 @@ const operatorsValidator = {
     $nullable(value, schema, path) {
         if (value && typeof value !== 'boolean')
             throw new errors_1.ValidallInvalidArgsError({
-                method: '$nullable',
+                opoerator: '$nullable',
                 expected: 'boolean',
                 got: `${typeof value}: ${value}`,
                 path: path
@@ -72,7 +72,7 @@ const operatorsValidator = {
             else {
                 if (!Array.isArray(value) || value.length !== type.length)
                     throw new errors_1.ValidallInvalidArgsError({
-                        method: '$default',
+                        opoerator: '$default',
                         expected: `${type}`,
                         got: value,
                         path: path
@@ -81,7 +81,7 @@ const operatorsValidator = {
                     if (Array.isArray(type[i])) {
                         if (!types_1.Types.arrayOf(type[i][0], value[i])) {
                             throw new errors_1.ValidallInvalidArgsError({
-                                method: '$default',
+                                opoerator: '$default',
                                 got: `${typeof value[i]}: ${value[i]}`,
                                 expected: `${type}`,
                                 path: path
@@ -90,7 +90,7 @@ const operatorsValidator = {
                     }
                     else if (types_1.Types.getTypesOf(value[i]).indexOf(type[i]) === -1) {
                         throw new errors_1.ValidallInvalidArgsError({
-                            method: '$default',
+                            opoerator: '$default',
                             got: `${typeof value[i]}: ${value[i]}`,
                             expected: `${type}`,
                             path: path
@@ -105,7 +105,7 @@ const operatorsValidator = {
         // if not type match and negate mode is off also throw validation error
         if (!match)
             throw new errors_1.ValidallInvalidArgsError({
-                method: '$default',
+                opoerator: '$default',
                 expected: `${type}`,
                 got: `${typeof value}: ${value}`,
                 path: path
@@ -114,14 +114,14 @@ const operatorsValidator = {
     $filter(value, schema, path, options) {
         if (value && typeof value !== 'boolean')
             throw new errors_1.ValidallInvalidArgsError({
-                method: '$filter',
+                opoerator: '$filter',
                 expected: 'boolean',
                 got: `${typeof value}: ${value}`,
                 path: path
             });
         if (!schema.$props)
             throw new errors_1.ValidallInvalidArgsError({
-                method: '$filter',
+                opoerator: '$filter',
                 expected: 'has $props operator',
                 got: null,
                 path: path
@@ -130,7 +130,7 @@ const operatorsValidator = {
     $strict(value, schema, path) {
         if (value && typeof value !== 'boolean' && !Array.isArray(value))
             throw new errors_1.ValidallInvalidArgsError({
-                method: '$strict',
+                opoerator: '$strict',
                 expected: 'boolean',
                 got: `${typeof value}: ${value}`,
                 path: path
@@ -140,7 +140,7 @@ const operatorsValidator = {
     $type(value, schema, path) {
         if (!types_1.Types.isValidType(value))
             throw new errors_1.ValidallInvalidArgsError({
-                method: '$type',
+                opoerator: '$type',
                 expected: 'valid type name',
                 got: value,
                 path: path
@@ -149,7 +149,7 @@ const operatorsValidator = {
     $ref(value, schema, path) {
         if (typeof value !== 'string' && (value === null || value === void 0 ? void 0 : value.constructor) !== validator_1.Validall)
             throw new errors_1.ValidallInvalidArgsError({
-                method: '$ref',
+                opoerator: '$ref',
                 expected: 'string or Validall instance',
                 got: `${typeof value}: ${value}`,
                 path: path
@@ -157,7 +157,7 @@ const operatorsValidator = {
         let validator = typeof value === 'string' ? repo_1.getValidator(value) : value;
         if (!validator)
             throw new errors_1.ValidallInvalidArgsError({
-                method: '$ref',
+                opoerator: '$ref',
                 expected: 'valid id or alias',
                 got: value,
                 path: path
@@ -167,7 +167,7 @@ const operatorsValidator = {
     $instanceof(value, schema, path) {
         if (typeof value !== 'function')
             throw new errors_1.ValidallInvalidArgsError({
-                method: '$instanceof',
+                opoerator: '$instanceof',
                 expected: 'constructor function',
                 got: value,
                 path: path
@@ -176,7 +176,7 @@ const operatorsValidator = {
     $is(value, schema, path) {
         if (Object.keys(is_1.Is).indexOf(value) === -1)
             throw new errors_1.ValidallInvalidArgsError({
-                method: '$Is',
+                opoerator: '$Is',
                 expected: 'valid pattern name',
                 got: value,
                 path: path
@@ -187,7 +187,7 @@ const operatorsValidator = {
             throw new errors_1.ValidallInvalidArgsError({
                 expected: 'supported type name',
                 got: value,
-                method: '$cast',
+                opoerator: '$cast',
                 path: path
             });
     },
@@ -199,7 +199,7 @@ const operatorsValidator = {
                 throw new errors_1.ValidallInvalidArgsError({
                     expected: 'valid method name',
                     got: methods[i],
-                    method: '$to',
+                    opoerator: '$to',
                     path: path
                 });
         set_value_1.setValue(schema, '$to', methods);
@@ -211,7 +211,7 @@ const operatorsValidator = {
             throw new errors_1.ValidallInvalidArgsError({
                 expected: 'number',
                 got: typeof value + ': ' + value,
-                method: operator,
+                opoerator: operator,
                 path: path
             });
     },
@@ -229,14 +229,14 @@ const operatorsValidator = {
             throw new errors_1.ValidallInvalidArgsError({
                 expected: '[number, number]',
                 got: typeof value + ': ' + value,
-                method: '$inRange',
+                opoerator: '$inRange',
                 path: path
             });
         if (value[0] === value[1])
             throw new errors_1.ValidallInvalidArgsError({
                 expected: 'range[0] < range[1]',
                 got: value,
-                method: '$inRange',
+                opoerator: '$inRange',
                 path: path
             });
         if (value[0] > value[1]) {
@@ -252,7 +252,7 @@ const operatorsValidator = {
             throw new errors_1.ValidallInvalidArgsError({
                 expected: 'RegExp',
                 got: typeof value + ': ' + value,
-                method: '$regex',
+                opoerator: '$regex',
                 path: path
             });
     },
@@ -261,7 +261,7 @@ const operatorsValidator = {
             throw new errors_1.ValidallInvalidArgsError({
                 expected: 'number or operators object',
                 got: typeof value + ': ' + value,
-                method: '$length',
+                opoerator: '$length',
                 path: path
             });
     },
@@ -270,7 +270,7 @@ const operatorsValidator = {
             throw new errors_1.ValidallInvalidArgsError({
                 expected: 'number or operators object',
                 got: typeof value + ': ' + value,
-                method: '$size',
+                opoerator: '$size',
                 path: path
             });
     },
@@ -279,7 +279,7 @@ const operatorsValidator = {
             throw new errors_1.ValidallInvalidArgsError({
                 expected: ' operators object',
                 got: typeof value + ': ' + value,
-                method: '$keys',
+                opoerator: '$keys',
                 path: path
             });
     },
@@ -291,7 +291,7 @@ const operatorsValidator = {
             throw new errors_1.ValidallInvalidArgsError({
                 expected: 'date instance, string or number',
                 got: typeof value + ': ' + value,
-                method: operator,
+                opoerator: operator,
                 path: path
             });
         }
@@ -299,7 +299,7 @@ const operatorsValidator = {
             let d = new Date(value);
             if (d.toString() === "Invalid Date")
                 throw new errors_1.ValidallInvalidArgsError({
-                    method: operator,
+                    opoerator: operator,
                     expected: 'a valid date',
                     got: value,
                     path: path
@@ -322,7 +322,7 @@ const operatorsValidator = {
             throw new errors_1.ValidallInvalidArgsError({
                 expected: 'array of schemas',
                 got: typeof value + ': ' + value,
-                method: operator,
+                opoerator: operator,
                 path: path
             });
     },
@@ -344,7 +344,7 @@ const operatorsValidator = {
     $props(value, schema, path, options) {
         if (!types_1.Types.object(value))
             throw new errors_1.ValidallInvalidArgsError({
-                method: '$props',
+                opoerator: '$props',
                 expected: 'object',
                 got: `${typeof value}: value`,
                 path: path
@@ -362,7 +362,7 @@ const operatorsValidator = {
     $paths(value, schema, path, options) {
         if (!types_1.Types.object(value))
             throw new errors_1.ValidallInvalidArgsError({
-                method: '$props',
+                opoerator: '$props',
                 expected: 'object',
                 got: `${typeof value}: value`,
                 path: path
