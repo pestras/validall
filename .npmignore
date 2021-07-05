@@ -1,8 +1,9 @@
 test/**
 .vscode/**
 node_modules
+test
 test.js
 *.ts
 !*.d.ts
-*.js.map
 TODO.md
+spec/

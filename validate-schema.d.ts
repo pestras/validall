@@ -1,2 +1,2 @@
-import { ISchema, ISchemaConfig } from './schema';
-export declare function validateSchema(schema: ISchema, options: ISchemaConfig, path?: string): void;
+import { ISchema, ValidationContext } from "./interfaces";
+export declare function validateSchema(schema: ISchema, path: string, ctx: ValidationContext, vName?: string): void;

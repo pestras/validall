@@ -4,4 +4,7 @@ test
 *.js
 *.js.map
 *.d.ts
+*.d.ts.map
+!*.spec.js
 TODO.md
+packege-lock.json

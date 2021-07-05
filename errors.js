@@ -1,50 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ValidallValidationError = exports.ValidallInvalidArgsError = exports.ValidallError = void 0;
-const compile_1 = require("@pestras/toolbox/string/compile");
+exports.ValidallError = void 0;
+/**
+ * Validall error class
+ */
 class ValidallError extends Error {
-    constructor() {
-        super();
+    constructor(message, path = '') {
+        super(message);
         this.name = this.constructor.name;
+        this.path = path;
     }
 }
 exports.ValidallError = ValidallError;
-class ValidallInvalidArgsError extends ValidallError {
-    constructor(args) {
-        super();
-        this.path = args.path;
-        this.operator = args.opoerator;
-        this.expected = args.expected;
-        this.got = args.got;
-        this.message = this.short = `invalid ${args.opoerator} method argument ${args.got}`;
-        this.message += ` method: ${args.opoerator}`;
-        this.message += ` expected: ${args.expected}`;
-        this.message += ` got: ${args.got}`;
-        this.message += ` path: ${args.path}`;
-    }
-}
-exports.ValidallInvalidArgsError = ValidallInvalidArgsError;
-class ValidallValidationError extends ValidallError {
-    constructor(args, prefix, msg) {
-        super();
-        this.code = '0';
-        this.path = args.path;
-        this.operator = args.method;
-        this.expected = args.expected;
-        this.got = args.got;
-        if (msg) {
-            msg = Array.isArray(msg) ? msg : [msg];
-            this.message = compile_1.compile(msg[0], args);
-            this.code = msg[1] || '0';
-            this.short = this.message;
-        }
-        else {
-            this.message = this.short = prefix;
-            this.message += ` method: ${args.method}.`;
-            this.message += ` expected: ${args.expected}.`;
-            this.message += ` got: ${args.got}.`;
-            this.message += ` path: ${args.path}.`;
-        }
-    }
-}
-exports.ValidallValidationError = ValidallValidationError;
+//# sourceMappingURL=errors.js.map

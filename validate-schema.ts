@@ -1,425 +1,78 @@
-import { Operators } from './operators';
-import { ISchema, ISchemaConfig } from './schema';
+import { ValidallError } from "./errors";
+import { ISchema, ValidationContext } from "./interfaces";
+import { Is } from "@pestras/toolbox/is";
 import { Types } from '@pestras/toolbox/types';
-import { setValue } from '@pestras/toolbox/object/set-value';
-import { ValidallInvalidArgsError } from './errors';
-import { Is } from '@pestras/toolbox/is';
-import { To } from './to';
-import { getValidator } from './repo';
-import { Validall } from './validator';
+import { Operators } from "./operators";
+import { ReferenceState, ValidallRepo } from "./util";
 
-export function validateSchema(schema: ISchema, options: ISchemaConfig, path = "") {
-  schema.$required = schema.$required === false ? false : schema.$required || options.required;
-  schema.$nullable = schema.$nullable === false ? false : schema.$nullable || options.nullable;
-
+export function validateSchema(schema: ISchema, path: string, ctx: ValidationContext, vName?: string) {
   for (let operator in schema) {
-    let currentPath = path ? `${path}.${operator}` : operator;
-    if (Operators.isOperator(operator)) {
-      operatorsValidator[operator](schema[<keyof ISchema>operator], schema, currentPath, options);
+    let currPath = `${path}.${operator}`;
+    let value = schema[<keyof ISchema>operator];
 
-      if (operator === '$props')
-        for (let prop in schema[operator])
-          validateSchema(schema.$props[prop], options, `${currentPath}.${prop}`);
+    // console.log('');
+    // console.log(currPath);
+    // console.log(schema);
+    // console.log('-----------------------------------');
+    // console.log('');
 
-      if (operator === "$each")
-        validateSchema(schema.$each, options, `${currentPath}`);
+    if (operator === '$name')
+      if (typeof schema.$name === 'string')
+        ctx.aliasStates[schema.$name] = false;
+      else
+        for (let $name of schema.$name)
+          if (typeof $name === 'string')
+            ctx.aliasStates[$name] = false;
+          else
+            ctx.aliasStates[$name.$as] = false;
+    // check date
+    else if (['$on', '$before', '$after'].indexOf(operator) > -1)
+      if (!Is.date(value))
+        throw new ValidallError(`invalid '${currPath}' date argument: (${typeof value}: ${value})`, currPath);
+      else
+        schema[<'$on'>operator] = new Date(schema[<'$on'>operator]);
 
-    } else {
-      throw new ValidallInvalidArgsError({
-        opoerator: 'validateSchema',
-        expected: 'valid operator',
-        got: operator,
-        path: path
-      });
-    }
-  }
-}
+    else if (operator === '$ref') {
+      if (vName && ReferenceState.HasReference(value, vName))
+        throw new ValidallError(`cycle referencing between ${value} and ${vName} validators`);
 
-const operatorsValidator: any = {
-  $message(value: any, schema: any, path: string) {
-    if (value && typeof value !== 'string' || Types.function(value))
-      throw new ValidallInvalidArgsError({
-        opoerator: '$message',
-        expected: 'string or function',
-        got: `${typeof value}: ${value}`,
-        path: path
-      });
-  },
+      if (!ValidallRepo.has(value))
+        throw new ValidallError(`'${currPath}' reference not found: (${value})`, currPath);
 
-  $required(value: any, schema: any, path: string) {
-    if (value && typeof value !== 'boolean')
-      throw new ValidallInvalidArgsError({
-        opoerator: '$required',
-        expected: 'boolean',
-        got: `${typeof value}: ${value}`,
-        path: path
-      });
-  },
-
-  $nullable(value: any, schema: any, path: string) {
-    if (value && typeof value !== 'boolean')
-      throw new ValidallInvalidArgsError({
-        opoerator: '$nullable',
-        expected: 'boolean',
-        got: `${typeof value}: ${value}`,
-        path: path
-      });
-  },
-
-  $default(value: any, schema: any, path: string) {
-    if (!value || !schema.$type)
-      return;
-
-    let type = schema.$type;
-
-    let match: boolean = false;
-    if (Array.isArray(type)) {
-      if (type.length === 1)
-        match = Types.arrayOf(type[0], value);
-      else {
-        if (!Array.isArray(value) || value.length !== type.length)
-          throw new ValidallInvalidArgsError({
-            opoerator: '$default',
-            expected: `${type}`,
-            got: value,
-            path: path
-          });
-
-        for (let i = 0; i < type.length; i++)
-          if (Array.isArray(type[i])) {
-            if (!Types.arrayOf(type[i][0], value[i])) {
-              throw new ValidallInvalidArgsError({
-                opoerator: '$default',
-                got: `${typeof value[i]}: ${value[i]}`,
-                expected: `${type}`,
-                path: path
-              });
-            }
-          } else if (Types.getTypesOf(value[i]).indexOf(type[i]) === -1) {
-            throw new ValidallInvalidArgsError({
-              opoerator: '$default',
-              got: `${typeof value[i]}: ${value[i]}`,
-              expected: `${type}`,
-              path: path
-            });
-          }
-      }
-
-    } else {
-      // save type match
-      match = Types.getTypesOf(value).indexOf(type) > -1;
+      ReferenceState.SetReference(value, vName);
     }
 
-    // if not type match and negate mode is off also throw validation error
-    if (!match)
-      throw new ValidallInvalidArgsError({
-        opoerator: '$default',
-        expected: `${type}`,
-        got: `${typeof value}: ${value}`,
-        path: path
-      });
-  },
-
-  $filter(value: any, schema: any, path: string, options: ISchemaConfig) {
-    if (value && typeof value !== 'boolean')
-      throw new ValidallInvalidArgsError({
-        opoerator: '$filter',
-        expected: 'boolean',
-        got: `${typeof value}: ${value}`,
-        path: path
-      });
-
-    if (!schema.$props)
-      throw new ValidallInvalidArgsError({
-        opoerator: '$filter',
-        expected: 'has $props operator',
-        got: null,
-        path: path
-      });
-  },
-
-  $strict(value: any, schema: any, path: string) {
-    if (value && typeof value !== 'boolean' && !Array.isArray(value))
-      throw new ValidallInvalidArgsError({
-        opoerator: '$strict',
-        expected: 'boolean',
-        got: `${typeof value}: ${value}`,
-        path: path
-      });
-  },
-
-  $meta() { return true; },
-
-  $type(value: any, schema: any, path: string) {
-    if (!Types.isValidType(value))
-      throw new ValidallInvalidArgsError({
-        opoerator: '$type',
-        expected: 'valid type name',
-        got: value,
-        path: path
-      });
-  },
-
-  $ref(value: any, schema: any, path: string) {
-    if (typeof value !== 'string' && value?.constructor !== Validall)
-      throw new ValidallInvalidArgsError({
-        opoerator: '$ref',
-        expected: 'string or Validall instance',
-        got: `${typeof value}: ${value}`,
-        path: path
-      });
-      
-    let validator = typeof value === 'string' ? getValidator(value) : value;
-
-    if (!validator)
-      throw new ValidallInvalidArgsError({
-        opoerator: '$ref',
-        expected: 'valid id or alias',
-        got: value,
-        path: path
-      });
-
-    setValue(schema, '$ref', Array.isArray(value) ? [validator] : validator);
-  },
-
-  $instanceof(value: any, schema: any, path: string) {
-    if (typeof value !== 'function')
-      throw new ValidallInvalidArgsError({
-        opoerator: '$instanceof',
-        expected: 'constructor function',
-        got: value,
-        path: path
-      });
-  },
-
-  $is(value: any, schema: any, path: string) {
-    if (Object.keys(Is).indexOf(value) === -1)
-      throw new ValidallInvalidArgsError({
-        opoerator: '$Is',
-        expected: 'valid pattern name',
-        got: value,
-        path: path
-      });
-  },
-
-  $cast(value: any, schema: any, path: string) {
-    if (['boolean', 'string', 'number', 'date', 'regexp', 'array'].indexOf(value) === -1)
-      throw new ValidallInvalidArgsError({
-        expected: 'supported type name',
-        got: value,
-        opoerator: '$cast',
-        path: path
-      });
-  },
-
-  $to(value: any, schema: any, path: string) {
-    let methods = Array.isArray(value) ? value : [value];
-
-    // loop through methods and check if each is valid
-    for (let i = 0; i < methods.length; i++)
-      if (Object.keys(To).indexOf(methods[i]) === -1)
-        throw new ValidallInvalidArgsError({
-          expected: 'valid method name',
-          got: methods[i],
-          opoerator: '$to',
-          path: path
-        });
-
-    setValue(schema, '$to', methods);
-  },
-
-  $equals() { return true },
-  $deepEquals() { return true },
-
-  $gt(value: any, schema: any, path: string, operator = '$gt') {
-    if (typeof value !== 'number')
-      throw new ValidallInvalidArgsError({
-        expected: 'number',
-        got: typeof value + ': ' + value,
-        opoerator: operator,
-        path: path
-      });
-  },
-
-  $gte(value: any, schema: any, path: string) {
-    this.$gt(value, schema, path, '$gte');
-  },
-
-  $lt(value: any, schema: any, path: string) {
-    this.$gt(value, schema, path, '$lt');
-  },
-
-  $lte(value: any, schema: any, path: string) {
-    this.$gt(value, schema, path, '$lte');
-  },
-
-  $inRange(value: any, schema: any, path: string) {
-    if (typeof value[0] !== 'number' && typeof value[1] !== 'number' && value.length !== 2)
-      throw new ValidallInvalidArgsError({
-        expected: '[number, number]',
-        got: typeof value + ': ' + value,
-        opoerator: '$inRange',
-        path: path
-      });
-
-    if (value[0] === value[1])
-      throw new ValidallInvalidArgsError({
-        expected: 'range[0] < range[1]',
-        got: value,
-        opoerator: '$inRange',
-        path: path
-      });
-
-    if (value[0] > value[1]) {
-      value = [value[1], value[0]];
-      setValue(schema, '$inRange', value);
-    }
-  },
-
-  $regex(value: any, schema: any, path: string) {
-    if (Array.isArray(value)) {
-      setValue(schema, '$regex', new RegExp(value[0], value[1]));
-    } else if (!Types.regexp(value))
-      throw new ValidallInvalidArgsError({
-        expected: 'RegExp',
-        got: typeof value + ': ' + value,
-        opoerator: '$regex',
-        path: path
-      });
-  },
-
-  $length(value: any, schema: any, path: string) {
-    if (typeof value !== 'number' && !Types.object(value))
-      throw new ValidallInvalidArgsError({
-        expected: 'number or operators object',
-        got: typeof value + ': ' + value,
-        opoerator: '$length',
-        path: path
-      });
-  },
-
-  $size(value: any, schema: any, path: string) {
-    if (typeof value !== 'number' && !Types.object(value))
-      throw new ValidallInvalidArgsError({
-        expected: 'number or operators object',
-        got: typeof value + ': ' + value,
-        opoerator: '$size',
-        path: path
-      });
-  },
-
-  $keys(value: any, schema: any, path: string) {
-    if (!Types.object(value))
-      throw new ValidallInvalidArgsError({
-        expected: ' operators object',
-        got: typeof value + ': ' + value,
-        opoerator: '$keys',
-        path: path
-      });
-  },
-
-  $intersect() { return true },
-  $include() { return true },
-  $enum() { return true },
-
-  $on(value: any, schema: any, path: string, operator = '$on') {
-    if (!Types.date(value) && typeof value !== 'string' && typeof value !== 'number') {
-      throw new ValidallInvalidArgsError({
-        expected: 'date instance, string or number',
-        got: typeof value + ': ' + value,
-        opoerator: operator,
-        path: path
-      });
+    else if (operator === '$default' && schema.$type) {
+      if (!Types[schema.$type](value))
+        throw new ValidallError(`invalid '${currPath}' argument type: (${typeof value}: ${value}), expected to be of type (${schema.$type})`, currPath);
     }
 
-    if (typeof value === 'string') {
-      let d = new Date(value);
-      if (d.toString() === "Invalid Date")
-        throw new ValidallInvalidArgsError({
-          opoerator: operator,
-          expected: 'a valid date',
-          got: value,
-          path: path
-        });
+    else if ((operator === '$filter' || operator === '$strict') && !schema.$props)
+      throw new ValidallError(`'${currPath}' requires a sibling '$props' operator`, currPath);
+
+    else if (Operators.isNumberOperator(operator)) {
+      schema.$type = "number";
     }
 
-    if (typeof value === 'number') {
-      value = new Date(value);
-      setValue(schema, operator, value);
+    else if (Operators.isParentingObject(operator)) {
+      schema.$type = "object";
+
+      for (let prop in schema[<keyof ISchema>operator])
+        validateSchema(schema[<keyof ISchema>operator][prop], `${currPath}.${prop}`, ctx);
     }
-  },
 
-  $before(value: any, schema: any, path: string) {
-    this.$on(value, schema, path, '$before');
-  },
+    else if (Operators.isParenting(operator)) {
+      if (operator === '$each' || operator === '$length')
+        schema.$type = "array";
+      else if (operator === '$map' || operator === '$keys' || operator === '$size')
+        schema.$type = 'object';
 
-  $after(value: any, schema: any, path: string) {
-    this.$on(value, schema, path, '$after');
-  },
+      validateSchema(schema[<keyof ISchema>operator], `${currPath}`, ctx);
+    }
 
-  $not() { return true },
-
-  $and(value: any, schema: any, path: string, operator = '$and') {
-    if (!Array.isArray(value))
-      throw new ValidallInvalidArgsError({
-        expected: 'array of schemas',
-        got: typeof value + ': ' + value,
-        opoerator: operator,
-        path: path
-      });
-  },
-
-  $or(value: any, schema: any, path: string) {
-    this.$and(value, schema, path, '$or');
-  },
-
-  $nor(value: any, schema: any, path: string) {
-    this.$and(value, schema, path, '$nor');
-  },
-
-  $xor(value: any, schema: any, path: string) {
-    this.$and(value, schema, path, '$xor');
-  },
-
-  $map(value: any, schema: any, path: string, options: ISchemaConfig) {
-    schema.$type = 'object';
-  },
-
-  $each(value: any, schema: any, path: string, options: ISchemaConfig) {
-    schema.$type = 'array';
-  },
-
-  $props(value: any, schema: any, path: string, options: ISchemaConfig) {
-    if (!Types.object(value))
-      throw new ValidallInvalidArgsError({
-        opoerator: '$props',
-        expected: 'object',
-        got: `${typeof value}: value`,
-        path: path
-      });
-
-    schema.$type = schema.$type || 'object';
-
-    if (schema.$filter === undefined)
-      schema.$filter = options.filter;
-
-    // if (schema.$strict === undefined)
-    //   schema.$strict = options.strict === false ? false : Object.keys(schema.$props);
-    // else
-    //   schema.$strict = schema.$strict === true ? Object.keys(schema.$props) : schema.$strict;
-    if (schema.$strict === undefined)
-      schema.$strict = !!options.strict;
-  },
-
-  $paths(value: any, schema: any, path: string, options: ISchemaConfig) {
-    if (!Types.object(value))
-      throw new ValidallInvalidArgsError({
-        opoerator: '$props',
-        expected: 'object',
-        got: `${typeof value}: value`,
-        path: path
-      });
-
-    schema.$type = schema.$type || 'object';
+    else if (Operators.isParentingArray(operator)) {
+      for (let [index, segment] of schema[<keyof ISchema>operator].entries())
+        validateSchema(segment, `${currPath}.[${index}]`, ctx);
+    }
   }
 }

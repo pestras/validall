@@ -1,1049 +1,893 @@
 # Validall
 
-JavaScript validator.
+Advanced javaScript schema validator written with typescript.
 
 ## Installation
 
 ```bash
-npm install Validall
+npm install @pestras/validall
 ```
 
-### Class Validall: (options: IOptions): Validall
+# Class Validall
 
-```js
+To create a schema, we can instantiate **Vaildall** in two ways:
+
+```ts
 import { Validall } from "Validall";
 
-let validator = new Validall({
-  id: 'User',
-  schema: {
-    $meta: { title: 'User Schema' },
-    $strict: true,
-    $props: {
-      username: { $type: 'string', $to: ['trim', 'lowercase'], $required: true },
-      email: { $is: 'email' },
-      password: { $regex: /^[a-zA-Z0-9_]{6,}$/ },
-      roles: { $enum: ['admin', 'author', 'subscriber'], $message: 'unknown role!!' },
-      age: { $gte: 18 },
-      active: { $cast: 'boolean', $default: true },
-      posts: { $length: { $lte: 20 }, $each: { $ref: 'Post' } },
-      address: { $required: true, $instanceof: Address }
-    }
-  }
+let schema = new Validall('schemaName', {
+  // schema definition
 });
 
-let isValid = validator.validate(user);
+// or
 
-if (!isValid)
-  console.log(validator.error);
-```
-
-### errors  _v3.*_
-
-Validall provides two types of errors:
-
-* ValidallInvalidArgsError.
-* ValidallValidationError.
-
-#### ValidallInvalidArgsError
-
-InvalidArgsErrors are thrown once the validator has been instantiated and had schema arguments errors.
-
-```js
-try {
-  let validator = new Validall({
-    id: 'User',
-    schema: {
-      $props: { name: { $type: 5 } }
-    }
-  });
-} catch (err) {
-  console.log(err.message);
-  // ValidallInvalidArgsError: invalid $type operator argument 5
-  //  operator: $type
-  //  expected: valid type name
-  //  got: 5
-  //  path: $props.name.$type
-  console.log(err.short);
-  // invalid $type operator argument 5
-}
-```
-
-Other properties can be accessed are _err.operator, err.expected, err.got, err.path_.
-
-#### ValidallValidationError
-
-In case validation failed, we can access the error message through **validator.error**:
-
-```js
-let user = { name: 123 }
-let isValid = validator.validate(user);
-
-console.log(validator.error.message);
-// ValidallValidationError: expected name of type string
-//    operator: $type.
-//    expected: string.
-//    got: 123.
-//    path: name.
-console.log(validator.error.short);
-// expected name of type string
-```
-
-Other properties can be accessed are _err.operator, err.expected, err.got, err.path_.
-
-We can add our custom messages as we will see later.
-
-### validate: (src: any, schema: ISchema, throwMode?: boolean): Error | never
-
-Validall also provide a fast validate operator for easy use validations **validate**.
-
-```js
-import { validate } from 'validall';
-
-let error = validate({ name: 123 }, { $props: { name: 'string' } });
-```
-
-**validate** function may throw **ValidallInvalidArgsError** in case of invalid schema provided.
-
-### Validall Params
-
-#### SchemaOptions: ISchemaOptions _required_
-
-When instantiating Validall some options needs to be provided:
-
-* **id**: _string, required_: name of instance so it can be referenced in other schemas, can be set to null to cancel refernciation.
-* **schema**: _ISchema, required_: schema object that handles the validations process.
-* **required**: _boolean, optional_: sets the default behavior of each field as required, default is false.
-* **nullable**: _boolean, optional_: sets the default behavior of each field as nullable, default is false.
-* **filter**: _boolean, optional_: sets the default behavior of each object to filter extra fields not included in schema, default is false.
-* **strict**: _boolean, optional_: sets the default behavior of each object to throw validation error for each extra field not included in schema, default is false.
-* **throwMode**: _boolean, optional_: force validator instance to throw errors instead of returning boolean value, default is false.
-* **replaceSchema** _boolean, optional_: forces schema replacement, default is false.
-* **lazy** _boolean, optional_: make schema validation done in the first use of the validator instead of on instanciating, default is false.
-
-#### map: any _optional_
-
-**validall** constructor accepts a map object, which lets you change your schema dynamically in some special cases.
-
-```js
-let signupValidaltor = new Validall({
-  id: 'Signup',
-  schema: {
-    $props: {
-      email: { $type: 'string' },
-      password: { $type: 'string', $regex: /^\w[\w_]{8,}$/ },
-      repassword: { $equal: '$password' } // value from map
-    }
-  }
-}, { password: '' });
-
-// later you got signupData
-// update map.password value
-signupValidaltor.set('password', signupData.password);
-
-signupValidaltor.validate(signupData);
-```
-
-## ISchema Operators
-
-### $message: string | string[] _v1.*_
-
-When any operator fails it throws its default message.
-This option allows to add custom error messages.
-
-```js
-let error = validate(user, {
-  $props: { email: { $is: 'email', $message: 'invalid user email' } }
+let schema = new Validall({
+  // schema defintion
 });
 ```
 
-Messages are template strings, there are some keywords that can be replaced with their actual values once the error is thrown.
+Giving schema a name, gives the ablity to reference that schema in other schema for reusebility.
 
-```js
-let error = validate(user, {
-  $props: { email: { $is: 'email', $message: 'invalid user email: {{got}}' } }
-});
-```
+# Schema Definition
 
-Keywords are the same properties in **ValidallValidationError** _operator, expected, got, path_.
+Schema is built up through various operators that simulates each specific case.
 
-Messages can be an array of two string length, first is the actual message, and the other is some custom code for any reason.
+Operators can be categorized by their behavior or type:
 
-```js
-let error = validate(user, {
-  $props: { email: { $is: 'email', $message: ['invalid user email: {{got}}', 'E0012' ] } }
-});
+## Basic Operators:
 
-console.log(error.code);
-// 'E0012'
-```
-
-**$message** is not affected by **negateMode**.
-
-### $required: boolean _v1.*_
+### **$required:** *boolean*
 
 Marks the field as required.
 
-```js
-let error = validate(user, {
-  $props: { username: { $required: true, $type: 'string' } }
+```ts
+let schema = new Validall({
+  username: { $required: true },
+  password: { $required: true },
+});
+
+console.log(schema.validate({})); // false
+console.log(schema.error.message); // 'username' is required
+```
+
+So if the username or the password is undefined, **Validall** will return **false** value with a proper error message of failure.
+
+### **$nullable:** *boolean*
+
+Marks the field as nullable.
+
+```ts
+let schema = new Validall({
+  birthdate: { $nullable: true },
+});
+
+let user = {}
+
+console.log(schema.validate(user)); // true
+console.log(user); // { birthdate: null }
+```
+
+When the nullable field is undefined, **Validall** will sets its value to null.
+
+### **$default:** *any*
+
+Sets the field with the provided value when undefined.
+
+```ts
+let schema = new Validall({
+  value: { $default: '' },
+});
+
+let input = {}
+
+console.log(schema.validate(input)); // true
+console.log(input); // { value: '' }
+```
+
+**$default** operator accepts special keywords for specific values:
+
+- 'Date.now':
+
+  When default value set to **'Date.now'**, then assign value will be the current date instance, however it can accept modifiers to make it a **string date** or **timestamp**
+
+  ```ts
+  let schema = new Validall({
+    birthdate: { $default: 'Date.now' } // new Date()
+    // or
+    birthdate: { $default: 'Date.now string' } // new Date().toLocalString()
+    // or
+    birthdate: { $default: 'Date.now number' } // new Date().getTime()
+    // or
+    birthdate: { $default: 'Date.now iso' } // new Date().toISOString()
+  });
+  ```
+
+- '$<:path>':
+
+  Assign the current field with the same value of the givin field path form the input object.
+
+  ```ts
+  let schema = new Validall({
+    name: { $default: '$username' }
+  });
+
+  let user = { username: 'myusername' }
+  schema.validate(user);
+
+  console.log(user) // { username: 'myusername', name: 'myusername' }
+  ```
+
+**Note:** when using **$default** operator with **$type** operator, the default value must match the type given otherwise schema validation will fail on instantiation.
+
+```ts
+// the following will throw an error with a message 'invalid 'id.$default' argument type: (string: 0), expected to be of type (number)'
+let schema = new Validall({
+  id: { $type: 'number' $default: '0' }
 });
 ```
 
-**$required** is not affected by **negateMode**.
+This also applies when using reference path as a default value, when the reference value is undefined or of different type, however the error will be during validation process rather than instantiation time.
 
-### $nullable: boolean _v2.7.*_
+```ts
+// the following will throw an error with a message 'invalid 'id.$default' argument type: (string: 0), expected to be of type (number)'
+let schema = new Validall({
+  id: { $type: 'number' $default: '$serial' }
+});
 
-Assign a value of **null** to the current field if it was undefined.
+console.log(schema.validate({ serial: 123 })); // false
+console.log(schema.error.message) // "invalid reference type '$serial passed to 'id'"
+```
 
-```js
-let error = validate(user, {
-  $props: { lastname: { $type: 'string', $nullable: true } }
+### **$message:** *string*
+
+**Validall** accepts custom messages for each validation segment.
+
+```ts
+let schema = new Validall({
+  name: { $type: 'string', $message: 'invalidName' }
+});
+
+console.log(schema.validate({ name: 123 })); // false
+console.log(schema.error.message); // 'ivalidName'
+```
+
+## Equality Operators:
+
+### **$equals:** *any*
+
+Compares the current value with one provided.
+
+```ts
+let schema = new Validall({
+  age: { $equals: 25 }
 });
 ```
 
-Using **$required** operator with **$nullable** is useless.
-And using **$nullable** operator with **$default** is useless as well.
-**$nullable** is not affected by **negateMode**.
+### **$equalsRef:** *string*
 
-### $default: any _v1.*_
+Compares the current value with the provided referenced value.
 
-Add a value to the current field if it was undefined.
+```ts
+let schema = new Validall({
+  repassword: { $equalsRef: 'password' }
+});
 
-```js
-let error = validate(user, {
-  $props: { role: { $default: 'subscriber' } }
+console.log(schema.validate({ password: 123, repassword: 123 })); // true
+```
+
+## Numerics Operaotrs:
+
+### **$gt:** *number*
+
+Checks whether current value larger than the provided one.
+
+```ts
+let schema = new Validall({
+  age: { $gt: 25 }
 });
 ```
 
-You can set the field to the current date by passing ```Date.now``` or as a string 'Date.now'.
+### **$gtRef:** *string*
 
-```js
-let error = validate(user, {
-  $props: { createdAt: { $default: 'Date.now' } }
+Checks whether current value larger than the provided reference value.
+
+```ts
+let schema = new Validall({
+  value1: { $gtRef: 'value2' }
+});
+
+console.log(schema.validate({ value1: 10, value2: 5 })); // true
+```
+
+### **$gte:** *number*
+
+Checks whether current value larger than or equals to the provided one.
+
+```ts
+let schema = new Validall({
+  age: { $gte: 25 }
+});
+```
+### **$gteRef:** *string*
+
+Checks whether current value larger than or equals to the provided reference value.
+
+```ts
+let schema = new Validall({
+  value1: { $gteRef: 'value2' }
+});
+
+console.log(schema.validate({ value1: 10, value2: 10 })); // true
+```
+
+### **$lt:** *number*
+
+Checks whether current value less than  the provided one.
+
+```ts
+let schema = new Validall({
+  age: { $lt: 25 }
 });
 ```
 
-Using **$required** operator with **$default** is useless.
-And using **$nullable** operator with **$default** is useless as well.
-**$default** is not affected by **negateMode**.
+### **$ltRef:** *string*
 
-### $filter: boolean _v2.*_
+Checks whether current value less than the provided reference value.
 
-If set to **true** it cleans the src from any extra fields not specified in the schema.
+```ts
+let schema = new Validall({
+  value1: { $ltRef: 'value2' }
+});
 
-```js
-let user = { name: 'john', age: 30 };
+console.log(schema.validate({ value1: 5, value2: 10 })); // true
+```
 
-let error = validate(user, {
-  $filter: true,
-  $props: {
-    name: 'string'
+### **$lte:** *number*
+
+Checks whether current value less than or equals to the provided one.
+
+```ts
+let schema = new Validall({
+  age: { $lte: 25 }
+});
+```
+
+### **$lteRef:** *string*
+
+Checks whether current value less than or equals to the provided reference value.
+
+```ts
+let schema = new Validall({
+  value1: { $lteRef: 'value2' }
+});
+
+console.log(schema.validate({ value1: 10, value2: 10 })); // true
+```
+
+### **$inRange:** *[number, number]*
+
+Checks whether current value in range between specific values.
+
+```ts
+let schema = new Validall({
+  age: { $inRange: [12, 18] }
+});
+```
+
+**Note:** 12 and 18 are considered in range as well.
+
+## Types & Patterns Operators:
+
+### **$type:** *typeOptions*
+
+Checks whether the current value type matches the one provided.
+
+```ts
+let schema = new Validall({
+  // Only Date instances are accepted
+  createDate: { $type: 'date' }
+});
+```
+
+**$type** operator currently supports the following types options:
+
+- number
+- int
+- float
+- string
+- boolean
+- primitive: combination of (*number, boolean, string*)
+- date
+- regexp
+- function
+- object
+- array
+
+For array specific types, we can combine **$type** operator with **$each** operator, more on that later.
+
+### **$is:** *isOptions*
+
+Checks whether the current value matched the provided option prebuilt pattern.
+
+```ts
+let schema = new Validall({
+  // valid (Date, string or number) dates are accepted
+  createDate: { $is: 'date' }  
+});
+
+console.log(schema.validate({ createDate: '5-8-2021' })); // true
+```
+
+**$is** operator currently supports the following options:
+
+- name: alphabetical space seperated strings
+- email: checks for valid emails
+- url: checks for valid urls
+- notEmpty: checks for not (empty strings, empty arrays or empty objects)
+- number: any thing that can be converted to a number.
+- date: Date, string date or number date
+
+### **$regex:** *RegExp*
+
+Test the current value with the provided Regexp.
+
+```ts
+let schema = new Validall({
+  password: { $regex: /[a-zA-Z0-9\-\$@&\!]{8,}/g }  
+});
+```
+
+### **$instanceof:** *Function | class*
+
+Checks Whether the current value is instance of the provided constructor.
+
+```ts
+class Article {}
+
+let schema = new Validall({
+  article: { $instanceof: Article }  
+});
+```
+
+### **$enum:** *(number | string)[]*
+
+Make sure the current value is one or the provided list.
+
+```ts
+let schema = new Validall({
+  role: { $enum: ['Admin', 'Author', 'Viewer'] }
+  // or with numbers
+  value: { $enum: [10, 12, 15, 18] }
+});
+```
+
+## Dates Operators:
+
+### **$on:** *Date | string | number*
+
+Checks whether the current date is the same as the one provided.
+
+```ts
+let schema = new Validall({
+  createDate: { $on: new Date(2020, 8, 5) }
+  // or with string date
+  createDate: { $on: '9-5-2020' }
+  // or with timestamp
+  createDate: { $on: 1599253200000 }
+});
+```
+
+Invalid input date will throw error the time of instantiation.
+
+### **$onRef:** *string*
+
+Checks whether the current date is the same as the provided reference value.
+
+```ts
+let schema = new Validall({
+  createDate: { $onRef: 'updateDate' }
+});
+```
+
+### **$before:** *Date | string | number*
+
+Checks whether the current date is before the one provided.
+
+```ts
+let schema = new Validall({
+  createDate: { $before: new Date(2020, 8, 5) }
+  // or with string date
+  createDate: { $before: '9-5-2020' }
+  // or with timestamp
+  createDate: { $before: 1599253200000 }
+});
+```
+
+Invalid input date will throw error the time of instantiation.
+
+### **$beforeRef:** *string*
+
+Checks whether the current date is before the provided reference value.
+
+```ts
+let schema = new Validall({
+  createDate: { $beforeRef: 'updateDate' }
+});
+```
+
+### **$after:** *Date | string | number*
+
+Checks whether the current date is after the one provided.
+
+```ts
+let schema = new Validall({
+  createDate: { $after: new Date(2020, 8, 5) }
+  // or with string date
+  createDate: { $after: '9-5-2020' }
+  // or with timestamp
+  createDate: { $after: 1599253200000 }
+});
+```
+
+Invalid input date will throw error the time of instantiation.
+
+### **$afterRef:** *string*
+
+Checks whether the current date is after the provided reference value.
+
+```ts
+let schema = new Validall({
+  updateDate: { $afterRef: 'createDate' }
+});
+```
+
+## Objects Operaotrs:
+
+### **$props:** *{ [key: string]: ISchema }*
+
+Used to validate objects properties.
+
+```ts
+let schema = new Validall({
+  contacts: {
+    $props: {
+      name: { $type: 'string' },
+      mobile: { $tye: 'string', $is: 'number' },
+      email: { $is: 'email' }
+    }
   }
 });
-
-console.log(user);
-// { name: 'john' }
 ```
 
-Setting **$default** inside schema overites the default behavior specified in Validall options.
-Using **$strict** operator with **$filter** is useless.
-**$default** is not affected by **negateMode**.
+Actually the root object is nested inside **$props** operator implicitly, so the previous example can be rewritten as:
 
-### $strict: boolean | string[]  _v2.*_
+```ts
+let schema = new Validall({
+  // used explicitly
+  $props: {
+    contacts: {
+      $props: {
+        name: { $type: 'string' },
+        mobile: { $tye: 'string', $is: 'number' },
+        email: { $is: 'email' }
+      }
+    }
+  }
+});
+```
 
-If set to **true** any extra fields that are not specified in the schema, will throw an error.
+We can use other operators at the root level instead of **$props**.
 
-```js
-let user = { name: 'john', age: 30 };
+### **$paths:** *{ [key: string]: ISchema }*
 
-let error = validate(user, {
+It provides the same functionality as **props** operator, however it can jump to nested propertes directly.
+
+```ts
+let schema = new Validall({
+  // used as rool operator instead of $props
+  $paths: {
+    'work.contacts.name': { $type: 'string' },
+    'work.contacts.tel': { $type: 'string', $is: 'number' },
+    'work.contacts.email': { $is: 'email' }
+  }
+});
+```
+
+### **$map:** *ISchema*
+
+Used to validate map or hashMaps where keys are unknown but values should follow the schema.
+
+```ts
+let schema = new Validall({
+  // used as rool operator instead of $props
+  $map: {
+    // each value ot the map is a document with some properties
+    $props: {
+      title: { $type: 'string' $required: true },
+      content: { $type: 'string', $default: '' },
+      createDate: { $is: 'date', $default: 'Date.now number' }
+    }
+  }
+});
+```
+
+### **$size:** *number | INumericOperators*
+
+Validates objects sizes.
+
+```ts
+let schema = new Validall({
+  keyValueMap: {
+    $map: { $type: 'string' },
+    // restrict size to specific value
+    $size: 10
+    // or validate size
+    $size: { $lt: 20 }
+  }
+});
+```
+
+### **$keys:** *IArrayOperators*
+
+Validate objects keys list.
+
+```ts
+let schema = new Validall({
+  // restrict contacts object keys to only the following array, can have less.
+  contacts: { $keys: { $in: ['name', 'email', 'mobile', 'address'] } }
+});
+```
+
+### **$strict:** *boolean*
+
+Strict the object keys only to the keys that are defined in sibling **$props** operator, any more key will make the validation fali.
+
+```ts
+let schema = new Validall({
   $strict: true,
   $props: {
-    name: 'string'
+    name: { $is: 'name' },
+    email: { $is: 'email' }
   }
-}, 'user');
+});
 
-console.log(error.message);
-// age is out of src keys: name
-//    operator: $strict.
-//    expected: not exist.
-//    got: age.
-//    path: .
+schema.validate({
+  name: 'John',
+  email: 'john@there.com',
+  // this will cause validation to fail
+  mobile: '468446743'
+});
+
+console.log(schema.error.message); // "'mobile' field is not allowed"
 ```
 
-**$strict** can be set to an array of string in case some extra fields are allowed
+**Note:** Using **$strict** with no **$props** operator, will throw an error the time of instantiation.
 
-```js
-let user = { name: 'john', age: 30 };
+### **$filter:** *boolean*
 
-let error = validate(user, {
-  $strict: ['name', 'age'],
+filter object keys to match the keys that are defined in sibling **$props** operator.
+
+```ts
+let schema = new Validall({
+  $filter: true,
   $props: {
-    name: 'string'
+    name: { $is: 'name' },
+    email: { $is: 'email' }
   }
-}, 'user');
-
-console.log(error);
-// null
-```
-
-**$strict** is not affected by **negateMode**.
-Using **$strict** operator with **$filter** is useless.
-
-### $type: string  _v1.*_
-
-Validates the type of the value.
-
-```js
-let error = validate(user, {
-  $props: { username: { $type: 'string' } }
-});
-```
-
-**Supported Types:**
-
-* 'number'
-* 'int'
-* 'float'
-* 'string'
-* 'boolean'
-* 'primitive'   _'number, string or boolean'_
-* 'date'
-* 'regexp'
-* 'object'
-* 'function'
-* 'array'
-
-**$type** is not affected by **negateMode**.
-
-### $instanceof: function  _v3.*_
-
-Makes sure that src is instance of some constructor.
-
-```js
-let error = validate(user, {
-  $props: { contacts: { $instanceof: Contacts } }
-});
-```
-
-**$instanceof** is not affected by **negateMode**.
-
-### $ref: string | Validall  _v3.*_
-
-**$ref** operator accepts an id or a reference of another Validall instance or imported schema.
-
-```js
-let ArticleValidator = new Validall({
-  id: 'Article',
-  schema: { $props: { title: { $type: 'string' } } }
 });
 
-let UserSchema = new Validall({
-  schema: {
+let user = {
+  name: 'John',
+  email: 'john@there.com',
+  // this will be filtered
+  mobile: '468446743'
+}
+
+schema.validate(user);
+
+console.log(user); // { name: 'John', email 'john@there.com' }
+```
+
+**Note:** Using **$filter** with no **$props** operator, will throw an error the time of instantiation.
+
+## Arrays Operators:
+
+### **$each:** *ISchema*
+
+Validate each element in the input array.
+
+```ts
+let schema = new Validall({
+  // used os the root operator instead of $props
+  $each: {
     $props: {
-      name: { $type: 'string' },
-      articles: { $each: { $ref: 'Article' } }
-     //  articles: { $each: { $ref: ArticleValidator } }  # accepted as well
+      name: { $is: 'name' },
+      email: { $is: 'email' }
     }
   }
 });
+
+schema.validate([{
+    name: 'John',
+    email: 'john@there.com'
+  }, {
+    name: 'David',
+    email: 'david@there.com'
+  }, {
+    name: 'Sam',
+    email: 'sam@there.com'
+}]);
 ```
 
-**$ref** is not affected by **negateMode**.
+### **$length:** *number | INumericOperators*
 
-### $is: string  _v1.*_
+Validates arrays length.
 
-Tests the current value with a built in pattern.
-
-For now **$is** only supports _value | notEmpty | number | name | email | url | date_ patterns.
-
-```js
-let error = validate(user, {
-  $props: {
-    // name: accepts space separated alphapatical string
-    name: { $type: 'string' $is: 'name' },
-    // value: undefined, null, empty string, "0", 0 all return false
-    gender: { $is: 'value' },
-    // number: accepts number or string of digits as "33"
-    age: { $is: 'number' },
-    // notEmpty: accepts string, array, objects which are not empty
-    roles: { $is: 'notEmpty' }
-    // email: clear
-    email: { $type: 'string' $is: 'email' },
-    // url: also clear
-    website: { $type: 'string' $is: 'url' },
-    // date: accepts date instance, string date, milliseconds number
-    birth: { $is: 'date' }
-  }
-});
-```
-
-It is a good practice to check the type first in case of _name, email, url_ for clear error messages.
-**$is** is not affected by **negateMode**.
-
-### $equals: any _v1.*_
-
-Checks if the src value is equal to the argumant provided.
-
-```js
-let error = validate(user, {
-  $props: { active: { $equals: true } }
-});
-```
-
-**$equals** operator does a shallow comparative process _===_
-
-### $deepEquals: any _v2.*_
-
-Same as '$equals' operator, but has a deep comparative process.
-
-```js
-let error = validate({response}, {
-  $props: { response: { $deepEquals: previousResponse } }
-});
-```
-
-### $regex: RegExp _v2.*_
-
-Tests the current value with a regular expression.
-
-```js
-let error = validate(user, {
-  $props: { password: { $regex: /^[a-zA-Z0-9_]{8,16}$/ } }
-});
-```
-
-**$regex** is not affected by **negateMode**.
-
-### $gt: number _v1.*_
-
-Tests if the current value number is larger than a specific number.
-
-```js
-let error = validate(user, {
-  $props: { rank: { $gt: 3 } }
-});
-```
-
-**$gt** is not affected by **negateMode**.
-
-### $gte: number _v1.*_
-
-Tests if the current value number is larger than or equals to a specific number.
-
-```js
-let error = validate(user, {
-  $props: { rank: { $gte: 4 } }
-});
-```
-
-**$gte** is not affected by **negateMode**.
-
-### $lt: number _v1.*_
-
-Tests if the current value number is less than a specific number.
-
-```js
-let error = validate(article, {
-  $props: { likes: { $lt: 50 } }
-});
-```
-
-**$lt** is not affected by **negateMode**.
-
-### $lte: _v1.*_
-
-Tests if the current value number is less than or equals to a specific number.
-
-```js
-let error = validate(article, {
-  $props: { likes: { $lte: 50 } }
-});
-```
-
-**$lte** is not affected by **negateMode**.
-
-### $inRange: [number,number] _v2.*_
-
-Tests if the current value number is between a specific range.
-
-```js
-let error = validate(article, {
-  // 5 and 50 are included.
-  // if [50, 5] was provided, it will be reversed automatically
-  $props: { read: { $inRange: [5, 50] } }
-});
-```
-
-### $length: IValidatorOperators _v2.*_
-
-Puts the input length into the context.
-
-```js
-let error = validate(user, {
-  $props: {
-    articles: { $length: { $equals: 10 } }
-    // or
-    articles: { $length: { $not: { $equal: 10 } } }
-    // or
-    articles: { $length: { $gt: 10 } }
-    // or
-    articles: { $length: { $inRange: [10, 20] } }
-    ...
-  }
-});
-```
-
-**$length** operator supports strings and arrays as an input.
-**$length** is not affected by **negateMode**.
-
-### $size: IValidatorOperators _v1.*_
-
-Puts the input size into the context.
-
-```js
-let error = validate(user, {
-  $props: {
-    details: { $size: { $equals: 10 } }
-    // or
-    details: { $size: { $not: { $equal: 10 } } }
-    // or
-    details: { $size: { $gt: 10 } }
-    // or
-    details: { $size: { $range: [10, 20] } }
-  }
-});
-```
-
-**$size** is not affected by **negateMode**.
-
-### $keys: IValidatorOperators _v2.*_
-
-Puts an object keys into the context
-
-```js
-let error = validate(user, {
-  $props: {
-    tools: { $keys: { $in: ['design', 'style', 'validation'] } }  // whatever
-    // or
-    tools: { $keys: { $length: { $equal: 3 } } }
-  }
-});
-```
-
-**$keys** is not affected by **negateMode**.
-
-### $intersect: any[] _v3.*_
-
-Checks if the the current input shares any items with the giving list or a single value.
-
-```js
-let error = validate(users, {
-  $props: {
-    roles: { $intersect: ['admin', 'author'] }, // array with array
-    order: { $intersect: [22, 34, 36] }  // single value with array
-  }
-});
-```
-
-### $include: any[] _v1.*_
-
-Checks if input list items includes all items in the giving list.
-
-```js
-let error = validate(user, {
-  $props: {
-    roles: { $include: ['subscriber'] }
-  }
-});
-```
-
-### $enum: any[] _v1.*_
-
-Checks if input list items or string are all included in the giving list.
-
-```js
-let error = validate(user, {
-  $props: {
-    roles: { $enum: ['admin', 'author', 'subscriber'] }
-  }
-});
-```
-
-### $props: {[key: string]: ISchema} _v2.*_
-
-Puts an object keys into the context
-
-```js
-let error = validate(user, {
-  $props: {
-    name: { $type: 'string' },
-    gender: { $type: 'string', $enum: ['male', 'female'] }
-  },
-  // added automatically if not added manually
-  $type: 'object'
-});
-```
-
-Using **$props** automatically adds **$type** operater set to **object**
-**$props** is not affected by **negateMode**.
-
-### $paths: {[key: string]: ISchema} _v2.*_
-
-Puts an object path keys into the context
-
-```js
-let error = validate(user, {
-  $paths: {
-    'contacts.mobile': { $type: 'number' },
-    'details.gender': { $type: 'string', $enum: ['male', 'female'] }
-  },
-  // added automatically if not added manually
-  $type: 'object'
-});
-```
-
-Using **$paths** automatically adds **$type** operater set to **object**
-**$paths** is not affected by **negateMode**.
-
-### $each: ISchema _v2.*_
-
-Validates each item in the input array with the provided schema
-
-```js
-let error = validate(user, {
-  $props: {
-    articles: {
-      $each: {
-        $props: {
-          title: { $type: 'string' },
-          content: { $type: 'string' }
-        },
-        // added automatically if not added manually
-        $type: 'array'
-      }
-    }
-});
-```
-
-Using **$each** automatically adds **$type** operater set to **array**
-**$each** is not affected by **negateMode**.
-
-### $map: ISchema _v3_
-
-Validates maps values, ignoring keys.  
-
-```js
-let error = validate(checklist, {
-  $map: {
+```ts
+let schema = new Validall({
+  $each: {
     $props: {
-      value: { $type: 'boolean' },
-      disabled: { $type: 'boolean' }
-    },
-    // added automatically if not added manually
-    $type: 'object'
-  }
+      name: { $is: 'name' },
+      email: { $is: 'email' }
+    }
+  },
+  // restrict length to specific value
+  $length: 10,
+  // or validate length
+  $length: { $naRange: [5, 20] }
 });
 ```
 
-Using **$map** automatically adds **$type** operater set to **object**
-**$map** is not affected by **negateMode**.
+### **$intersects:** *(string | number)[]*
 
-### $on: number | string | Date _v1.*_
+Makes sure the input array share at least on value with giving list.
 
-Checks if the input date points to the same giving date.
+```ts
+let schame = new Schema({
+  activites: { $intersects: ['swimming', 'hiking', 'sleeping'] }
+});
+```
+### **$in:** *(string | number)[]*
 
-```js
-let error = validate(article, {
-  $props: {
-    publishDate: { $on: new Date("02-06-2016") }  // Date instance
-    // or
-    publishDate: { $on: "02-06-2016" }  // string
-    // or
-    publishDate: { $on: 123657624 }  // number
-  }
+Makes sure the input array has no value out of the giving list.
+
+```ts
+let schame = new Schema({
+  roles: { $intersects: ['admin', 'author', 'viewer'] }
 });
 ```
 
-**$on** is not affected by **negateMode**.
+## Logical Operators:
 
-### $before: number | string | Date _v1.*_
+### **$not:**
 
-Checks if the input data is before the giving date.
+Some operator can be inverted to match the opposite case.
 
-```js
-let error = validate(article, {
-  $props: {
-    publishDate: { $before: new Date("02-06-2016") }  // Date instance
-    // or
-    publishDate: { $before: "02-06-2016" }  // string
-    // or
-    publishDate: { $before: 123657624 }  // number
-  }
+```ts
+let schema = new Validall({
+  username: { $not: { equals: '' } },
+  // do not share any value
+  roles: { $not: { $intersects: ['admin', 'author'] } },
+  // out of range
+  age: { $not: { $inRange: [25, 32] } }
 });
 ```
 
-**$before** is not affected by **negateMode**.
+**$not** operator can only neglect the folloeing operators:
 
-### $after: number | string | Date _v1.*_
+- $equals
+- $equalsRef
+- $inRange
+- $intersects
+- $on
+- $onRef
+- $instanceof
+- $regex
+- $alias
 
-Checks if the input data is after the giving date.
+### **$and:**
 
-```js
-let error = validate(article, {
-  $props: {
-    publishDate: { $after: new Date("02-06-2016") }  // Date instance
-    // or
-    publishDate: { $after: "02-06-2016" }  // string
-    // or
-    publishDate: { $after: 123657624 }  // number
-  }
+The default behavior in **Validall** is the **&&** checking, however some times we need to explicitly use that to seperate messages or group validations.
+
+```ts
+let schema = new Validall({
+  // if name was not a string or not even provided then the same message will be outputed
+  name: { $type: 'string', $required: true, $message: 'invalid name' }
+  // different message for each case
+  name: { $and: [
+    { $type: 'sring', $message: 'name must be string' },
+    { $required: true, $message: 'name is required' }
+  ]}
 });
 ```
 
-**$after** is not affected by **negateMode**.
+### **$or:**
 
-### $cast: string _v2.2.*_
+As the name suggests, when any case passes, jumps to the next validation block.
 
-Cast input to the specified type if applicable.
-
-```js
-let error = validate(user, {
-  $props: {
-    age: { $cast: 'number' },         // "30" -> 30
-    createdAt: { $cast: 'string' },   // date instance -> "15-12-2017"
-    active: { $cast: 'boolean' },     // 1 -> true
-    birthDate: { $cast: 'date' },     // "15-12-1988" -> date instance
-    pattern: { $cast: 'regexp' },     // "abc" -> /abc/
-    roles: { $cast: 'array' },        // "author" -> ["author"]  
-  }
-})
-```
-
-#### supported types
-
-* number: can be casted from strings and booleans.
-* string: can be casted from numbers, booleans, dates, regexp, and functions, however objects and arrays will be converted to json string.
-* boolean: can be casted from any value.
-* date: can be casted from numbers and strings.
-* regexp: can bes casted from number, strings and booleans.
-* array: can be casted from any single value.
-
-**$cast** is not affected by **negateMode**.
-
-### $to: string | string[] _v2.2*_
-
-This operator accepts a pattern or list of patterns as an input, it applys all provided patterns to the current input
-
-```js
-let error = validate(user, {
-  $props: {
-    fullname: { $type: 'string', $to: ['trim', 'lowercase', 'capitalizeFirstAll' ] }
-  }
-})
-```
-
-#### Built in modifiers
-
-* lowercase: lowercase all the characters in a string.
-* uppercase: capitalize all the characters in a string.
-* capitalizeFirst: capitalize only the first character in a string.
-* capitalizeFirstAll: capitalize the first character in each string separated by a space.
-* trim: trim white space from the start and the end of a string and any repeated space in the middle.
-* path: cleans a path from duplicated or repeated slashes also remove any end slashes and any unnecessary '../' in the middle of the path.
-
-**$to** is not affected by **negateMode**.
-
-### $not: INegatableOperators _v1.*_
-
-Negate children operators results.
-
-```js
-let error = validate(article, {
-  $props: {
-    categories: { $not: { $intersect: ['news', 'sport', 'movies', 'science'] } } // no way in
-  }
+```ts
+let schema = new Validall({
+  id: { $or: [{ $type: 'string' }, { $type: 'number' }] }
 });
 ```
 
-### $and: ISchema[] _v1.*_
+### **$xor:**
 
-Returns false if at least one operator in the list failed.
+Allows just one case to pass but not the others
 
-```js
-let error = validate(user, {
-  $props: {
-    role: { $and: [{ $type: 'string' }, { $enum: ['admin', 'author', 'subscriber'] }]}
-    // same as
-    role: { $type: 'string[]', $enum: ['admin', 'author', 'subscriber'] }
-  }
+```ts
+let schema = new Validall({
+  roles: { $xor: [{ $in: ['admin', 'author'] }, { $in: 'subscriber', 'viewer' }] }
 });
 ```
 
-Both ways are the same, however using **$and** gives the abiltity to add our custom messages for each operator we use.
+### **$nor:**
 
-```js
-let error = validate(user, {
-  $props: {
-    role: { $and: [
-      { $type: 'string', $message: 'type fail custom message' },
-      { $enum: ['admin', 'author', 'subscriber'], $message: 'enum fail custom message' }
-    ]}
-    // or
-    role: {
+Returns true when one of the cases pass.
+
+```ts
+let schema = new Validall({
+  roles: { $nor: [{ $intersects: ['admin', 'author'] }, { $length: { $gt: 1 } }] }
+});
+```
+
+## Conditional Operators:
+
+### **$cond:**
+
+Sometimes we need to validate some cases depending on some other cases existance.
+
+```ts
+let schema = new Validall({
+  type: { $enum: ['company', 'professional', 'student'] },
+  contacts: {
+    email: { $is: 'email' },
+    mobile: { $type: 'string', $is: 'number' }
+    // address is required only when type is 'company'
+    address: {
       $type: 'string',
-      $enum: ['admin', 'author', 'subscriber'],
-      $message: 'both type and enum fail message'
+      $cond: [
+        { $if: { $props: { type: { $equals: 'company' } } }, $then: { $required: true } },
+        { $else: { $default: '' } }
+      ]
     }
   }
 });
 ```
 
-### $or: ISchema[] _v1.*_
+**Note:** **$if** operator always has the root scope whereas **then** and **else** are local scoped.
 
-Returns true if at least one operator of a list passed.
+We can simplify condition using **$name** and **alias** operators, more on that later on.
 
-```js
-let isValid = Validall(someValue, {
-  $or: [{ $type: 'number' }, { $type: 'string' }]
+## Referencial Operators:
+
+### **$ref:** *string*
+
+Validall schemas can reference other schemas for reusability.
+
+```ts
+new Validall('Contacts', {
+  email: { $type: 'string', $is: 'email' },
+  mobile: { $type: 'string', $is: 'number' }
+  address: { $type: 'string' }
+});
+
+let schema = new Validall({
+  name: { $type: 'string', $is: 'name' },
+  contacts: { $ref: 'Contacts' }
 });
 ```
 
-### $nor: ISchema[] _v1.*_
+**Notes:**
 
-Returns true if no operator in the list passed.
+- Referencing undefined schema will throw an error on instantiation level.
+- Validators cannot reference each other, otherwise with throw an error on instantiation level as well. 
 
-```js
-let isValid = Validall(user, {
-  $nor: [{ $is: 'number' }, { $length: { $gt: 15 } }]
+We can get our named validators at any time to use them indivdualy in other places as follows:
+
+```ts
+new Validall('Contacts', {
+  email: { $type: 'string', $is: 'email' },
+  mobile: { $type: 'string', $is: 'number' }
+  address: { $type: 'string' }
+});
+
+// somewhere else
+let vContacts = Validall.Get('Contacts');
+
+vContacts.validate({
+  // some input
 });
 ```
 
-### $xor: ISchema[] _v1.*_
+### **$name & $alias:**
 
-Returns true if only one operator in the list passed but not the others.
+Using conditions can make schemas very complex to read and with lots of repeated validation segments.
 
-```js
-let isValid = Validall(roles, {
-  $xor: [{ $in: 'admin' }, { $size: { $gt: 1 } }]
-});
-```
+**Validall** provides the abiity to store validation state for each block or segment, so we can reference it in condition or logical operators later.
 
-### $meta: object _v3.*_
-
-Assign some custom meta data to any property in schema.
-
-```js
-let userValidator = new Validall({
-  id: 'User',
-  schema: {
-    $meta: { title: 'User Schema' },
+```ts
+let schema = new Validall({
+  name: { $type: 'string', $is: 'name' },
+  // can be done in two ways ----------------------------------------
+  type: { $or: [{ $equals: 'company', $name: 'company' }, { $equals: 'individual', $name: 'individual' }],
+  // or
+  type: { 
+    $enum: ['company', 'individual'], $name: [
+      // we can assign the first elment with a string to reference the whole block, however it would be useless in this current expample
+      { $equals: 'company', as: 'company' },
+      { $equals: 'individual', as: 'individual' }
+    ] 
+  }
+  // ----------------------------------------
+  contacts: {
     $props: {
-      username: { $meta: { desc: "username is unique" } },
-      contacts: {
-        $props: {
-          mobile: { $meta: { desc: 'should be hidden' }}
-        }
+      email: { $is: 'email' },
+      mobile: { $is: 'number' },
+      address: {
+        $cond: [{ $if: 'company', $then: { $required: true } }, { $else: { $default: '' } }],
       }
     }
   }
 });
-
-// if no property specified, root meta will be returned
-console.log(userValidator.getPropMeta());
-// { title: 'User Schema' }
-
-console.log(userSchema.getPropMeta('username'));
-// { desc: "username is unique" }
-
-console.log(userSchema.getPropMeta('contacts.mobile'));
-// { desc: 'should be hidden' }
 ```
 
-## Validall Instance Methods: _v2.*_
+**$alias** operator reference the **$name** operator explicitly, to make it usable with other operators or validations.
 
-### set(keyPath: string, value: any): Error | never
+So the previous condition can be written in another way:
 
-**set** method gives the ability to change schema map properties, each time using set **vaildall** would validate the schema again and may return **ValidallInvalidArgsError**
-in certian cases.
-
-```js
-const map = { limits: { age: [25, 35] } }
-let memberValidaltor = new Validall({
-  id: 'Member',
-  schema: {
+```ts
+{
+  // ...
+  contancts: {
     $props: {
-      name: { $type: 'string' },
-      age: { $inRange: '$limits.age' }
+      email: { $is: 'email' },
+      mobile: { $is: 'number' },
+      address: { $xor: [{ $alias: 'individual' }, { $required: true }]}
     }
   }
-}, map);
-
-let member = { name: 'Joe', age: 28 };
-
-memberValidaltor.validate(user); // true
-
-memberValidaltor.set('limits.age', [30, 35]);
-
-memberValidaltor.validate(user); // false
+}
 ```
 
-### getPropMeta(prop?: string)
+## Modifiers Operators:
 
-It returns provided property meta if exists
+### **$to:** toOptions[]
 
-```js
-let userValidator = new Validall({
-  id: 'User',
-  schema: {
-    $meta: { title: 'User Schema' },
-    $props: {
-      username: { $meta: { desc: "username is unique" } },
-      contacts: {
-        $props: {
-          mobile: { $meta: { desc: 'should be hidden' }}
-        }
-      }
-    }
-  }
-});
+We can modify the input data in some ways using **$to** or **$cast** operators
 
-// if no property specified, root meta will be returned
-console.log(userValidator.getPropMeta());
-// { title: 'User Schema' }
-
-console.log(userSchema.getPropMeta('username'));
-// { desc: "username is unique" }
-
-console.log(userSchema.getPropMeta('contacts.mobile'));
-// { desc: 'should be hidden' }
+```ts
+{
+  username: { $type: 'string', $to: ['trim', 'lowercase'] }
+}
 ```
 
-### getAllMeta()
+**to** supports the following options:
 
-Returns all meta in the schema.
+- **lowercase:** lowercase all the characters in a string.
+- **uppercase:** capitalize all the characters in a string.
+- **capitalizeFirst:** capitalize only the first character in a string.
+- **capitalizeFirstAll:** capitalize the first character in each string separated by a space.
+- **trim:** trim white space from the start and the end of a string and any repeated space in the middle.
+- **path:** cleans a path from duplicated or repeated slashes also remove any end slashes and any unnecessary '../' in the middle of the path.
 
-```js
-console.log(userSchema.getAllMeta());
-// {
-//    User:  title: 'User Schema' },
-//    username: { desc: "username is unique" },
-//    contacts.mobile: { desc: 'should be hidden' }
-// }
+### **$cast:**
+
+Changes the type of the current input.
+
+```ts
+{
+  active: { $cast: 'boolean' }
+}
 ```
 
-### getMetaByName(name: string): Array<{prop: string; value: any}>
+**$cast** operator supports the follwing options:
 
-Returns array of properties that include the provided meta property name;
-
-```js
-console.log(userSchema.getMetaByName('desc'));
-//  [
-//    { field: 'username', value: 'username is unique' },
-//    { field: 'contacts.mobile', value: 'should be hidden' }
-//  ]
-```
-
-## Validall Static Methods: _v3.*_
-
-### ValidateSchema(options: IOptions): Error
-
-Validate schema options and returns an error if found.
-
-When instatiating Validall, this method is called implicitly.
-
-### GetValidator(id: string): Validall
-
-Get any predifined schema instance.
-
-```js
-let UserValidator = new Validall({ id: 'User', schema: {
-  $props: { name: { $type: 'string' }}
-}});
-
-// in some other module...
-let UserValidator = Validall.GetValidator('User');
-```
-
-If validator id was set to null, then it cannot be refernced or obtained.
-
-```js
-let anonymousValidator = new Validall({ id: null, schema: {
-  $props: { name: { $type: 'string' }}
-}});
-```
-
-If id already exists, old schema won't be overriden unless **replaceSchema** options was set to true.
-
-```js
-let UserValidator = new Validall({
-  id: 'User',
-  schema: {
-    $props: { name: { $type: 'string' }}
-  }
-});
-
-let AuthorValidator = new Validall({
-  id: 'User',
-  schema: {
-    $props: { name: { $type: 'string' }}
-  }
-});
-
-// later
-Validall.GetValidator('User') // UserValidator
-
-// unless
-let AuthorValidator = new Validall({
-  id: 'User',
-  // replace schema explicitly
-  replaceSchema: true,
-  schema: {
-    $props: { name: { $type: 'string' }}
-  }
-});
-
-// then
-Validall.getSchema('User') // AuthorValidator
-```
-
-### ImportSchema(request: string | AxiosRequestConfig, options?: IImportOptions): Promise\<Validall\>
-
-Import schema remotely.
-
-```js
-Validall.ImportSchema("http://somehost/someshema")
-  .then(validator => ...)
-  .catch(err => ...)
-```
-
-Schemas imported remotely can be referenced or obtained if they have an id.
-
-#### parameters
-
-**request** _required_: is an axios request, it can be a string or a config object.
-
-**options** _optional_:
-
-* id: _string_ replace imported schema id if needed.
-* replaceSchema: _boolean_ allow imported schema to replace existing schema with the same id.
-* throwMode: _boolean_ override imported schema throwMode option.
-* map: _string_ explained below.
-
-Validall by default expects the schema to be in **response.data**, if this is not the case specifying the actual path is required.
-
-```js
-Validall.ImportSchema("http://somehost/someshema", { map: 'data.results[0].schema' })
-  .then(validator => ...)
-  .catch(err => ...)
-```
-
-## Notes
-
-* Axios must be installed in case of **Validall.ImportSchema()** need to be used.
-* It is better to import all Schemas before using them.
-* In case of to many references in the project and managing instanciating order is somehow hard to control, then it is recomended to set **lazy** option to **true** for each validator.
-* circular referencing is not a possible.
+- **number:** can be casted from strings and booleans.
+- **string:** can be casted from numbers, booleans, dates, regexp, and functions, however objects and arrays will be converted to json string.
+- **boolean:** can be casted from any value.
+- **date:** can be casted from numbers and strings.
+- **regexp:** can bes casted from number, strings and booleans.
+- **array:** can be casted from any single value.
 
 --------------------------------------------------------------------------------
 Please if any bugs found, create an issue in [github](https://github.com/ammar6885/Validall "Validall github repo").

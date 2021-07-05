@@ -1,772 +1,811 @@
-import { Validall } from './validator';
-import { Types } from '@pestras/toolbox/types';
-import { Is } from '@pestras/toolbox/is';
-import { equals } from '@pestras/toolbox/object/equals';
-import { ISchema, IValidator, isOptions, toArgs, IValidatorOperators, INegatableOperators } from "./schema";
-import { injectValue } from '@pestras/toolbox/object/inject-value';
-import { cast } from '@pestras/toolbox/cast';
-import { omit } from '@pestras/toolbox/object/omit';
-import { ValidallValidationError } from "./errors";
-import { To } from './to';
-import { getValue } from '@pestras/toolbox/object/get-value';
+import { Is } from "@pestras/toolbox/is";
+import { getValue } from "@pestras/toolbox/object/get-value";
+import { injectValue } from "@pestras/toolbox/object/inject-value";
+import { omit } from "@pestras/toolbox/object/omit";
+import { cast } from "@pestras/toolbox/cast";
+import { Types } from "@pestras/toolbox/types";
+import { ValidallError } from "./errors";
+import { ValidationContext } from "./interfaces";
+import { To, ValidallRepo } from "./util";
+
+const pureOperators = new Set([
+  '$equals',
+  '$equalsRef',
+  '$gt',
+  '$gtRef',
+  '$gte',
+  '$gteRef',
+  '$lt',
+  '$ltRef',
+  '$lte',
+  '$lteRef',
+  '$inRange',
+  '$intersects',
+  '$in',
+  '$enum',
+  '$on',
+  '$onRef',
+  '$before',
+  '$beforeRef',
+  '$after',
+  '$afterRef',
+  '$type',
+  '$ref',
+  '$instanceof',
+  '$is',
+  '$regex'
+]);
+
+const parentingOperators = new Set([
+  '$each',
+  '$map',
+  '$keys',
+  '$length',
+  '$size',
+  '$not',
+  '$if',
+  '$then',
+  '$else'
+]);
+
+const parentingObjectOperators = new Set([
+  '$props',
+  '$paths'
+]);
+
+const parentingArrayOperators = new Set([
+  '$or',
+  '$and',
+  '$xor',
+  '$nor',
+  '$cond'
+]);
+
+const skippedOperators = new Set([
+  '$default',
+  '$required',
+  '$nullable',
+  '$message',
+  '$then',
+  '$else'
+]);
+
+const numberOperators = new Set([
+  '$gt',
+  '$gtRef',
+  '$gte',
+  '$gteRef',
+  '$lt',
+  '$ltRef',
+  '$lte',
+  '$lteRef',
+  '$inRange'
+]);
+
+const modifierOperators = new Set([
+  '$to',
+  '$cast'
+])
 
 export const Operators = {
-  // list of schema available operators
-  list: [
-    '$message', '$required', '$nullable', '$default', '$filter', '$strict', '$type', '$instanceof', '$ref', '$is', '$equals', '$map',
-    '$deepEquals', '$regex', '$gt', '$gte', '$lt', '$lte', '$inRange', '$length', '$size', '$intersect', '$include', '$enum',
-    '$cast', '$to', '$props', '$paths', '$keys', '$on', '$before', '$after', '$not', '$and', '$or', '$nor', '$xor', '$each', '$meta'
-  ],
 
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * check if key is an operator
-   */
-  isOperator(key: string) {
-    return this.list.indexOf(key) > -1;
+  isPure(operator: string) {
+    return pureOperators.has(operator);
+  },
+
+  isParenting(operator: string) {
+    return parentingOperators.has(operator);
+  },
+
+  isParentingObject(operator: string) {
+    return parentingObjectOperators.has(operator);
+  },
+
+  isParentingArray(operator: string) {
+    return parentingArrayOperators.has(operator);
+  },
+
+  isSkipping(operator: string) {
+    return skippedOperators.has(operator);
+  },
+
+  isNumberOperator(operator: string) {
+    return numberOperators.has(operator);
   },
 
   /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Default operator
+   * When input undefined, set to default value if provided, or null if nullable,
+   * or throw an error if required.
+   * When input is null pass if the field is nullable otherwise throw an error
    */
-  $default(src: any, defaultValue: any, path: any, validator?: any) {
-    // if default value equals to Date.now ref or 'Date.now' string, then set it to Date.now()
-    if (defaultValue === Date.now || defaultValue === 'Date.now')
-      defaultValue = Date.now();
-    // inject the default value into the src
-    injectValue(src, path, defaultValue);
+  undefinedOrNullInput(ctx: ValidationContext): void {
+    // if src is null and $nullable is enabled
+    // register field to validator nullables then exit
+    if (ctx.currentInput === null)
+      if (ctx.schema.$nullable) return;
+      else throw new ValidallError(ctx.message || `'${ctx.fullPath}' is not nullable`, ctx.fullPath);
+
+    // if input is undefined and $default operator was set, use the default value
+    if (ctx.schema.$default !== undefined)
+      return this.$default(ctx);
+
+    // if $default was not set
+    // check if $nullable operator is set to true
+    if (ctx.schema.$nullable) {
+      if (ctx.localPath)
+        injectValue(ctx.input, ctx.localPath, null);
+
+      return;
+    }
+
+    // if field is required throw a validation error
+    if (ctx.schema.$required)
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' field is required`, ctx.fullPath);
+
   },
 
   /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Filter operator
+   * Checks whether the current value equals the value provided: shollow comparission
    */
-  $filter(src: any, keepList: string[]) {
-    let srcKeys = Object.keys(src);
-    let omitList: string[] = [];
+  $equals(ctx: ValidationContext): void {
+    if (ctx.currentInput === ctx.schema.$equals && ctx.negateMode)
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' must not equal '${ctx.schema.$equals}'`, ctx.fullPath);
 
-    for (let i = 0; i < srcKeys.length; i++)
-      if (keepList.indexOf(srcKeys[i]) === -1)
-        omitList.push(srcKeys[i]);
-
-    if (omitList.length)
-      omit(src, omitList);
+    else if (ctx.currentInput !== ctx.schema.$equals && !ctx.negateMode)
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' must equal '${ctx.schema.$equals}', got: (${typeof ctx.currentInput}, '${ctx.currentInput}')`, ctx.fullPath);
   },
 
   /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Strict operator
+   * Checks whether the current value equals the referenced value provided: shollow comparission
    */
-  $strict(src: any, keys: any, path: string, msg: string | string[]) {
+  $equalsRef(ctx: ValidationContext): void {
+    if (ctx.currentInput === ctx.schema.$equalsRef && ctx.negateMode)
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' must not equal '${ctx.schema.$equalsRef}'`, ctx.fullPath);
+
+    else if (ctx.currentInput !== ctx.schema.$equalsRef && !ctx.negateMode)
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' must equal '${ctx.schema.$equalsRef}', got: (${typeof ctx.currentInput}, '${ctx.currentInput}')`, ctx.fullPath);
+  },
+
+  /**
+   * Checks whether the current value is greater than the one provided
+   */
+  $gt(ctx: ValidationContext): void {
+    if (ctx.currentInput <= ctx.schema.$gt) {
+      let context = ctx.parentOperator === '$size'
+        ? 'size'
+        : ctx.parentOperator === '$length'
+          ? 'length'
+          : 'value';
+
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' ${context} must be greater than ${ctx.schema.$gt}, got: ${ctx.currentInput}`, ctx.fullPath)
+    }
+  },
+
+  /**
+   * Checks whether the current value is greater than the reference provided
+   */
+  $gtRef(ctx: ValidationContext): void {
+    if (ctx.currentInput <= ctx.schema.$gtRef) {
+      let context = ctx.parentOperator === '$size'
+        ? 'size'
+        : ctx.parentOperator === '$length'
+          ? 'length'
+          : 'value';
+
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' ${context} must be greater than ${ctx.schema.$gtRef}, got: ${ctx.currentInput}`, ctx.fullPath)
+    }
+  },
+
+  /**
+   * Checks whether the current value is greater than or equals to the one provided
+   */
+  $gte(ctx: ValidationContext): void {
+    if (ctx.currentInput < ctx.schema.$gte) {
+      let context = ctx.parentOperator === '$size'
+        ? 'size'
+        : ctx.parentOperator === '$length'
+          ? 'length'
+          : 'value';
+
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' ${context} must be greater than or equals to ${ctx.schema.$gte}, got: ${ctx.currentInput}`, ctx.fullPath)
+    }
+  },
+
+  /**
+   * Checks whether the current value is greater than or equals to the reference provided
+   */
+  $gteRef(ctx: ValidationContext): void {
+    if (ctx.currentInput < ctx.schema.$gteRef) {
+      let context = ctx.parentOperator === '$size'
+        ? 'size'
+        : ctx.parentOperator === '$length'
+          ? 'length'
+          : 'value';
+
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' ${context} must be greater than or equals to ${ctx.schema.$gteRef}, got: ${ctx.currentInput}`, ctx.fullPath)
+    }
+  },
+
+  /**
+   * Checks whether the current value is less than the one provided
+   */
+  $lt(ctx: ValidationContext): void {
+    if (ctx.currentInput >= ctx.schema.$lt) {
+      let context = ctx.parentOperator === '$size'
+        ? 'size'
+        : ctx.parentOperator === '$length'
+          ? 'length'
+          : 'value';
+
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' ${context} must be less than ${ctx.schema.$lt}, got: ${ctx.currentInput}`, ctx.fullPath)
+    }
+  },
+
+  /**
+   * Checks whether the current value is less than the reference provided
+   */
+  $ltRef(ctx: ValidationContext): void {
+    if (ctx.currentInput >= ctx.schema.$ltRef) {
+      let context = ctx.parentOperator === '$size'
+        ? 'size'
+        : ctx.parentOperator === '$length'
+          ? 'length'
+          : 'value';
+
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' ${context} must be less than ${ctx.schema.$ltRef}, got: ${ctx.currentInput}`, ctx.fullPath)
+    }
+  },
+
+  /**
+   * Checks whether the current value is less than or equals to the one provided
+   */
+  $lte(ctx: ValidationContext): void {
+    if (ctx.currentInput > ctx.schema.$lte) {
+      let context = ctx.parentOperator === '$size'
+        ? 'size'
+        : ctx.parentOperator === '$length'
+          ? 'length'
+          : 'value';
+
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' ${context} must be less than or equals to ${ctx.schema.$lte}, got: ${ctx.currentInput}`, ctx.fullPath)
+    }
+  },
+
+  /**
+   * Checks whether the current value is less than or equals to the reference provided
+   */
+  $lteRef(ctx: ValidationContext): void {
+    if (ctx.currentInput > ctx.schema.$lteRef) {
+      let context = ctx.parentOperator === '$size'
+        ? 'size'
+        : ctx.parentOperator === '$length'
+          ? 'length'
+          : 'value';
+
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' ${context} must be less than or equals to ${ctx.schema.$lteRef}, got: ${ctx.currentInput}`, ctx.fullPath)
+    }
+  },
+
+  /**
+   * Checks whether the current value is in the range provided
+   */
+  $inRange(ctx: ValidationContext): void {
+    let inRange = ctx.currentInput >= ctx.schema.$inRange[0] && ctx.currentInput <= ctx.schema.$inRange[1];
+    let context = ctx.parentOperator === '$size'
+      ? 'size'
+      : ctx.parentOperator === '$length'
+        ? 'length'
+        : 'value';
+
+    if (inRange) {
+      if (ctx.negateMode)
+        throw new ValidallError(ctx.message || `'${ctx.fullPath}' ${context} must be out of range between [${ctx.schema.$inRange}], got: ${ctx.currentInput}`, ctx.fullPath)
+    } else
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' ${context} must be in range between [${ctx.schema.$inRange}], got: ${ctx.currentInput}`, ctx.fullPath)
+  },
+
+  /**
+   * Checks if input data has values in common with provided list.
+   * In negate mode input data must not share any value with provided list
+   */
+  $intersects(ctx: ValidationContext): void {
+    let type = ctx.parentOperator === '$keys' ? 'property' : 'value';
+    let [looper, checker]: [string[], string[]] = ctx.currentInput.length < ctx.schema.$intersects
+      ? [ctx.currentInput, ctx.schema.$intersects]
+      : [ctx.schema.$intersects, ctx.currentInput];
+
+    for (let prop of looper) {
+      if (checker.includes(prop))
+        if (ctx.negateMode)
+          throw new ValidallError(ctx.message || `'${ctx.fullPath}' must not have any ${type} with [${ctx.schema.$intersects}], got: (${prop})`, ctx.fullPath)
+        else
+          return;
+    }
+
+    if (!ctx.negateMode)
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' must have at least on ${type} with [${ctx.schema.$intersects}]`, ctx.fullPath);
+  },
+
+  /**
+   * Checks that all fields in Input array are included in the provided list
+   */
+  $in(ctx: ValidationContext): void {
+    for (let val of ctx.currentInput)
+      if (!ctx.schema.$in.includes(val)) {
+        let type = ctx.parentOperator === '$keys' ? 'property' : 'value';
+        throw new ValidallError(ctx.message || `'${ctx.fullPath}' must not have any ${type} out of [${ctx.schema.$in}], got: (${val})`, ctx.fullPath);
+      }
+  },
+
+  /**
+   * Checks whether input string is in the provided list,
+   * Or in negate mode, the input string must not be in the provided list
+   */
+  $enum(ctx: ValidationContext): void {
+    let included = ctx.schema.$enum.includes(ctx.currentInput);
+    if (included && ctx.negateMode)
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' must not equals any value in [${ctx.schema.$enum}], got: (${ctx.currentInput})`, ctx.fullPath);
+    else if (!included && !ctx.negateMode)
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' must equals any value in [${ctx.schema.$enum}], got: (${ctx.currentInput})`, ctx.fullPath);
+  },
+
+  /**
+   * checks whether the input is equal to the provided date
+   */
+  $on(ctx: ValidationContext): void {
+    let date = new Date(ctx.currentInput);
+
+    if (date.getTime() === (<Date>ctx.schema.$on).getTime()) {
+      if (ctx.negateMode)
+        throw new ValidallError(ctx.message || `'${ctx.fullPath}' must not be on date: '${ctx.schema.$on.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+    } else
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' must be on date: '${ctx.schema.$on.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+  },
+
+  /**
+   * checks whether the input is equal to the provided date reference
+   */
+  $onRef(ctx: ValidationContext): void {
+    let date = new Date(ctx.currentInput);
+    let refDate = new Date(ctx.schema.$onRef);
+
+    if (date.getTime() === refDate.getTime()) {
+      if (ctx.negateMode)
+        throw new ValidallError(ctx.message || `'${ctx.fullPath}' must not be on date: '${refDate.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+    } else
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' must be on date: '${refDate.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+  },
+
+  /** 
+   * checks whether the input is before the provided date
+   */
+  $before(ctx: ValidationContext): void {
+    let date = new Date(ctx.currentInput);
+
+    if (date.getTime() < (<Date>ctx.schema.$before).getTime()) {
+      if (ctx.negateMode)
+        throw new ValidallError(ctx.message || `'${ctx.fullPath}' must not be before date: '${ctx.schema.$before.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+    } else
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' must be before date: '${ctx.schema.$before.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+  },
+
+  /**
+   * checks whether the input is before the provided date reference
+   */
+  $beforeRef(ctx: ValidationContext): void {
+    let date = new Date(ctx.currentInput);
+    let refDate = new Date(ctx.schema.$beforeRef);
+
+    if (date.getTime() < refDate.getTime()) {
+      if (ctx.negateMode)
+        throw new ValidallError(ctx.message || `'${ctx.fullPath}' must not be before date: '${refDate.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+    } else
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' must be before date: '${refDate.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+  },
+
+  /** 
+   * checks whether the input is after the provided date
+   */
+  $after(ctx: ValidationContext): void {
+    let date = new Date(ctx.currentInput);
+
+    if (date.getTime() > (<Date>ctx.schema.$after).getTime()) {
+      if (ctx.negateMode)
+        throw new ValidallError(ctx.message || `'${ctx.fullPath}' must not be after date: '${ctx.schema.$after.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+    } else
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' must be after date: '${ctx.schema.$after.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+  },
+
+  /**
+   * checks whether the input is after the provided date reference
+   */
+  $afterRef(ctx: ValidationContext): void {
+    let date = new Date(ctx.currentInput);
+    let refDate = new Date(ctx.schema.$afterRef);
+
+    if (date.getTime() > refDate.getTime()) {
+      if (ctx.negateMode)
+        throw new ValidallError(ctx.message || `'${ctx.fullPath}' must not be after date: '${refDate.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+    } else
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' must be after date: '${refDate.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+  },
+
+  /**
+   * Checks whether the type of the current value matches the type provided
+   */
+  $type(ctx: ValidationContext): void {
+    if (Types.getTypesOf(ctx.currentInput).indexOf(ctx.schema.$type) === -1) {
+      let inputType = Array.isArray(ctx.currentInput)
+        ? 'array'
+        : ctx.schema.$type === 'int' || ctx.schema.$type === 'float'
+          ? Types.getTypesOf(ctx.currentInput)
+          : typeof ctx.currentInput;
+
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' must be of type '${ctx.schema.$type}', got: (${inputType}, ${ctx.currentInput})`, ctx.fullPath);
+    }
+  },
+
+  /**
+   * Validate input date with a reference schema
+   */
+  $ref(ctx: ValidationContext): void {
+    ValidallRepo.get(ctx.schema.$ref).validate(ctx.currentInput, ctx.fullPath);
+  },
+
+  /**
+   * Checks whether thi input value is instanve or the provided class
+   */
+  $instanceof(ctx: ValidationContext): void {
+    if (ctx.currentInput instanceof ctx.schema.$instanceof) {
+      if (ctx.negateMode)
+        throw new ValidallError(ctx.message || `'${ctx.fullPath}' must not be instance of '${ctx.schema.$instanceof.name}}'`, ctx.fullPath);
+    } else
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' must be instance of '${ctx.schema.$instanceof.name}'`, ctx.fullPath);
+  },
+
+  /**
+   * Checks whether the input value matches a spcific predeifned pattern
+   */
+  $is(ctx: ValidationContext): void {
+    if (!Is[ctx.schema.$is](ctx.currentInput)) {
+      let msgSuffix = ["email", "date", "url"].indexOf(ctx.schema.$is) > -1
+        ? `be a valid ${ctx.schema.$is}`
+        : ctx.schema.$is === "name"
+          ? 'include only alphabetical characters'
+          : ctx.schema.$is === "number"
+            ? "include only numbers"
+            : "be not empty"
+
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' must ${msgSuffix}, got: (${ctx.currentInput})`, ctx.fullPath)
+    }
+  },
+
+  /**
+   * Checks whether the previously referenced condition by '$name' operator has passed or not
+   */
+  $alias(ctx: ValidationContext): void {
+    let passed = ctx.aliasStates[ctx.schema.$alias];
+
+    if (passed) {
+      if (ctx.negateMode)
+        throw new ValidallError(ctx.message || `'${ctx.fullPath}' name '${ctx.schema.$alias}' should not pass`, ctx.fullPath);
+    } else
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' name '${ctx.schema.$alias}' should pass`, ctx.fullPath);
+  },
+
+  $name(ctx: ValidationContext): void {
+    for (let test of ctx.schema.$name) {
+      if (typeof test === 'string')
+        continue;
+
+      try {
+        ctx.next(ctx.clone({ schema: test }));
+        ctx.aliasStates[test.$as] = true;
+      } catch (error) {
+        ctx.aliasStates[test.$as] = false;
+      }
+    }
+  },
+
+  /**
+   * Checks whether the input value matches a RegExp pattern
+   */
+  $regex(ctx: ValidationContext): void {
+    if (ctx.schema.$regex.test(ctx.currentInput)) {
+      if (ctx.negateMode)
+        throw new ValidallError(ctx.message || `'${ctx.fullPath}' must not match pattern '${ctx.schema.$regex}', got: (${ctx.currentInput})`, ctx.fullPath)
+    } else
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' must match pattern '${ctx.schema.$regex}', got: (${ctx.currentInput})`, ctx.fullPath)
+  },
+
+  /**
+   * Checks if input is valid whether by refernece or by schema, then executes the '$then' statement,
+   * otherwise will pass with no errors
+   */
+  $if(ctx: ValidationContext): boolean {
+    try {
+      ctx.next(ctx);
+    } catch (error) {
+      return false;
+    }
+
+    return true;
+  },
+
+  /**
+   * Loops through provided conditions until one passes or throwing error
+   */
+  $cond(ctx: ValidationContext) {
+    for (let condition of ctx.schema.$cond) {
+      if ((<any>condition).$if) {
+        if (typeof (<any>condition).$if === 'string') {
+          if (ctx.aliasStates[(<any>condition).$if])
+            return ctx.next(ctx.clone({ schema: (<any>condition).$then }))
+        }
+
+        else if (Operators.$if(ctx.clone({ currentInput: ctx.input, schema: (<any>condition).$if, localPath: '' })))
+          return ctx.next(ctx.clone({ schema: (<any>condition).$then }))
+
+      } else if ((<any>condition).$else) {
+        ctx.next(ctx.clone({ schema: (<any>condition).$else }));
+      }
+    }
+  },
+
+  /**
+   * Loops through each element in the input array and do the validation
+   */
+  $each(ctx: ValidationContext): void {
+    for (let i = 0; i < ctx.currentInput.length; i++)
+      ctx.next(ctx.clone({
+        currentInput: ctx.currentInput[i],
+        localPath: ValidationContext.JoinPath(ctx.localPath, i),
+        schema: ctx.schema.$each
+      }));
+  },
+
+  /**
+   * loop through a map or hashmap keys and do the validation
+   */
+  $map(ctx: ValidationContext): void {
+    for (let prop in ctx.currentInput)
+      ctx.next(ctx.clone({
+        currentInput: ctx.currentInput[prop],
+        localPath: ValidationContext.JoinPath(ctx.localPath, prop),
+        schema: ctx.schema.$map
+      }));
+  },
+
+  /**
+   * Puts an object list of keys into the validation context
+   */
+  $keys(ctx: ValidationContext): void {
+    ctx.next(ctx.clone({
+      currentInput: Object.keys(ctx.currentInput),
+      schema: ctx.schema.$keys,
+      parentOperator: '$keys'
+    }));
+  },
+
+  /**
+   * Puts an array length into the validation context
+   */
+  $length(ctx: ValidationContext): void {
+    let length = ctx.currentInput.length;
+    if (typeof ctx.schema.$length === 'number') {
+      if (length !== ctx.schema.$length)
+        throw new ValidallError(ctx.message || `'${ctx.fullPath}' length must be ${ctx.schema.$length}, got: ${length}`);
+
+    } else
+      ctx.next(ctx.clone({
+        currentInput: length,
+        schema: ctx.schema.$length,
+        parentOperator: '$length'
+      }));
+  },
+
+  /**
+   * Puts an object list of keys length into the validation context
+   */
+  $size(ctx: ValidationContext): void {
+    let size = Object.keys(ctx.currentInput).length;
+    if (typeof ctx.schema.$size === 'number') {
+      if (size !== ctx.schema.$size)
+        throw new ValidallError(ctx.message || `'${ctx.fullPath}' size must be ${ctx.schema.$size}, got: ${size}`);
+
+    } else
+      ctx.next(ctx.clone({
+        currentInput: size,
+        schema: ctx.schema.$size,
+        parentOperator: '$size'
+      }));
+  },
+
+  /**
+   * invert the validation result from the children operators
+   */
+  $not(ctx: ValidationContext): void {
+    ctx.next(ctx.clone({
+      schema: ctx.schema.$not,
+      negateMode: true
+    }));
+  },
+
+  /**
+   * Executes individual validation for each property in an object
+   */
+  $props(ctx: ValidationContext): void {
+    for (let prop in ctx.schema.$props)
+      ctx.next(ctx.clone({
+        currentInput: ctx.currentInput[prop],
+        schema: ctx.schema.$props[prop],
+        localPath: ValidationContext.JoinPath(ctx.localPath, prop)
+      }));
+  },
+
+  /**
+   * Executes individual validation for each property path provided 
+   */
+  $paths(ctx: ValidationContext): void {
+    for (let prop in ctx.schema.$paths)
+      ctx.next(ctx.clone({
+        currentInput: getValue(ctx.currentInput, prop),
+        schema: ctx.schema.$paths[prop],
+        localPath: ValidationContext.JoinPath(ctx.localPath, prop)
+      }));
+  },
+
+  /**
+   * Makes sure at least on condition passes otherwise throwing an error
+   */
+  $or(ctx: ValidationContext): void {
+    for (let condition of (ctx.schema.$or)) {
+      try {
+        ctx.next(ctx.clone({ schema: condition }));
+        return;
+      } catch (e) {
+        continue;
+      }
+    }
+
+    throw new ValidallError(ctx.message || `'${ctx.fullPath}' failed all validations`, ctx.fullPath);
+  },
+
+  /**
+   * Makes sure all conditions pass otherwise throwing an error
+   */
+  $and(ctx: ValidationContext): void {
+    try {
+      for (let condition of ctx.schema.$and)
+        ctx.next(ctx.clone({ schema: condition }));
+    } catch (e) {
+      throw new ValidallError(ctx.message || e.message, e.path);
+    }
+  },
+
+  /**
+   * Makes sure only one condition passes otherwise throwing an error
+   */
+  $xor(ctx: ValidationContext): void {
+    let passedIndexes: number[] = [];
+
+    for (let [i, condition] of ctx.schema.$xor.entries()) {
+      try {
+        ctx.next(ctx.clone({ schema: condition }));
+        passedIndexes.push(i);
+      } catch (e) {
+        continue;
+      }
+
+      if (passedIndexes.length > 1)
+        throw new ValidallError(ctx.message || `'${ctx.fullPath}' has passed more then one validation: [${passedIndexes}]`, ctx.fullPath);
+    }
+
+    if (passedIndexes.length === 0)
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' failed all validations`, ctx.fullPath);
+  },
+
+  /**
+   * Makes sure none conditions pass otherwise throwing an error
+   */
+  $nor(ctx: ValidationContext): void {
+    let passed: number[] = [];
+    for (let [i, condition] of ctx.schema.$nor.entries()) {
+      try {
+        ctx.next(ctx.clone({ schema: condition }));
+        passed.push(i);
+      } catch (e) {
+        continue;
+      }
+    }
+    if (passed.length > 0)
+      throw new ValidallError(ctx.message || `'${ctx.fullPath}' has passed one or more validation: [${passed}]`, ctx.fullPath);
+  },
+
+  /**
+   * Set the provided default value to the current input,
+   * if the default value was "Date.now" string then it will be converted to current date instance
+   * or if a pipe added to converted to string, number or Iso Date string
+   */
+  $default(ctx: ValidationContext): void {
+    let value = ctx.schema.$default;
+
+    if (typeof value === 'string') {
+      if (value.charAt(0) === "$") {
+        let ref = value.slice(1);
+        value = getValue(ctx.input, ref);
+
+        if (!value)
+          throw new ValidallError(`undefined reference '$${ref} passed to '${ctx.fullPath}'`);
+        else if (!!ctx.schema.$type && Types.getTypesOf(value).indexOf(ctx.schema.$type) === -1)
+          throw new ValidallError(`invalid reference type '$${ref} passed to '${ctx.fullPath}'`);
+      }
+
+      else if (value.indexOf("Date.now") === 0) {
+        if (value.indexOf("string") > -1)
+          value = new Date().toLocaleString();
+        else if (value.indexOf("number"))
+          value = new Date().getTime();
+        else if (value.indexOf("iso"))
+          value = new Date().toISOString();
+        else
+          value = new Date();
+      }
+    }
+
+    injectValue(ctx.input, ctx.localPath, value);
+  },
+
+  /**
+   * filter the input object from any additional properties were not defined
+   * in '$props' operator
+   */
+  $filter(ctx: ValidationContext): void {
+    let keys = Object.keys(ctx.schema.$props);
+    let omitKeys: string[] = [];
+
+    for (let key in ctx.currentInput)
+      if (keys.indexOf(key) === -1)
+        omitKeys.push(key);
+
+    if (omitKeys.length > 0)
+      omit(ctx.currentInput, omitKeys);
+  },
+
+  /**
+   * throws an error if any additional properties were found ing the input object were not
+   * defined in '$props' operator 
+   */
+  $strict(ctx: ValidationContext): void {
+    let keys = Object.keys(ctx.schema.$props);
     // if no keys then strict mode is off
     if (!keys || keys.length === 0)
       return;
 
     // loop through src keys and find invalid keys
-    for (let prop in src) {
-      if (keys.indexOf(prop) === -1)
-        throw new ValidallValidationError({
-          method: '$strict',
-          path: path ? path + '.' + prop : prop,
-          expected: 'not exist',
-          got: prop
-        }, `${path ? path + '.' + prop : prop} is not allowed.`, msg);
+    for (let key in ctx.currentInput)
+      if (keys.indexOf(key) === -1)
+        throw new ValidallError(ctx.message || `'${ValidationContext.JoinPath(ctx.fullPath, key)}' field is not allowed`, ctx.fullPath);
+  },
+
+  $to(ctx: ValidationContext) {
+    for (let method of ctx.schema.$to) {
+      try {
+        injectValue(ctx.input, ctx.localPath, To[method](getValue(ctx.input, ctx.localPath)));
+      }
+      catch (err) {
+        throw new ValidallError(`error modifying input value '${ctx.currentInput}' using ($to: ${method})`);
+      }
     }
   },
 
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Type operator
-   */
-  $type(src: any, type: string, path: string, msg: string | string[], validator: IValidator) {
-    if (Types.getTypesOf(src).indexOf(type) === -1)
-      throw new ValidallValidationError({
-        method: '$type',
-        expected: type,
-        got: src,
-        path: path
-      }, `expected ${path} of type ${type}${Array.isArray(type) ? '[]' : ''}`, msg);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Ref operator
-   */
-  $ref(src: any, vali: Validall, path: string, msg: string | string[], validator: IValidator) {
-    try {
-      vali.validate(src, true);
-    } catch (err) {
-      throw new ValidallValidationError({
-        expected: err.expected,
-        got: err.got,
-        method: err.method,
-        path: path + '.' + err.path
-      }, err.short, msg);
-    }
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Instance od operator
-   */
-  $instanceof(src: any, constructor: any, path: string, msg: string | string[], validator: IValidator) {
-    if (!(src instanceof constructor))
-      throw new ValidallValidationError({
-        expected: 'instance of ' + constructor.name,
-        got: src,
-        method: '$instanceOf',
-        path: path
-      }, `expected ${path} instance of ${constructor.name}`, msg);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Is operator
-   */
-  $is(src: any, patternName: isOptions, path: string, msg: string | string[], validator: IValidator) {
-    if (!(<any>Is)[patternName](src))
-      throw new ValidallValidationError({
-        method: '$is',
-        expected: patternName,
-        got: src,
-        path: path,
-      }, `expected ${path} a valid ${patternName}`, msg);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Cast operator
-   */
-  $cast(src: any, type: 'boolean' | 'string' | 'number' | 'date' | 'regexp' | 'array', path: string, msg: string | string[], validator: IValidator) {
+  $cast(ctx: ValidationContext) {
     try {
       // try to cast src
-      injectValue(validator.src, path, cast(src, type));
-    } catch (err) {
-      throw new ValidallValidationError({
-        method: '$cast',
-        expected: 'castable type to ' + type,
-        got: src,
-        path: path,
-      }, err);
+      injectValue(ctx.input, ctx.localPath, cast(ctx.currentInput, ctx.schema.$cast));
     }
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * To Operator
-   */
-  $to(src: any, methods: toArgs[], path: string, msg: string | string[], validator: IValidator) {
-    for (let i = 0; i < methods.length; i++) {
-      try {
-        // try to update src
-        injectValue(validator.src, path, To[methods[i]]);
-      } catch (err) {
-        throw new ValidallValidationError({
-          method: '$to',
-          expected: methods[i],
-          got: src,
-          path: path
-        }, err.message);
-      }
+    catch (err) {
+      throw new ValidallError(`error casting '${ctx.fullPath}' to '${ctx.schema.$cast}'`)
     }
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Equals Operator
-   */
-  $equals(src: any, target: any, path: string, msg: string | string[], validator: IValidator) {
-    // save equality result
-    let areEqual = src === target;
-
-    // if src and target are equal and negate mode is on throw validation error
-    if (areEqual && validator.negateMode)
-      throw new ValidallValidationError({
-        method: '$equals',
-        expected: 'src and target are not equal',
-        got: src,
-        path: path
-      }, `expected ${path} not equal to ${target}`, msg);
-
-    // if src and target are not equal and negate mode is off throw validation error
-    if (!areEqual && !validator.negateMode)
-      throw new ValidallValidationError({
-        method: '$equals',
-        expected: 'src and target are equal',
-        got: src,
-        path: path
-      }, `expected ${path} equals to ${target}`, msg);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Deep Equals Operator
-   */
-  $deepEquals(src: any, target: any, path: string, msg: string | string[], validator: IValidator) {
-    // save equality result
-    let areEqual = equals(src, target, true);
-
-    // if src and target are equal and negate mode is on throw validation error
-    if (areEqual && validator.negateMode)
-      throw new ValidallValidationError({
-        method: '$equals',
-        expected: 'src and target are not deeply equal',
-        got: src,
-        path: path
-      }, `expected ${path} not deeply equal to ${target}`, msg);
-
-    // if src and target are not equal and negate mode is off throw validation error
-    if (!areEqual && !validator.negateMode)
-      throw new ValidallValidationError({
-        method: '$equals',
-        expected: 'src and target are deeply equal',
-        got: src,
-        path: path
-      }, `expected ${path} deeply equals to ${target}`, msg);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Greate Than Operator
-   */
-  $gt(src: any, limit: number, path: string, msg: string | string[], validator: IValidator) {
-    if (typeof src !== 'number')
-      throw new ValidallValidationError({
-        expected: 'number',
-        got: typeof src + ': ' + src,
-        method: '$gt',
-        path: path
-      }, `${src} is not a number`, msg);
-
-    if (src <= limit)
-      throw new ValidallValidationError({
-        method: '$gt',
-        expected: 'src is greate than limit',
-        got: src,
-        path: path
-      }, `${path} must be greater than ${limit}`, msg);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Greate Than or Equal Operator
-   */
-  $gte(src: any, limit: number, path: string, msg: string | string[], validator: IValidator) {
-    if (typeof src !== 'number')
-      throw new ValidallValidationError({
-        expected: 'number',
-        got: typeof src + ': ' + src,
-        method: '$gte',
-        path: path
-      }, `${src} is not a number`, msg);
-
-    if (src < limit)
-      throw new ValidallValidationError({
-        method: '$gte',
-        expected: 'src is greate than or equal limit',
-        got: src,
-        path: path
-      }, `${path} must be greater than or equal ${limit}`, msg);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Less Than Operator
-   */
-  $lt(src: any, limit: number, path: string, msg: string | string[], validator: IValidator) {
-    if (typeof src !== 'number')
-      throw new ValidallValidationError({
-        expected: 'number',
-        got: typeof src + ': ' + src,
-        method: '$lt',
-        path: path
-      }, `${src} is not a number`, msg);
-
-    if (src >= limit)
-      throw new ValidallValidationError({
-        method: '$lt',
-        expected: 'src is less than limit',
-        got: src,
-        path: path
-      }, `${path} must be less than ${limit}`, msg);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Less Than or Equal Operator
-   */
-  $lte(src: any, limit: number, path: string, msg: string | string[], validator: IValidator) {
-    if (typeof src !== 'number')
-      throw new ValidallValidationError({
-        expected: 'number',
-        got: typeof src + ': ' + src,
-        method: '$lte',
-        path: path
-      }, `${src} is not a number`, msg);
-
-    if (src > limit)
-      throw new ValidallValidationError({
-        method: '$lte',
-        expected: 'src is less than or equal limit',
-        got: src,
-        path: path
-      }, `${path} must be less than or equal ${limit}`, msg);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * In Range Operator
-   */
-  $inRange(src: any, range: [number, number], path: string, msg: string | string[], validator: IValidator) {
-    if (typeof src !== 'number')
-      throw new ValidallValidationError({
-        expected: 'number',
-        got: typeof src + ': ' + src,
-        method: '$inRange',
-        path: path
-      }, `${path} must be a number!`, msg);
-
-    if (src >= range[0] && src <= range[1] && validator.negateMode)
-      throw new ValidallValidationError({
-        method: '$inRange',
-        expected: 'src must not be in range',
-        got: src,
-        path: path
-      }, `${path} must not be in range between ${range}`, msg);
-
-    if ((src < range[0] || src > range[1]) && !validator.negateMode)
-      throw new ValidallValidationError({
-        method: '$inRange',
-        expected: 'src must be in range',
-        got: src,
-        path: path
-      }, `${path} must be in range between ${range}`, msg);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * RegExp Operator
-   */
-  $regex(src: any, pattern: RegExp, path: string, msg: string | string[], validator: IValidator) {
-    if (!pattern.test(src))
-      throw new ValidallValidationError({
-        method: '$regex',
-        expected: `match pattern ${pattern}`,
-        got: src,
-        path: path
-      }, `expected ${path} matches ${pattern}`, msg);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Length Operator
-   */
-  $length(src: any, options: IValidatorOperators, path: string, msg: string | string[], validator: IValidator) {
-    if (typeof src !== 'string' && !Array.isArray(src))
-      throw new ValidallValidationError({
-        expected: 'string or array',
-        got: typeof src + ': ' + src,
-        method: '$length',
-        path: path
-      }, `${path} must be of type string or array`, msg);
-      
-    validator.next(src.length, options, `${path}.$length`);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Size Operator
-   */
-  $size(src: any, options: IValidatorOperators, path: string, msg: string | string[], validator: IValidator) {
-    if (!Types.object(src))
-      throw new ValidallValidationError({
-        expected: 'object',
-        got: typeof src + ': ' + src,
-        method: '$size',
-        path: path
-      }, `${path} must be an object`, msg);
-
-    validator.next(Object.keys(src).length, options, `${path}.$size`);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Keys Operator
-   */
-  $keys(src: any, options: IValidatorOperators, path: string, msg: string | string[], validator: IValidator) {
-    if (!Types.object(src))
-      throw new ValidallValidationError({
-        expected: 'object',
-        got: typeof src + ': ' + src,
-        method: '$keys',
-        path: path
-      }, `${path} must be an object`, msg);
-
-    validator.next(Object.keys(src), options, `${path}.$keys`);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * intersect Operator
-   */
-  $intersect(src: any, list: string | string[], path: string, msg: string | string[], validator: IValidator) {
-    src = Array.isArray(src) ? src : [src];
-    list = Array.isArray(list) ? list : [list];
-
-    let looper = src.length < list.length ? src : list;
-    let checker = looper === src ? list : src;
-
-    for (let i = 0; i < looper.length; i++)
-      if (checker.indexOf(looper[i]) > -1)
-        if (validator.negateMode)
-          throw new ValidallValidationError({
-            method: '$intersect',
-            expected: 'no shared values',
-            got: src,
-            path: path
-          }, `${path} must not share any value with ${list}`, msg);
-        else
-          return
-
-    if (!validator.negateMode)
-      throw new ValidallValidationError({
-        method: '$intersect',
-        expected: 'intersect some values',
-        got: src,
-        path: path
-      }, `${path} must share any value with ${list}`, msg);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Enum Operator
-   */
-  $enum(src: any, list: string | string[], path: string, msg: string | string[], validator: IValidator) {
-    src = Array.isArray(src) ? src : [src];
-    list = Array.isArray(list) ? list : [list];
-
-    let allIncluded = true;
-
-    for (let i = 0; i < src.length; i++)
-      if (list.indexOf(src[i]) === -1) {
-        if (!validator.negateMode)
-          throw new ValidallValidationError({
-            method: '$enum',
-            expected: 'included value',
-            got: src,
-            path: path
-          }, `${path} value must not be out of ${list}`, msg);
-
-        allIncluded = false;
-      }
-
-    if (validator.negateMode && allIncluded)
-      throw new ValidallValidationError({
-        method: '$enum',
-        expected: 'not all values included',
-        got: src,
-        path: path
-      }, `${path} must not be all included in ${list}`, msg);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Include Operator
-   */
-  $include(src: any, list: string | string[], path: string, msg: string | string[], validator: IValidator) {
-    src = Array.isArray(src) ? src : [src];
-    list = Array.isArray(list) ? list : [list];
-
-    let allIncluded = true;
-
-    for (let i = 0; i < list.length; i++)
-      if (src.indexOf(list[i]) === -1) {
-        if (!validator.negateMode)
-          throw new ValidallValidationError({
-            method: '$include',
-            expected: 'include all values',
-            got: src,
-            path: path
-          }, `${path} value must include ${list[i]}`, msg);
-
-        allIncluded = false;
-      }
-
-    if (validator.negateMode && allIncluded)
-      throw new ValidallValidationError({
-        method: '$include',
-        expected: 'not included any value',
-        got: src,
-        path: path
-      }, `${path} value must not include all ${list}`, msg);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * On Operator
-   */
-  $on(src: any, date: string, path: string, msg: string | string[], validator: IValidator) {
-    if (!Types.date(src) && typeof src !== 'string' && typeof src !== 'number')
-      throw new ValidallValidationError({
-        expected: 'date instance, string or number',
-        got: typeof src + ': ' + src,
-        method: '$on',
-        path: path
-      }, `${path} must be date instance, string or number`, msg);
-
-    if (typeof src === 'string') {
-      let d = new Date(src);
-      if (d.toString() === "Invalid Date")
-        throw new ValidallValidationError({
-          method: '$on',
-          expected: 'a valid date',
-          got: src,
-          path: path
-        }, `${path} must be a valid date`, msg);
-    }
-
-    if (typeof src === 'number')
-      src = new Date(src);
-
-    if (Date.parse(src) !== Date.parse(date))
-      throw new ValidallValidationError({
-        method: '$on',
-        expected: 'on time date',
-        got: src,
-        path: path
-      }, `${path} must be on date ${date}`, msg);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Before Operator
-   */
-  $before(src: any, date: string, path: string, msg: string | string[], validator: IValidator) {
-    if (!Types.date(src) && typeof src !== 'string' && typeof src !== 'number')
-      throw new ValidallValidationError({
-        expected: 'date instance, string or number',
-        got: typeof src + ': ' + src,
-        method: '$before',
-        path: path
-      }, `${path} must be date instance, string or number`, msg);
-
-    if (typeof src === 'string') {
-      let d = new Date(src);
-      if (d.toString() === "Invalid Date")
-        throw new ValidallValidationError({
-          method: '$before',
-          expected: 'a valid date',
-          got: src,
-          path: path
-        }, `${path} must be a valid date`, msg);
-    }
-
-    if (typeof src === 'number')
-      src = new Date(src);
-
-    if (Date.parse(src) >= Date.parse(date))
-      throw new ValidallValidationError({
-        method: '$before',
-        expected: 'before ' + date,
-        got: src,
-        path: path
-      }, `${path} must be before date ${date}`, msg);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * After Operator
-   */
-  $after(src: any, date: string, path: string, msg: string | string[], validator: IValidator) {
-    if (!Types.date(src) && typeof src !== 'string' && typeof src !== 'number')
-      throw new ValidallValidationError({
-        expected: 'date instance, string or number',
-        got: typeof src + ': ' + src,
-        method: '$after',
-        path: path
-      }, `${path} must be date instance, string or number`, msg);
-
-    if (typeof src === 'string') {
-      let d = new Date(src);
-      if (d.toString() === "Invalid Date")
-        throw new ValidallValidationError({
-          method: '$after',
-          expected: 'a valid date',
-          got: src,
-          path: path
-        }, `${path} must be a valid date`, msg);
-    }
-
-    if (typeof src === 'number')
-      src = new Date(src);
-
-    if (Date.parse(src) <= Date.parse(date))
-      throw new ValidallValidationError({
-        method: '$after',
-        expected: 'after ' + date,
-        got: src,
-        path: path
-      }, `${path} must be after date ${date}`, msg);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Not Operator
-   */
-  $not(src: any, options: INegatableOperators, path: string, msg: string | string[], validator: IValidator) {
-    validator.negateMode = !validator.negateMode;
-    validator.next(src, options, path)
-    validator.negateMode = !validator.negateMode;
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * And Operator
-   */
-  $and(src: any, options: ISchema[], path: string, msg: string | string[], validator: IValidator) {
-    for (let i = 0; i < options.length; i++)
-      validator.next(src, options[i], path);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Or Operator
-   */
-  $or(src: any, options: ISchema[], path: string, msg: string | string[], validator: IValidator) {
-    let errors = [];
-
-    for (let i = 0; i < options.length; i++) {
-      try {
-        validator.next(src, options[i], path);
-        return;
-      } catch (err) {
-        errors.push(err.short);
-      }
-    }
-
-    throw new ValidallValidationError({
-      method: '$or',
-      expected: 'at least one validation passes',
-      got: 'all validations failed',
-      path: path
-    }, errors.join(' or '), msg);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Xor Operator
-   */
-  $xor(src: any, options: ISchema[], path: string, msg: string | string[], validator: IValidator) {
-    let passed = [];
-    let errors = [];
-
-    for (let i = 0; i < options.length; i++) {
-      try {
-        validator.next(src, options[i], path);
-        passed.push(options[i]);
-
-        if (passed.length > 1)
-          break;
-      } catch (err) {
-        errors.push(err.short);
-      }
-    }
-
-    if (passed.length === 1)
-      return;
-
-    if (passed.length === 0) {
-
-      throw new ValidallValidationError({
-        method: '$xor',
-        expected: 'only one validation passes',
-        got: 'all validations failed',
-        path: path
-      }, errors.join(' or '), msg);
-
-    } else {
-      let errorMsg = '';
-
-      for (let i = 0; i < passed.length; i++)
-        errorMsg += 'passed: ' + JSON.stringify(passed[i]) + '\n';
-
-      throw new ValidallValidationError({
-        method: '$xor',
-        expected: 'only one validation passes',
-        got: 'multible validations passed',
-        path: path
-      }, errorMsg, msg);
-    }
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Nor Operator
-   */
-  $nor(src: any, options: ISchema[], path: string, msg: string | string[], validator: IValidator) {
-    let error: string;
-
-    validator.negateMode = true;
-    for (let i = 0; i < options.length; i++) {
-      try {
-        validator.next(src, options[i], path);
-      } catch (err) {
-        error = err.short;
-        break;
-      }
-    }
-
-    validator.negateMode = false;
-
-    if (error) {
-
-      throw new ValidallValidationError({
-        method: '$nor',
-        expected: 'none of validations passes',
-        got: 'some validations passed',
-        path: path
-      }, error, msg);
-    }
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Each Operator
-   */
-  $map(src: { [key: string]: any }, schema: ISchema, path: string, msg: string | string[], validator: IValidator) {
-    for (let prop in src) {
-      validator.next(src[prop], schema, `${path}.${prop}`);
-    }
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Each Operator
-   */
-  $each(src: any[], schema: ISchema, path: string, msg: string | string[], validator: IValidator) {
-    for (let i = 0; i < src.length; i++) {
-      validator.next(src[i], schema, `${path}[${i}]`);
-    }
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Properties Operator
-   */
-  $props(src: any, schema: { [key: string]: ISchema }, path: string, msg: string | string[], validator: IValidator) {
-    for (let prop in schema)
-      if (schema.hasOwnProperty(prop))
-        validator.next(src[prop], schema[prop], `${path}${path ? '.' : ''}${prop}`);
-  },
-
-  /**
-   * ------------------------------------------------------------------------------------------------------------------------
-   * Paths Operator
-   */
-  $paths(src: any, schema: { [key: string]: ISchema }, path: string, msg: string | string[], validator: IValidator) {
-    for (let prop in schema)
-      if (schema.hasOwnProperty(prop))
-        validator.next(getValue(src, prop), schema[prop], `${path}${path ? '.' : ''}${prop}`);
   }
 }

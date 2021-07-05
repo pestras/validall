@@ -1,191 +1,197 @@
-import { Validall } from './validator';
-import { ISchema, IValidator, isOptions, toArgs, IValidatorOperators, INegatableOperators } from "./schema";
+import { ValidationContext } from "./interfaces";
 export declare const Operators: {
-    list: string[];
+    isPure(operator: string): boolean;
+    isParenting(operator: string): boolean;
+    isParentingObject(operator: string): boolean;
+    isParentingArray(operator: string): boolean;
+    isSkipping(operator: string): boolean;
+    isNumberOperator(operator: string): boolean;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * check if key is an operator
+     * When input undefined, set to default value if provided, or null if nullable,
+     * or throw an error if required.
+     * When input is null pass if the field is nullable otherwise throw an error
      */
-    isOperator(key: string): boolean;
+    undefinedOrNullInput(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Default operator
+     * Checks whether the current value equals the value provided: shollow comparission
      */
-    $default(src: any, defaultValue: any, path: any, validator?: any): void;
+    $equals(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Filter operator
+     * Checks whether the current value equals the referenced value provided: shollow comparission
      */
-    $filter(src: any, keepList: string[]): void;
+    $equalsRef(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Strict operator
+     * Checks whether the current value is greater than the one provided
      */
-    $strict(src: any, keys: any, path: string, msg: string | string[]): void;
+    $gt(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Type operator
+     * Checks whether the current value is greater than the reference provided
      */
-    $type(src: any, type: string, path: string, msg: string | string[], validator: IValidator): void;
+    $gtRef(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Ref operator
+     * Checks whether the current value is greater than or equals to the one provided
      */
-    $ref(src: any, vali: Validall, path: string, msg: string | string[], validator: IValidator): void;
+    $gte(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Instance od operator
+     * Checks whether the current value is greater than or equals to the reference provided
      */
-    $instanceof(src: any, constructor: any, path: string, msg: string | string[], validator: IValidator): void;
+    $gteRef(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Is operator
+     * Checks whether the current value is less than the one provided
      */
-    $is(src: any, patternName: isOptions, path: string, msg: string | string[], validator: IValidator): void;
+    $lt(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Cast operator
+     * Checks whether the current value is less than the reference provided
      */
-    $cast(src: any, type: 'boolean' | 'string' | 'number' | 'date' | 'regexp' | 'array', path: string, msg: string | string[], validator: IValidator): void;
+    $ltRef(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * To Operator
+     * Checks whether the current value is less than or equals to the one provided
      */
-    $to(src: any, methods: toArgs[], path: string, msg: string | string[], validator: IValidator): void;
+    $lte(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Equals Operator
+     * Checks whether the current value is less than or equals to the reference provided
      */
-    $equals(src: any, target: any, path: string, msg: string | string[], validator: IValidator): void;
+    $lteRef(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Deep Equals Operator
+     * Checks whether the current value is in the range provided
      */
-    $deepEquals(src: any, target: any, path: string, msg: string | string[], validator: IValidator): void;
+    $inRange(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Greate Than Operator
+     * Checks if input data has values in common with provided list.
+     * In negate mode input data must not share any value with provided list
      */
-    $gt(src: any, limit: number, path: string, msg: string | string[], validator: IValidator): void;
+    $intersects(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Greate Than or Equal Operator
+     * Checks that all fields in Input array are included in the provided list
      */
-    $gte(src: any, limit: number, path: string, msg: string | string[], validator: IValidator): void;
+    $in(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Less Than Operator
+     * Checks whether input string is in the provided list,
+     * Or in negate mode, the input string must not be in the provided list
      */
-    $lt(src: any, limit: number, path: string, msg: string | string[], validator: IValidator): void;
+    $enum(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Less Than or Equal Operator
+     * checks whether the input is equal to the provided date
      */
-    $lte(src: any, limit: number, path: string, msg: string | string[], validator: IValidator): void;
+    $on(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * In Range Operator
+     * checks whether the input is equal to the provided date reference
      */
-    $inRange(src: any, range: [number, number], path: string, msg: string | string[], validator: IValidator): void;
+    $onRef(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * RegExp Operator
+     * checks whether the input is before the provided date
      */
-    $regex(src: any, pattern: RegExp, path: string, msg: string | string[], validator: IValidator): void;
+    $before(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Length Operator
+     * checks whether the input is before the provided date reference
      */
-    $length(src: any, options: IValidatorOperators, path: string, msg: string | string[], validator: IValidator): void;
+    $beforeRef(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Size Operator
+     * checks whether the input is after the provided date
      */
-    $size(src: any, options: IValidatorOperators, path: string, msg: string | string[], validator: IValidator): void;
+    $after(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Keys Operator
+     * checks whether the input is after the provided date reference
      */
-    $keys(src: any, options: IValidatorOperators, path: string, msg: string | string[], validator: IValidator): void;
+    $afterRef(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * intersect Operator
+     * Checks whether the type of the current value matches the type provided
      */
-    $intersect(src: any, list: string | string[], path: string, msg: string | string[], validator: IValidator): void;
+    $type(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Enum Operator
+     * Validate input date with a reference schema
      */
-    $enum(src: any, list: string | string[], path: string, msg: string | string[], validator: IValidator): void;
+    $ref(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Include Operator
+     * Checks whether thi input value is instanve or the provided class
      */
-    $include(src: any, list: string | string[], path: string, msg: string | string[], validator: IValidator): void;
+    $instanceof(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * On Operator
+     * Checks whether the input value matches a spcific predeifned pattern
      */
-    $on(src: any, date: string, path: string, msg: string | string[], validator: IValidator): void;
+    $is(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Before Operator
+     * Checks whether the previously referenced condition by '$name' operator has passed or not
      */
-    $before(src: any, date: string, path: string, msg: string | string[], validator: IValidator): void;
+    $alias(ctx: ValidationContext): void;
+    $name(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * After Operator
+     * Checks whether the input value matches a RegExp pattern
      */
-    $after(src: any, date: string, path: string, msg: string | string[], validator: IValidator): void;
+    $regex(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Not Operator
+     * Checks if input is valid whether by refernece or by schema, then executes the '$then' statement,
+     * otherwise will pass with no errors
      */
-    $not(src: any, options: INegatableOperators, path: string, msg: string | string[], validator: IValidator): void;
+    $if(ctx: ValidationContext): boolean;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * And Operator
+     * Loops through provided conditions until one passes or throwing error
      */
-    $and(src: any, options: ISchema[], path: string, msg: string | string[], validator: IValidator): void;
+    $cond(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Or Operator
+     * Loops through each element in the input array and do the validation
      */
-    $or(src: any, options: ISchema[], path: string, msg: string | string[], validator: IValidator): void;
+    $each(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Xor Operator
+     * loop through a map or hashmap keys and do the validation
      */
-    $xor(src: any, options: ISchema[], path: string, msg: string | string[], validator: IValidator): void;
+    $map(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Nor Operator
+     * Puts an object list of keys into the validation context
      */
-    $nor(src: any, options: ISchema[], path: string, msg: string | string[], validator: IValidator): void;
+    $keys(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Each Operator
+     * Puts an array length into the validation context
      */
-    $map(src: {
-        [key: string]: any;
-    }, schema: ISchema, path: string, msg: string | string[], validator: IValidator): void;
+    $length(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Each Operator
+     * Puts an object list of keys length into the validation context
      */
-    $each(src: any[], schema: ISchema, path: string, msg: string | string[], validator: IValidator): void;
+    $size(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Properties Operator
+     * invert the validation result from the children operators
      */
-    $props(src: any, schema: {
-        [key: string]: ISchema;
-    }, path: string, msg: string | string[], validator: IValidator): void;
+    $not(ctx: ValidationContext): void;
     /**
-     * ------------------------------------------------------------------------------------------------------------------------
-     * Paths Operator
+     * Executes individual validation for each property in an object
      */
-    $paths(src: any, schema: {
-        [key: string]: ISchema;
-    }, path: string, msg: string | string[], validator: IValidator): void;
+    $props(ctx: ValidationContext): void;
+    /**
+     * Executes individual validation for each property path provided
+     */
+    $paths(ctx: ValidationContext): void;
+    /**
+     * Makes sure at least on condition passes otherwise throwing an error
+     */
+    $or(ctx: ValidationContext): void;
+    /**
+     * Makes sure all conditions pass otherwise throwing an error
+     */
+    $and(ctx: ValidationContext): void;
+    /**
+     * Makes sure only one condition passes otherwise throwing an error
+     */
+    $xor(ctx: ValidationContext): void;
+    /**
+     * Makes sure none conditions pass otherwise throwing an error
+     */
+    $nor(ctx: ValidationContext): void;
+    /**
+     * Set the provided default value to the current input,
+     * if the default value was "Date.now" string then it will be converted to current date instance
+     * or if a pipe added to converted to string, number or Iso Date string
+     */
+    $default(ctx: ValidationContext): void;
+    /**
+     * filter the input object from any additional properties were not defined
+     * in '$props' operator
+     */
+    $filter(ctx: ValidationContext): void;
+    /**
+     * throws an error if any additional properties were found ing the input object were not
+     * defined in '$props' operator
+     */
+    $strict(ctx: ValidationContext): void;
+    $to(ctx: ValidationContext): void;
+    $cast(ctx: ValidationContext): void;
 };
