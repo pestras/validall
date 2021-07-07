@@ -134,8 +134,8 @@ let schema = new Validall({
   id: { $type: 'number' $default: '$serial' }
 });
 
-console.log(schema.validate({ serial: 123 })); // false
-console.log(schema.error.message) // "invalid reference type '$serial passed to 'id'"
+console.log(schema.validate({ serial: '123' })); // false
+console.log(schema.error.message) // "invalid reference type '$serial' passed to 'id'"
 ```
 
 ### **$message:** *string*
@@ -148,7 +148,7 @@ let schema = new Validall({
 });
 
 console.log(schema.validate({ name: 123 })); // false
-console.log(schema.error.message); // 'ivalidName'
+console.log(schema.error.message); // 'invalidName'
 ```
 
 ## Equality Operators:

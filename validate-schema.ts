@@ -26,13 +26,14 @@ export function validateSchema(schema: ISchema, path: string, ctx: ValidationCon
           else
             ctx.aliasStates[$name.$as] = false;
     // check date
-    else if (['$on', '$before', '$after'].indexOf(operator) > -1)
+    else if (['$on', '$before', '$after'].indexOf(operator) > -1) {
       if (!Is.date(value))
         throw new ValidallError(`invalid '${currPath}' date argument: (${typeof value}: ${value})`, currPath);
-      else
+      
         schema[<'$on'>operator] = new Date(schema[<'$on'>operator]);
+        schema.$is = 'date';
 
-    else if (operator === '$ref') {
+    } else if (operator === '$ref') {
       if (vName && ReferenceState.HasReference(value, vName))
         throw new ValidallError(`cycle referencing between ${value} and ${vName} validators`);
 

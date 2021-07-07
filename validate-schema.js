@@ -25,11 +25,12 @@ function validateSchema(schema, path, ctx, vName) {
                     else
                         ctx.aliasStates[$name.$as] = false;
         // check date
-        else if (['$on', '$before', '$after'].indexOf(operator) > -1)
+        else if (['$on', '$before', '$after'].indexOf(operator) > -1) {
             if (!is_1.Is.date(value))
                 throw new errors_1.ValidallError(`invalid '${currPath}' date argument: (${typeof value}: ${value})`, currPath);
-            else
-                schema[operator] = new Date(schema[operator]);
+            schema[operator] = new Date(schema[operator]);
+            schema.$is = 'date';
+        }
         else if (operator === '$ref') {
             if (vName && util_1.ReferenceState.HasReference(value, vName))
                 throw new errors_1.ValidallError(`cycle referencing between ${value} and ${vName} validators`);
