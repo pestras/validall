@@ -1,4 +1,8 @@
 "use strict";
+// Copyright (c) 2021 Pestras
+// 
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateSchema = void 0;
 const errors_1 = require("./errors");
@@ -27,23 +31,23 @@ function validateSchema(schema, path, ctx, vName) {
         // check date
         else if (['$on', '$before', '$after'].indexOf(operator) > -1) {
             if (!is_1.Is.date(value))
-                throw new errors_1.ValidallError(`invalid '${currPath}' date argument: (${typeof value}: ${value})`, currPath);
+                throw new errors_1.ValidallError(ctx, `invalid '${currPath}' date argument: (${typeof value}: ${value})`, currPath);
             schema[operator] = new Date(schema[operator]);
             schema.$is = 'date';
         }
         else if (operator === '$ref') {
             if (vName && util_1.ReferenceState.HasReference(value, vName))
-                throw new errors_1.ValidallError(`cycle referencing between ${value} and ${vName} validators`);
+                throw new errors_1.ValidallError(ctx, `cycle referencing between ${value} and ${vName} validators`);
             if (!util_1.ValidallRepo.has(value))
-                throw new errors_1.ValidallError(`'${currPath}' reference not found: (${value})`, currPath);
+                throw new errors_1.ValidallError(ctx, `'${currPath}' reference not found: (${value})`, currPath);
             util_1.ReferenceState.SetReference(value, vName);
         }
         else if (operator === '$default' && schema.$type) {
             if (!types_1.Types[schema.$type](value))
-                throw new errors_1.ValidallError(`invalid '${currPath}' argument type: (${typeof value}: ${value}), expected to be of type (${schema.$type})`, currPath);
+                throw new errors_1.ValidallError(ctx, `invalid '${currPath}' argument type: (${typeof value}: ${value}), expected to be of type (${schema.$type})`, currPath);
         }
         else if ((operator === '$filter' || operator === '$strict') && !schema.$props)
-            throw new errors_1.ValidallError(`'${currPath}' requires a sibling '$props' operator`, currPath);
+            throw new errors_1.ValidallError(ctx, `'${currPath}' requires a sibling '$props' operator`, currPath);
         else if (operators_1.Operators.isNumberOperator(operator)) {
             schema.$type = "number";
         }

@@ -1,4 +1,8 @@
 "use strict";
+// Copyright (c) 2021 Pestras
+// 
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReferenceState = exports.isSchema = exports.ValidallRepo = exports.To = void 0;
 const url_1 = require("@pestras/toolbox/url");

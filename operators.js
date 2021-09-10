@@ -1,4 +1,8 @@
 "use strict";
+// Copyright (c) 2021 Pestras
+// 
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Operators = void 0;
 const is_1 = require("@pestras/toolbox/is");
@@ -113,7 +117,7 @@ exports.Operators = {
             if (ctx.schema.$nullable)
                 return;
             else
-                throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' is not nullable`, ctx.fullPath);
+                throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' is not nullable`, ctx.fullPath);
         // if input is undefined and $default operator was set, use the default value
         if (ctx.schema.$default !== undefined)
             return this.$default(ctx);
@@ -126,25 +130,25 @@ exports.Operators = {
         }
         // if field is required throw a validation error
         if (ctx.schema.$required)
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' field is required`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' field is required`, ctx.fullPath);
     },
     /**
      * Checks whether the current value equals the value provided: shollow comparission
      */
     $equals(ctx) {
         if (ctx.currentInput === ctx.schema.$equals && ctx.negateMode)
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must not equal '${ctx.schema.$equals}'`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not equal '${ctx.schema.$equals}'`, ctx.fullPath);
         else if (ctx.currentInput !== ctx.schema.$equals && !ctx.negateMode)
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must equal '${ctx.schema.$equals}', got: (${typeof ctx.currentInput}, '${ctx.currentInput}')`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must equal '${ctx.schema.$equals}', got: (${typeof ctx.currentInput}, '${ctx.currentInput}')`, ctx.fullPath);
     },
     /**
      * Checks whether the current value equals the referenced value provided: shollow comparission
      */
     $equalsRef(ctx) {
         if (ctx.currentInput === ctx.schema.$equalsRef && ctx.negateMode)
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must not equal '${ctx.schema.$equalsRef}'`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not equal '${ctx.schema.$equalsRef}'`, ctx.fullPath);
         else if (ctx.currentInput !== ctx.schema.$equalsRef && !ctx.negateMode)
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must equal '${ctx.schema.$equalsRef}', got: (${typeof ctx.currentInput}, '${ctx.currentInput}')`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must equal '${ctx.schema.$equalsRef}', got: (${typeof ctx.currentInput}, '${ctx.currentInput}')`, ctx.fullPath);
     },
     /**
      * Checks whether the current value is greater than the one provided
@@ -156,7 +160,7 @@ exports.Operators = {
                 : ctx.parentOperator === '$length'
                     ? 'length'
                     : 'value';
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' ${context} must be greater than ${ctx.schema.$gt}, got: ${ctx.currentInput}`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be greater than ${ctx.schema.$gt}, got: ${ctx.currentInput}`, ctx.fullPath);
         }
     },
     /**
@@ -169,7 +173,7 @@ exports.Operators = {
                 : ctx.parentOperator === '$length'
                     ? 'length'
                     : 'value';
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' ${context} must be greater than ${ctx.schema.$gtRef}, got: ${ctx.currentInput}`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be greater than ${ctx.schema.$gtRef}, got: ${ctx.currentInput}`, ctx.fullPath);
         }
     },
     /**
@@ -182,7 +186,7 @@ exports.Operators = {
                 : ctx.parentOperator === '$length'
                     ? 'length'
                     : 'value';
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' ${context} must be greater than or equals to ${ctx.schema.$gte}, got: ${ctx.currentInput}`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be greater than or equals to ${ctx.schema.$gte}, got: ${ctx.currentInput}`, ctx.fullPath);
         }
     },
     /**
@@ -195,7 +199,7 @@ exports.Operators = {
                 : ctx.parentOperator === '$length'
                     ? 'length'
                     : 'value';
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' ${context} must be greater than or equals to ${ctx.schema.$gteRef}, got: ${ctx.currentInput}`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be greater than or equals to ${ctx.schema.$gteRef}, got: ${ctx.currentInput}`, ctx.fullPath);
         }
     },
     /**
@@ -208,7 +212,7 @@ exports.Operators = {
                 : ctx.parentOperator === '$length'
                     ? 'length'
                     : 'value';
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' ${context} must be less than ${ctx.schema.$lt}, got: ${ctx.currentInput}`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be less than ${ctx.schema.$lt}, got: ${ctx.currentInput}`, ctx.fullPath);
         }
     },
     /**
@@ -221,7 +225,7 @@ exports.Operators = {
                 : ctx.parentOperator === '$length'
                     ? 'length'
                     : 'value';
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' ${context} must be less than ${ctx.schema.$ltRef}, got: ${ctx.currentInput}`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be less than ${ctx.schema.$ltRef}, got: ${ctx.currentInput}`, ctx.fullPath);
         }
     },
     /**
@@ -234,7 +238,7 @@ exports.Operators = {
                 : ctx.parentOperator === '$length'
                     ? 'length'
                     : 'value';
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' ${context} must be less than or equals to ${ctx.schema.$lte}, got: ${ctx.currentInput}`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be less than or equals to ${ctx.schema.$lte}, got: ${ctx.currentInput}`, ctx.fullPath);
         }
     },
     /**
@@ -247,7 +251,7 @@ exports.Operators = {
                 : ctx.parentOperator === '$length'
                     ? 'length'
                     : 'value';
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' ${context} must be less than or equals to ${ctx.schema.$lteRef}, got: ${ctx.currentInput}`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be less than or equals to ${ctx.schema.$lteRef}, got: ${ctx.currentInput}`, ctx.fullPath);
         }
     },
     /**
@@ -262,10 +266,10 @@ exports.Operators = {
                 : 'value';
         if (inRange) {
             if (ctx.negateMode)
-                throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' ${context} must be out of range between [${ctx.schema.$inRange}], got: ${ctx.currentInput}`, ctx.fullPath);
+                throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be out of range between [${ctx.schema.$inRange}], got: ${ctx.currentInput}`, ctx.fullPath);
         }
         else
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' ${context} must be in range between [${ctx.schema.$inRange}], got: ${ctx.currentInput}`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be in range between [${ctx.schema.$inRange}], got: ${ctx.currentInput}`, ctx.fullPath);
     },
     /**
      * Checks if input data has values in common with provided list.
@@ -279,12 +283,12 @@ exports.Operators = {
         for (let prop of looper) {
             if (checker.includes(prop))
                 if (ctx.negateMode)
-                    throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must not have any ${type} with [${ctx.schema.$intersects}], got: (${prop})`, ctx.fullPath);
+                    throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not have any ${type} with [${ctx.schema.$intersects}], got: (${prop})`, ctx.fullPath);
                 else
                     return;
         }
         if (!ctx.negateMode)
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must have at least on ${type} with [${ctx.schema.$intersects}]`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must have at least on ${type} with [${ctx.schema.$intersects}]`, ctx.fullPath);
     },
     /**
      * Checks that all fields in Input array are included in the provided list
@@ -293,7 +297,7 @@ exports.Operators = {
         for (let val of ctx.currentInput)
             if (!ctx.schema.$in.includes(val)) {
                 let type = ctx.parentOperator === '$keys' ? 'property' : 'value';
-                throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must not have any ${type} out of [${ctx.schema.$in}], got: (${val})`, ctx.fullPath);
+                throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not have any ${type} out of [${ctx.schema.$in}], got: (${val})`, ctx.fullPath);
             }
     },
     /**
@@ -303,9 +307,9 @@ exports.Operators = {
     $enum(ctx) {
         let included = ctx.schema.$enum.includes(ctx.currentInput);
         if (included && ctx.negateMode)
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must not equals any value in [${ctx.schema.$enum}], got: (${ctx.currentInput})`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not equals any value in [${ctx.schema.$enum}], got: (${ctx.currentInput})`, ctx.fullPath);
         else if (!included && !ctx.negateMode)
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must equals any value in [${ctx.schema.$enum}], got: (${ctx.currentInput})`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must equals any value in [${ctx.schema.$enum}], got: (${ctx.currentInput})`, ctx.fullPath);
     },
     /**
      * checks whether the input is equal to the provided date
@@ -314,10 +318,10 @@ exports.Operators = {
         let date = new Date(ctx.currentInput);
         if (date.getTime() === ctx.schema.$on.getTime()) {
             if (ctx.negateMode)
-                throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must not be on date: '${ctx.schema.$on.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+                throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not be on date: '${ctx.schema.$on.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
         }
         else
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must be on date: '${ctx.schema.$on.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be on date: '${ctx.schema.$on.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
     },
     /**
      * checks whether the input is equal to the provided date reference
@@ -327,10 +331,10 @@ exports.Operators = {
         let refDate = new Date(ctx.schema.$onRef);
         if (date.getTime() === refDate.getTime()) {
             if (ctx.negateMode)
-                throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must not be on date: '${refDate.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+                throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not be on date: '${refDate.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
         }
         else
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must be on date: '${refDate.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be on date: '${refDate.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
     },
     /**
      * checks whether the input is before the provided date
@@ -339,10 +343,10 @@ exports.Operators = {
         let date = new Date(ctx.currentInput);
         if (date.getTime() < ctx.schema.$before.getTime()) {
             if (ctx.negateMode)
-                throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must not be before date: '${ctx.schema.$before.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+                throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not be before date: '${ctx.schema.$before.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
         }
         else
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must be before date: '${ctx.schema.$before.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be before date: '${ctx.schema.$before.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
     },
     /**
      * checks whether the input is before the provided date reference
@@ -352,10 +356,10 @@ exports.Operators = {
         let refDate = new Date(ctx.schema.$beforeRef);
         if (date.getTime() < refDate.getTime()) {
             if (ctx.negateMode)
-                throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must not be before date: '${refDate.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+                throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not be before date: '${refDate.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
         }
         else
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must be before date: '${refDate.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be before date: '${refDate.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
     },
     /**
      * checks whether the input is after the provided date
@@ -364,10 +368,10 @@ exports.Operators = {
         let date = new Date(ctx.currentInput);
         if (date.getTime() > ctx.schema.$after.getTime()) {
             if (ctx.negateMode)
-                throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must not be after date: '${ctx.schema.$after.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+                throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not be after date: '${ctx.schema.$after.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
         }
         else
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must be after date: '${ctx.schema.$after.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be after date: '${ctx.schema.$after.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
     },
     /**
      * checks whether the input is after the provided date reference
@@ -377,10 +381,10 @@ exports.Operators = {
         let refDate = new Date(ctx.schema.$afterRef);
         if (date.getTime() > refDate.getTime()) {
             if (ctx.negateMode)
-                throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must not be after date: '${refDate.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+                throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not be after date: '${refDate.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
         }
         else
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must be after date: '${refDate.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be after date: '${refDate.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
     },
     /**
      * Checks whether the type of the current value matches the type provided
@@ -392,7 +396,7 @@ exports.Operators = {
                 : ctx.schema.$type === 'int' || ctx.schema.$type === 'float'
                     ? types_1.Types.getTypesOf(ctx.currentInput)
                     : typeof ctx.currentInput;
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must be of type '${ctx.schema.$type}', got: (${inputType}, ${ctx.currentInput})`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be of type '${ctx.schema.$type}', got: (${inputType}, ${ctx.currentInput})`, ctx.fullPath);
         }
     },
     /**
@@ -407,10 +411,10 @@ exports.Operators = {
     $instanceof(ctx) {
         if (ctx.currentInput instanceof ctx.schema.$instanceof) {
             if (ctx.negateMode)
-                throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must not be instance of '${ctx.schema.$instanceof.name}}'`, ctx.fullPath);
+                throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not be instance of '${ctx.schema.$instanceof.name}}'`, ctx.fullPath);
         }
         else
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must be instance of '${ctx.schema.$instanceof.name}'`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be instance of '${ctx.schema.$instanceof.name}'`, ctx.fullPath);
     },
     /**
      * Checks whether the input value matches a spcific predeifned pattern
@@ -424,7 +428,7 @@ exports.Operators = {
                     : ctx.schema.$is === "number"
                         ? "include only numbers"
                         : "be not empty";
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must ${msgSuffix}, got: (${ctx.currentInput})`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must ${msgSuffix}, got: (${ctx.currentInput})`, ctx.fullPath);
         }
     },
     /**
@@ -434,10 +438,10 @@ exports.Operators = {
         let passed = ctx.aliasStates[ctx.schema.$alias];
         if (passed) {
             if (ctx.negateMode)
-                throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' name '${ctx.schema.$alias}' should not pass`, ctx.fullPath);
+                throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' name '${ctx.schema.$alias}' should not pass`, ctx.fullPath);
         }
         else
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' name '${ctx.schema.$alias}' should pass`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' name '${ctx.schema.$alias}' should pass`, ctx.fullPath);
     },
     $name(ctx) {
         for (let test of ctx.schema.$name) {
@@ -458,10 +462,10 @@ exports.Operators = {
     $regex(ctx) {
         if (ctx.schema.$regex.test(ctx.currentInput)) {
             if (ctx.negateMode)
-                throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must not match pattern '${ctx.schema.$regex}', got: (${ctx.currentInput})`, ctx.fullPath);
+                throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not match pattern '${ctx.schema.$regex}', got: (${ctx.currentInput})`, ctx.fullPath);
         }
         else
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' must match pattern '${ctx.schema.$regex}', got: (${ctx.currentInput})`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must match pattern '${ctx.schema.$regex}', got: (${ctx.currentInput})`, ctx.fullPath);
     },
     /**
      * Checks if input is valid whether by refernece or by schema, then executes the '$then' statement,
@@ -533,7 +537,7 @@ exports.Operators = {
         let length = ctx.currentInput.length;
         if (typeof ctx.schema.$length === 'number') {
             if (length !== ctx.schema.$length)
-                throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' length must be ${ctx.schema.$length}, got: ${length}`);
+                throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' length must be ${ctx.schema.$length}, got: ${length}`);
         }
         else
             ctx.next(ctx.clone({
@@ -549,7 +553,7 @@ exports.Operators = {
         let size = Object.keys(ctx.currentInput).length;
         if (typeof ctx.schema.$size === 'number') {
             if (size !== ctx.schema.$size)
-                throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' size must be ${ctx.schema.$size}, got: ${size}`);
+                throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' size must be ${ctx.schema.$size}, got: ${size}`);
         }
         else
             ctx.next(ctx.clone({
@@ -602,7 +606,7 @@ exports.Operators = {
                 continue;
             }
         }
-        throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' failed all validations`, ctx.fullPath);
+        throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' failed all validations`, ctx.fullPath);
     },
     /**
      * Makes sure all conditions pass otherwise throwing an error
@@ -613,7 +617,7 @@ exports.Operators = {
                 ctx.next(ctx.clone({ schema: condition }));
         }
         catch (e) {
-            throw new errors_1.ValidallError(ctx.message || e.message, e.path);
+            throw new errors_1.ValidallError(ctx, ctx.message || e.message, e.path);
         }
     },
     /**
@@ -630,10 +634,10 @@ exports.Operators = {
                 continue;
             }
             if (passedIndexes.length > 1)
-                throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' has passed more then one validation: [${passedIndexes}]`, ctx.fullPath);
+                throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' has passed more then one validation: [${passedIndexes}]`, ctx.fullPath);
         }
         if (passedIndexes.length === 0)
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' failed all validations`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' failed all validations`, ctx.fullPath);
     },
     /**
      * Makes sure none conditions pass otherwise throwing an error
@@ -650,7 +654,7 @@ exports.Operators = {
             }
         }
         if (passed.length > 0)
-            throw new errors_1.ValidallError(ctx.message || `'${ctx.fullPath}' has passed one or more validation: [${passed}]`, ctx.fullPath);
+            throw new errors_1.ValidallError(ctx, ctx.message || `'${ctx.fullPath}' has passed one or more validation: [${passed}]`, ctx.fullPath);
     },
     /**
      * Set the provided default value to the current input,
@@ -664,9 +668,9 @@ exports.Operators = {
                 let ref = value.slice(1);
                 value = get_value_1.getValue(ctx.input, ref);
                 if (!value)
-                    throw new errors_1.ValidallError(`undefined reference '$${ref} passed to '${ctx.fullPath}'`);
+                    throw new errors_1.ValidallError(ctx, `undefined reference '$${ref} passed to '${ctx.fullPath}'`);
                 else if (!!ctx.schema.$type && types_1.Types.getTypesOf(value).indexOf(ctx.schema.$type) === -1)
-                    throw new errors_1.ValidallError(`invalid reference type '$${ref} passed to '${ctx.fullPath}'`);
+                    throw new errors_1.ValidallError(ctx, `invalid reference type '$${ref} passed to '${ctx.fullPath}'`);
             }
             else if (value.indexOf("Date.now") === 0) {
                 if (value.indexOf("string") > -1)
@@ -706,7 +710,7 @@ exports.Operators = {
         // loop through src keys and find invalid keys
         for (let key in ctx.currentInput)
             if (keys.indexOf(key) === -1)
-                throw new errors_1.ValidallError(ctx.message || `'${interfaces_1.ValidationContext.JoinPath(ctx.fullPath, key)}' field is not allowed`, ctx.fullPath);
+                throw new errors_1.ValidallError(ctx, ctx.message || `'${interfaces_1.ValidationContext.JoinPath(ctx.fullPath, key)}' field is not allowed`, ctx.fullPath);
     },
     $to(ctx) {
         for (let method of ctx.schema.$to) {
@@ -714,7 +718,7 @@ exports.Operators = {
                 inject_value_1.injectValue(ctx.input, ctx.localPath, util_1.To[method](get_value_1.getValue(ctx.input, ctx.localPath)));
             }
             catch (err) {
-                throw new errors_1.ValidallError(`error modifying input value '${ctx.currentInput}' using ($to: ${method})`);
+                throw new errors_1.ValidallError(ctx, `error modifying input value '${ctx.currentInput}' using ($to: ${method})`);
             }
         }
     },
@@ -724,7 +728,7 @@ exports.Operators = {
             inject_value_1.injectValue(ctx.input, ctx.localPath, cast_1.cast(ctx.currentInput, ctx.schema.$cast));
         }
         catch (err) {
-            throw new errors_1.ValidallError(`error casting '${ctx.fullPath}' to '${ctx.schema.$cast}'`);
+            throw new errors_1.ValidallError(ctx, `error casting '${ctx.fullPath}' to '${ctx.schema.$cast}'`);
         }
     }
 };

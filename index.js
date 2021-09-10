@@ -1,4 +1,8 @@
 "use strict";
+// Copyright (c) 2021 Pestras
+// 
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Validall = void 0;
 const errors_1 = require("./errors");
@@ -12,9 +16,8 @@ const util_1 = require("./util");
 class Validall {
     constructor(name, schema) {
         this._ctx = new interfaces_1.ValidationContext();
-        this._checksCount = 0;
         if (name === undefined)
-            throw new errors_1.ValidallError('expected a schema, got undefined');
+            throw new errors_1.ValidallError({}, 'expected a schema, got undefined');
         if (typeof name === 'string')
             this._name = name;
         else
@@ -42,12 +45,12 @@ class Validall {
     _reset() {
         this._error = null;
         this._schema = null;
-        this._checksCount = 0;
+        // this._checksCount = 0;
         for (let prop in this._ctx.aliasStates)
             this._ctx.aliasStates[prop] = false;
     }
     _next(ctx) {
-        this._checksCount += 1;
+        // this._checksCount += 1;
         // console.log('');
         // console.log('next - checksCount:', this._checksCount);
         // console.log('next - aliasStated:', ctx.aliasStates);
@@ -100,7 +103,7 @@ class Validall {
     validate(input, path) {
         this._reset();
         if (input === undefined) {
-            this._error = new errors_1.ValidallError(this._schema.$message || 'undefinedValidallInput');
+            this._error = new errors_1.ValidallError({}, this._schema.$message || 'undefinedValidallInput');
             return false;
         }
         let ctx = this._ctx.clone({

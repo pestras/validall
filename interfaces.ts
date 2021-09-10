@@ -1,3 +1,8 @@
+// Copyright (c) 2021 Pestras
+// 
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
+
 export type isOptions = 'name' | 'email' | 'url' | 'notEmpty' | 'number' | 'date';
 export type castOptions = "number" | "string" | "boolean" | "date" | "regexp" | "array";
 export type toOptions = 'lowercase' | 'uppercase' | 'trim' | 'capitalizeFirst' | 'capitalizeFirstAll' | 'path';
@@ -127,6 +132,7 @@ export interface IConditionalOperators {
 export interface IRootSchema {
   $props?: { [key: string]: ISchema };
   $each?: ISchema;
+  $ref?: string;
   $paths?: { [key: string]: ISchema };
   $strict?: boolean;
   $filter?: boolean;

@@ -1,11 +1,15 @@
 "use strict";
+// Copyright (c) 2021 Pestras
+// 
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
 const __1 = require("../");
 const errors_1 = require("../errors");
 describe("Testing Schema Validations for empty or undefined schema", () => {
     describe('Testing on empty or undefined schema', () => {
         it("should throw error on undifned schema", () => {
-            expect(() => { (new __1.Validall(undefined)); }).toThrow(new errors_1.ValidallError('expected a schema, got undefined'));
+            expect(() => { (new __1.Validall(undefined)); }).toThrow(new errors_1.ValidallError({}, 'expected a schema, got undefined'));
         });
         it("should not throw error on empty schema", () => {
             expect(() => { new __1.Validall({}); }).not.toThrow();
@@ -14,7 +18,7 @@ describe("Testing Schema Validations for empty or undefined schema", () => {
     describe("Testing [$on, $before, $after] arguments check", () => {
         it('should throw error on invalid date argument', () => {
             expect(() => new __1.Validall({ date: { $on: 's' } }))
-                .toThrow(new errors_1.ValidallError(`invalid 'Schema.$props.date.$on' date argument: (string: s)`));
+                .toThrow(new errors_1.ValidallError({}, `invalid 'Schema.$props.date.$on' date argument: (string: s)`));
         });
         it('should not throw error on valid date argument', () => {
             expect(() => new __1.Validall({ date: { $on: '5-5-2020' } }))
@@ -24,7 +28,7 @@ describe("Testing Schema Validations for empty or undefined schema", () => {
     describe('Testing $ref operator argument check', () => {
         it('should throw error on broken reference', () => {
             expect(() => new __1.Validall({ profile: { $ref: 'profileVal' } }))
-                .toThrow(new errors_1.ValidallError(`'Schema.$props.profile.$ref' reference not found: (profileVal)`));
+                .toThrow(new errors_1.ValidallError({}, `'Schema.$props.profile.$ref' reference not found: (profileVal)`));
         });
         it('should not throw error on healthy reference', () => {
             new __1.Validall('profileValidator', {});
@@ -35,7 +39,7 @@ describe("Testing Schema Validations for empty or undefined schema", () => {
     describe("Testing $default with $type operator argument check", () => {
         it("should throw error when passing value does not match $type argument", () => {
             expect(() => new __1.Validall({ name: { $type: 'string', $default: 5 } }))
-                .toThrow(new errors_1.ValidallError(`invalid 'Schema.$props.name.$default' argument type: (number: 5), expected to be of type (string)`));
+                .toThrow(new errors_1.ValidallError({}, `invalid 'Schema.$props.name.$default' argument type: (number: 5), expected to be of type (string)`));
         });
         it("should not throw error when passing value matchs $type argument", () => {
             expect(() => new __1.Validall({ name: { $type: 'string', $default: 'Ammar' } }))
@@ -45,7 +49,7 @@ describe("Testing Schema Validations for empty or undefined schema", () => {
     describe("Testing [$strict, $filter] schema requiring $props operator", () => {
         it("should throw error when used without $props operator", () => {
             expect(() => new __1.Validall({ name: { $filter: true } }))
-                .toThrow(new errors_1.ValidallError(`'Schema.$props.name.$filter' requires a sibling '$props' operator`));
+                .toThrow(new errors_1.ValidallError({}, `'Schema.$props.name.$filter' requires a sibling '$props' operator`));
         });
         it("should not throw error when used with $props operator", () => {
             expect(() => new __1.Validall({ name: { $filter: true, $props: {} } }))

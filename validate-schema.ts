@@ -1,3 +1,8 @@
+// Copyright (c) 2021 Pestras
+// 
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
+
 import { ValidallError } from "./errors";
 import { ISchema, ValidationContext } from "./interfaces";
 import { Is } from "@pestras/toolbox/is";
@@ -28,28 +33,28 @@ export function validateSchema(schema: ISchema, path: string, ctx: ValidationCon
     // check date
     else if (['$on', '$before', '$after'].indexOf(operator) > -1) {
       if (!Is.date(value))
-        throw new ValidallError(`invalid '${currPath}' date argument: (${typeof value}: ${value})`, currPath);
+        throw new ValidallError(ctx, `invalid '${currPath}' date argument: (${typeof value}: ${value})`, currPath);
       
         schema[<'$on'>operator] = new Date(schema[<'$on'>operator]);
         schema.$is = 'date';
 
     } else if (operator === '$ref') {
       if (vName && ReferenceState.HasReference(value, vName))
-        throw new ValidallError(`cycle referencing between ${value} and ${vName} validators`);
+        throw new ValidallError(ctx, `cycle referencing between ${value} and ${vName} validators`);
 
       if (!ValidallRepo.has(value))
-        throw new ValidallError(`'${currPath}' reference not found: (${value})`, currPath);
+        throw new ValidallError(ctx, `'${currPath}' reference not found: (${value})`, currPath);
 
       ReferenceState.SetReference(value, vName);
     }
 
     else if (operator === '$default' && schema.$type) {
       if (!Types[schema.$type](value))
-        throw new ValidallError(`invalid '${currPath}' argument type: (${typeof value}: ${value}), expected to be of type (${schema.$type})`, currPath);
+        throw new ValidallError(ctx, `invalid '${currPath}' argument type: (${typeof value}: ${value}), expected to be of type (${schema.$type})`, currPath);
     }
 
     else if ((operator === '$filter' || operator === '$strict') && !schema.$props)
-      throw new ValidallError(`'${currPath}' requires a sibling '$props' operator`, currPath);
+      throw new ValidallError(ctx, `'${currPath}' requires a sibling '$props' operator`, currPath);
 
     else if (Operators.isNumberOperator(operator)) {
       schema.$type = "number";

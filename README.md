@@ -151,6 +151,19 @@ console.log(schema.validate({ name: 123 })); // false
 console.log(schema.error.message); // 'invalidName'
 ```
 
+**$message** can be a template that support three keywords **path**, **input** and **inputType** to provide more details when needed.
+
+```ts
+let schema = new Validall({
+  profile: {
+    name: { $type: 'string', $message: 'invalid input, path: {{path}}, input value: ({{inputType}}: {{input}})' }
+  }
+});
+
+console.log(schema.validate({ name: 123 })); // false
+console.log(schema.error.message); // 'invalid input, path: profile.name, input value: (number: 123)'
+```
+
 ## Equality Operators:
 
 ### **$equals:** *any*

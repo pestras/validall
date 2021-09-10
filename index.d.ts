@@ -7,7 +7,6 @@ export declare class Validall {
     private _schema;
     private _error;
     private _ctx;
-    private _checksCount;
     constructor(schema: IRootSchema | {
         [key: string]: ISchema;
     });

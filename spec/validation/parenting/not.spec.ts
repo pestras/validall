@@ -1,3 +1,8 @@
+// Copyright (c) 2021 Pestras
+// 
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
+
 import { Validall } from "../../..";
 
 describe("Testing $not operator", () => {

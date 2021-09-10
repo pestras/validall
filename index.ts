@@ -1,3 +1,8 @@
+// Copyright (c) 2021 Pestras
+// 
+// This software is released under the MIT License.
+// https://opensource.org/licenses/MIT
+
 import { ValidallError } from "./errors";
 import { IRootSchema, ISchema, ValidationContext } from "./interfaces";
 import { validateSchema } from "./validate-schema";
@@ -14,7 +19,7 @@ export class Validall {
   private _schema: ISchema;
   private _error: ValidallError;
   private _ctx = new ValidationContext();
-  private _checksCount = 0;
+  // private _checksCount = 0;
 
   constructor(schema: IRootSchema | { [key: string]: ISchema })
   constructor(name: string, schema: IRootSchema | { [key: string]: ISchema })
@@ -24,7 +29,7 @@ export class Validall {
   ) {
 
     if (name === undefined)
-      throw new ValidallError('expected a schema, got undefined');
+      throw new ValidallError(<ValidationContext>{}, 'expected a schema, got undefined');
 
     if (typeof name === 'string')
       this._name = name;
@@ -59,14 +64,14 @@ export class Validall {
   private _reset() {
     this._error = null;
     this._schema = null;
-    this._checksCount = 0;
+    // this._checksCount = 0;
 
     for (let prop in this._ctx.aliasStates)
       this._ctx.aliasStates[prop] = false;
   }
 
   private _next(ctx: ValidationContext) {
-    this._checksCount += 1;
+    // this._checksCount += 1;
 
     // console.log('');
     // console.log('next - checksCount:', this._checksCount);
@@ -130,7 +135,7 @@ export class Validall {
     this._reset();
 
     if (input === undefined) {
-      this._error = new ValidallError(this._schema.$message || 'undefinedValidallInput');
+      this._error = new ValidallError(<ValidationContext>{}, this._schema.$message || 'undefinedValidallInput');
 
       return false;
     }
@@ -151,7 +156,7 @@ export class Validall {
     try {
       this._next(ctx);
 
-    } catch (e) {
+    } catch (e: any) {
       if (ctx.isSubSchema) throw e;
 
       this._error = e;
