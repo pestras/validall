@@ -131,7 +131,7 @@ export class Validall {
     });
   }
 
-  validate(input: any, path?: string) {
+  validate(input: any, parentCtx?: ValidationContext) {
     this._reset();
 
     if (input === undefined) {
@@ -143,10 +143,10 @@ export class Validall {
     let ctx = this._ctx.clone({
       input,
       currentInput: input,
-      isSubSchema: !!path,
+      parentCtx,
       next: (c: ValidationContext) => this._next(c),
       localPath: '',
-      inputPath: path || ''
+      inputPath: parentCtx?.fullPath || ''
     });
 
     this._prepareSchema(ctx);
@@ -157,7 +157,7 @@ export class Validall {
       this._next(ctx);
 
     } catch (e: any) {
-      if (ctx.isSubSchema) throw e;
+      if (ctx.parentCtx) throw e;
 
       this._error = e;
       return false;

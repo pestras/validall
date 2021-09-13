@@ -10,7 +10,7 @@ import { omit } from "@pestras/toolbox/object/omit";
 import { cast } from "@pestras/toolbox/cast";
 import { Types } from "@pestras/toolbox/types";
 import { ValidallError } from "./errors";
-import { ValidationContext } from "./interfaces";
+import { ISchema, ValidationContext } from "./interfaces";
 import { To, ValidallRepo } from "./util";
 
 const pureOperators = new Set([
@@ -454,7 +454,7 @@ export const Operators = {
    * Validate input date with a reference schema
    */
   $ref(ctx: ValidationContext): void {
-    ValidallRepo.get(ctx.schema.$ref).validate(ctx.currentInput, ctx.fullPath);
+    ValidallRepo.get(ctx.schema.$ref).validate(ctx.currentInput, ctx);
   },
 
   /**
@@ -767,6 +767,18 @@ export const Operators = {
    */
   $filter(ctx: ValidationContext): void {
     let keys = Object.keys(ctx.schema.$props);
+
+    if (ctx.parentCtx && ctx.parentCtx.schema.$props) {
+      keys.push(...Object.keys(ctx.parentCtx.schema.$props))
+    };
+
+    if (ctx.schema.$ref) {
+      let schema: Partial<ISchema> = ValidallRepo.get(ctx.schema.$ref).schema;
+
+      if (schema.$props)
+        keys.push(...Object.keys(schema.$props))
+    }
+
     let omitKeys: string[] = [];
 
     for (let key in ctx.currentInput)
@@ -783,6 +795,18 @@ export const Operators = {
    */
   $strict(ctx: ValidationContext): void {
     let keys = Object.keys(ctx.schema.$props);
+
+    if (ctx.parentCtx && ctx.parentCtx.schema.$props) {
+      keys.push(...Object.keys(ctx.parentCtx.schema.$props))
+    };
+
+    if (ctx.schema.$ref) {
+      let schema: Partial<ISchema> = ValidallRepo.get(ctx.schema.$ref).schema;
+
+      if (schema.$props)
+        keys.push(...Object.keys(schema.$props))
+    }
+    
     // if no keys then strict mode is off
     if (!keys || keys.length === 0)
       return;

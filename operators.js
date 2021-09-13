@@ -403,7 +403,7 @@ exports.Operators = {
      * Validate input date with a reference schema
      */
     $ref(ctx) {
-        util_1.ValidallRepo.get(ctx.schema.$ref).validate(ctx.currentInput, ctx.fullPath);
+        util_1.ValidallRepo.get(ctx.schema.$ref).validate(ctx.currentInput, ctx);
     },
     /**
      * Checks whether thi input value is instanve or the provided class
@@ -691,6 +691,15 @@ exports.Operators = {
      */
     $filter(ctx) {
         let keys = Object.keys(ctx.schema.$props);
+        if (ctx.parentCtx && ctx.parentCtx.schema.$props) {
+            keys.push(...Object.keys(ctx.parentCtx.schema.$props));
+        }
+        ;
+        if (ctx.schema.$ref) {
+            let schema = util_1.ValidallRepo.get(ctx.schema.$ref).schema;
+            if (schema.$props)
+                keys.push(...Object.keys(schema.$props));
+        }
         let omitKeys = [];
         for (let key in ctx.currentInput)
             if (keys.indexOf(key) === -1)
@@ -704,6 +713,15 @@ exports.Operators = {
      */
     $strict(ctx) {
         let keys = Object.keys(ctx.schema.$props);
+        if (ctx.parentCtx && ctx.parentCtx.schema.$props) {
+            keys.push(...Object.keys(ctx.parentCtx.schema.$props));
+        }
+        ;
+        if (ctx.schema.$ref) {
+            let schema = util_1.ValidallRepo.get(ctx.schema.$ref).schema;
+            if (schema.$props)
+                keys.push(...Object.keys(schema.$props));
+        }
         // if no keys then strict mode is off
         if (!keys || keys.length === 0)
             return;

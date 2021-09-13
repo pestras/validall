@@ -100,7 +100,7 @@ class Validall {
                 : get_value_1.getValue(ctx.input, val);
         });
     }
-    validate(input, path) {
+    validate(input, parentCtx) {
         this._reset();
         if (input === undefined) {
             this._error = new errors_1.ValidallError({}, this._schema.$message || 'undefinedValidallInput');
@@ -109,10 +109,10 @@ class Validall {
         let ctx = this._ctx.clone({
             input,
             currentInput: input,
-            isSubSchema: !!path,
+            parentCtx,
             next: (c) => this._next(c),
             localPath: '',
-            inputPath: path || ''
+            inputPath: (parentCtx === null || parentCtx === void 0 ? void 0 : parentCtx.fullPath) || ''
         });
         this._prepareSchema(ctx);
         ctx.schema = this._schema;
@@ -120,7 +120,7 @@ class Validall {
             this._next(ctx);
         }
         catch (e) {
-            if (ctx.isSubSchema)
+            if (ctx.parentCtx)
                 throw e;
             this._error = e;
             return false;

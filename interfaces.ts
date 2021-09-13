@@ -173,7 +173,7 @@ export class ValidationContext {
   parentOperator = '';
   negateMode = false;
   aliasStates: { [key: string]: boolean } = {};
-  isSubSchema: boolean;
+  parentCtx?: ValidationContext;
   next: (ctx: ValidationContext) => void;
 
   constructor(ctx?: Partial<ValidationContext>) {

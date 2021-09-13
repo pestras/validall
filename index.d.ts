@@ -1,5 +1,5 @@
 import { ValidallError } from "./errors";
-import { IRootSchema, ISchema } from "./interfaces";
+import { IRootSchema, ISchema, ValidationContext } from "./interfaces";
 export declare class Validall {
     /** Unique identifier to reference the current instance in other schemas */
     private _name;
@@ -20,5 +20,5 @@ export declare class Validall {
     private _reset;
     private _next;
     private _prepareSchema;
-    validate(input: any, path?: string): boolean;
+    validate(input: any, parentCtx?: ValidationContext): boolean;
 }
