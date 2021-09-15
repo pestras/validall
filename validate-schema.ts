@@ -49,6 +49,9 @@ export function validateSchema(schema: ISchema, path: string, ctx: ValidationCon
     }
 
     else if (operator === '$default' && schema.$type) {
+      if (typeof value === 'string' && value.charAt(0) === '$')
+        return;
+        
       if (!Types[schema.$type](value))
         throw new ValidallError(ctx, `invalid '${currPath}' argument type: (${typeof value}: ${value}), expected to be of type (${schema.$type})`, currPath);
     }

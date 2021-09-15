@@ -1,3 +1,4 @@
+import { castOptions, isOptions } from './interfaces';
 export declare const To: {
     lowercase: (value: string) => string;
     uppercase: (value: string) => string;
@@ -15,3 +16,4 @@ export declare class ReferenceState {
     static HasReference(vName: string, reference: string): boolean;
     static SetReference(vName: string, reference: string): void;
 }
+export declare function cast(to: castOptions, value: any, expected?: isOptions): any;

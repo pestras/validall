@@ -43,6 +43,8 @@ function validateSchema(schema, path, ctx, vName) {
             util_1.ReferenceState.SetReference(value, vName);
         }
         else if (operator === '$default' && schema.$type) {
+            if (typeof value === 'string' && value.charAt(0) === '$')
+                return;
             if (!types_1.Types[schema.$type](value))
                 throw new errors_1.ValidallError(ctx, `invalid '${currPath}' argument type: (${typeof value}: ${value}), expected to be of type (${schema.$type})`, currPath);
         }

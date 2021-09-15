@@ -84,17 +84,30 @@ console.log(schema.validate(input)); // true
 console.log(input); // { value: '' }
 ```
 
+Also $default will be applied when the provided value is an empty string and the *$type* operator was set to 'string' as well.
+
+```ts
+let schema = new Validall({
+  description: { $type: 'string', $default: 'none' },
+});
+
+let input = { description: '' }
+
+console.log(schema.validate(input)); // true
+console.log(input); // { description: 'none' }
+```
+
 **$default** operator accepts special keywords for specific values:
 
 - '$now':
 
-  When default value set to **'$now'**, then assign value will be the current date instance, however it can accept modifiers to make it a **string, Date** or **timestamp**
+  When default value set to **'$now'**, then assign value will be the current date instance, however it can accept modifiers to make it a **string, ISOString** or **timestamp**
 
   ```ts
   let schema = new Validall({
     birthdate: { $default: '$now' } // new Date()
     // or
-    birthdate: { $default: '$now string' } // new Date().toLocalString()
+    birthdate: { $default: '$now string' } // new Date().toLocaleDateString()
     // or
     birthdate: { $default: '$now number' } // new Date().getTime()
     // or
@@ -126,7 +139,7 @@ let schema = new Validall({
 });
 ```
 
-This also applies when using reference path as a default value, when the reference value is undefined or of different type, however the error will be during validation process rather than instantiation time.
+This also applies when using reference path as a default value or $now keyword.
 
 ```ts
 // the following will throw an error with a message 'invalid 'id.$default' argument type: (string: 0), expected to be of type (number)'
@@ -135,8 +148,10 @@ let schema = new Validall({
 });
 
 console.log(schema.validate({ serial: '123' })); // false
-console.log(schema.error.message) // "invalid reference type '$serial' passed to 'id'"
+console.log(schema.error.message) // "invalid default value type passed to 'id'"
 ```
+
+In case we want **Validall** to ignore default value type check, adding ```{ $checkDefaultType: false }``` as a sibling to *$default* operator will do the trick.
 
 ### **$message:** *string*
 
@@ -903,6 +918,18 @@ Changes the type of the current input.
 - **date:** can be casted from numbers and strings.
 - **regexp:** can bes casted from number, strings and booleans.
 - **array:** can be casted from any single value.
+
+Note that *$cast* operator detects whether *$is* operator is a sibling, that will help in some cases, for instance:
+
+```ts
+{
+  // when the input is a string date $cast will try to convert string in a normal way as Number(value) or +value
+  date: { $cast: 'number' },
+
+  // when providing $is: 'date', $cast will change behavior to new Date(value).getTime()
+  date: { $cast: 'number' $is: 'date' }
+}
+```
 
 --------------------------------------------------------------------------------
 Please if any bugs found, create an issue in [github](https://github.com/ammar6885/Validall "Validall github repo").

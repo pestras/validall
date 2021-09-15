@@ -9,7 +9,6 @@ const is_1 = require("@pestras/toolbox/is");
 const get_value_1 = require("@pestras/toolbox/object/get-value");
 const inject_value_1 = require("@pestras/toolbox/object/inject-value");
 const omit_1 = require("@pestras/toolbox/object/omit");
-const cast_1 = require("@pestras/toolbox/cast");
 const types_1 = require("@pestras/toolbox/types");
 const errors_1 = require("./errors");
 const interfaces_1 = require("./interfaces");
@@ -65,6 +64,7 @@ const parentingArrayOperators = new Set([
 ]);
 const skippedOperators = new Set([
     '$default',
+    '$checkDefaultType',
     '$required',
     '$nullable',
     '$message',
@@ -668,7 +668,7 @@ exports.Operators = {
         if (typeof value === 'string') {
             if (value.indexOf("$now") === 0) {
                 if (value.indexOf("string") > -1)
-                    value = new Date().toLocaleString();
+                    value = new Date().toLocaleDateString();
                 else if (value.indexOf("number"))
                     value = new Date().getTime();
                 else if (value.indexOf("iso"))
@@ -685,6 +685,8 @@ exports.Operators = {
                     throw new errors_1.ValidallError(ctx, `invalid reference type '$${ref} passed to '${ctx.fullPath}'`);
             }
         }
+        if (ctx.schema.$checkDefaultType !== false && !!ctx.schema.$type && types_1.Types.getTypesOf(value).indexOf(ctx.schema.$type) === -1)
+            throw new errors_1.ValidallError(ctx, `invalid default value type passed to '${ctx.fullPath}'`);
         inject_value_1.injectValue(ctx.input, ctx.localPath, value);
     },
     /**
@@ -745,10 +747,10 @@ exports.Operators = {
     $cast(ctx) {
         try {
             // try to cast src
-            inject_value_1.injectValue(ctx.input, ctx.localPath, cast_1.cast(ctx.currentInput, ctx.schema.$cast));
+            inject_value_1.injectValue(ctx.input, ctx.localPath, util_1.cast(ctx.schema.$cast, ctx.currentInput, ctx.schema.$is));
         }
         catch (err) {
-            throw new errors_1.ValidallError(ctx, `error casting '${ctx.fullPath}' to '${ctx.schema.$cast}'`);
+            throw new errors_1.ValidallError(ctx, `${err}, path: '${ctx.fullPath}'`);
         }
     }
 };

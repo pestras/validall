@@ -78,6 +78,7 @@ export interface IContextuals {
 
 export interface IModifiers {
   $default?: any;
+  $checkDefaultType?: boolean;
   $nullable?: boolean;
   $filter?: boolean;
   $cast?: castOptions;

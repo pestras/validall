@@ -87,6 +87,9 @@ export class Validall {
     if (ctx.currentInput === undefined || ctx.currentInput === null)
       Operators.undefinedOrNullInput(ctx);
 
+    else if (ctx.currentInput === '' && ctx.schema.$type === 'string' && ctx.schema.$default !== undefined)
+      Operators.$default(ctx);
+
     else {
       for (let operator in ctx.schema) {
         // skip none validators operators or already checked operaotrs

@@ -7,11 +7,10 @@ import { Is } from "@pestras/toolbox/is";
 import { getValue } from "@pestras/toolbox/object/get-value";
 import { injectValue } from "@pestras/toolbox/object/inject-value";
 import { omit } from "@pestras/toolbox/object/omit";
-import { cast } from "@pestras/toolbox/cast";
 import { Types } from "@pestras/toolbox/types";
 import { ValidallError } from "./errors";
 import { ISchema, ValidationContext } from "./interfaces";
-import { To, ValidallRepo } from "./util";
+import { cast, To, ValidallRepo } from "./util";
 
 const pureOperators = new Set([
   '$equals',
@@ -68,6 +67,7 @@ const parentingArrayOperators = new Set([
 
 const skippedOperators = new Set([
   '$default',
+  '$checkDefaultType',
   '$required',
   '$nullable',
   '$message',
@@ -741,7 +741,7 @@ export const Operators = {
     if (typeof value === 'string') {
       if (value.indexOf("$now") === 0) {
         if (value.indexOf("string") > -1)
-          value = new Date().toLocaleString();
+          value = new Date().toLocaleDateString();
         else if (value.indexOf("number"))
           value = new Date().getTime();
         else if (value.indexOf("iso"))
@@ -760,6 +760,9 @@ export const Operators = {
           throw new ValidallError(ctx, `invalid reference type '$${ref} passed to '${ctx.fullPath}'`);
       }
     }
+
+    if (ctx.schema.$checkDefaultType !== false && !!ctx.schema.$type && Types.getTypesOf(value).indexOf(ctx.schema.$type) === -1)
+      throw new ValidallError(ctx, `invalid default value type passed to '${ctx.fullPath}'`);
 
     injectValue(ctx.input, ctx.localPath, value);
   },
@@ -834,10 +837,10 @@ export const Operators = {
   $cast(ctx: ValidationContext) {
     try {
       // try to cast src
-      injectValue(ctx.input, ctx.localPath, cast(ctx.currentInput, ctx.schema.$cast));
+      injectValue(ctx.input, ctx.localPath, cast(ctx.schema.$cast, ctx.currentInput, ctx.schema.$is));
     }
-    catch (err) {
-      throw new ValidallError(ctx, `error casting '${ctx.fullPath}' to '${ctx.schema.$cast}'`)
+    catch (err: any) {
+      throw new ValidallError(ctx, `${err}, path: '${ctx.fullPath}'`);
     }
   }
 }
