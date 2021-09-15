@@ -420,6 +420,8 @@ exports.Operators = {
      * Checks whether the input value matches a spcific predeifned pattern
      */
     $is(ctx) {
+        if (['email', 'name', 'url'].includes(ctx.schema.$is) && ctx.currentInput === '' && ctx.schema.$default === '')
+            return;
         if (!is_1.Is[ctx.schema.$is](ctx.currentInput)) {
             let msgSuffix = ["email", "date", "url"].indexOf(ctx.schema.$is) > -1
                 ? `be a valid ${ctx.schema.$is}`
@@ -664,15 +666,7 @@ exports.Operators = {
     $default(ctx) {
         let value = ctx.schema.$default;
         if (typeof value === 'string') {
-            if (value.charAt(0) === "$") {
-                let ref = value.slice(1);
-                value = get_value_1.getValue(ctx.input, ref);
-                if (!value)
-                    throw new errors_1.ValidallError(ctx, `undefined reference '$${ref} passed to '${ctx.fullPath}'`);
-                else if (!!ctx.schema.$type && types_1.Types.getTypesOf(value).indexOf(ctx.schema.$type) === -1)
-                    throw new errors_1.ValidallError(ctx, `invalid reference type '$${ref} passed to '${ctx.fullPath}'`);
-            }
-            else if (value.indexOf("Date.now") === 0) {
+            if (value.indexOf("$now") === 0) {
                 if (value.indexOf("string") > -1)
                     value = new Date().toLocaleString();
                 else if (value.indexOf("number"))
@@ -681,6 +675,14 @@ exports.Operators = {
                     value = new Date().toISOString();
                 else
                     value = new Date();
+            }
+            else if (value.charAt(0) === "$") {
+                let ref = value.slice(1);
+                value = get_value_1.getValue(ctx.input, ref);
+                if (!value)
+                    throw new errors_1.ValidallError(ctx, `undefined reference '$${ref} passed to '${ctx.fullPath}'`);
+                else if (!!ctx.schema.$type && types_1.Types.getTypesOf(value).indexOf(ctx.schema.$type) === -1)
+                    throw new errors_1.ValidallError(ctx, `invalid reference type '$${ref} passed to '${ctx.fullPath}'`);
             }
         }
         inject_value_1.injectValue(ctx.input, ctx.localPath, value);

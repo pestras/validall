@@ -86,23 +86,23 @@ console.log(input); // { value: '' }
 
 **$default** operator accepts special keywords for specific values:
 
-- 'Date.now':
+- '$now':
 
-  When default value set to **'Date.now'**, then assign value will be the current date instance, however it can accept modifiers to make it a **string date** or **timestamp**
+  When default value set to **'$now'**, then assign value will be the current date instance, however it can accept modifiers to make it a **string, Date** or **timestamp**
 
   ```ts
   let schema = new Validall({
-    birthdate: { $default: 'Date.now' } // new Date()
+    birthdate: { $default: '$now' } // new Date()
     // or
-    birthdate: { $default: 'Date.now string' } // new Date().toLocalString()
+    birthdate: { $default: '$now string' } // new Date().toLocalString()
     // or
-    birthdate: { $default: 'Date.now number' } // new Date().getTime()
+    birthdate: { $default: '$now number' } // new Date().getTime()
     // or
-    birthdate: { $default: 'Date.now iso' } // new Date().toISOString()
+    birthdate: { $default: '$now iso' } // new Date().toISOString()
   });
   ```
 
-- '$<:path>':
+- '$<path>':
 
   Assign the current field with the same value of the givin field path form the input object.
 
@@ -339,6 +339,8 @@ console.log(schema.validate({ createDate: '5-8-2021' })); // true
 - notEmpty: checks for not (empty strings, empty arrays or empty objects)
 - number: any thing that can be converted to a number.
 - date: Date, string date or number date
+
+Using one of *('name', 'email', 'url' )* values will throw error on empty strings unless we add ```{ $default: '' }``` as a sibling operator; 
 
 ### **$regex:** *RegExp*
 

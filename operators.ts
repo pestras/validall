@@ -472,6 +472,9 @@ export const Operators = {
    * Checks whether the input value matches a spcific predeifned pattern
    */
   $is(ctx: ValidationContext): void {
+    if (['email', 'name', 'url'].includes(ctx.schema.$is) && ctx.currentInput === '' && ctx.schema.$default === '')
+      return;
+
     if (!Is[ctx.schema.$is](ctx.currentInput)) {
       let msgSuffix = ["email", "date", "url"].indexOf(ctx.schema.$is) > -1
         ? `be a valid ${ctx.schema.$is}`
@@ -479,7 +482,7 @@ export const Operators = {
           ? 'include only alphabetical characters'
           : ctx.schema.$is === "number"
             ? "include only numbers"
-            : "be not empty"
+            : "be not empty";
 
       throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must ${msgSuffix}, got: (${ctx.currentInput})`, ctx.fullPath)
     }
@@ -736,17 +739,7 @@ export const Operators = {
     let value = ctx.schema.$default;
 
     if (typeof value === 'string') {
-      if (value.charAt(0) === "$") {
-        let ref = value.slice(1);
-        value = getValue(ctx.input, ref);
-
-        if (!value)
-          throw new ValidallError(ctx, `undefined reference '$${ref} passed to '${ctx.fullPath}'`);
-        else if (!!ctx.schema.$type && Types.getTypesOf(value).indexOf(ctx.schema.$type) === -1)
-          throw new ValidallError(ctx, `invalid reference type '$${ref} passed to '${ctx.fullPath}'`);
-      }
-
-      else if (value.indexOf("Date.now") === 0) {
+      if (value.indexOf("$now") === 0) {
         if (value.indexOf("string") > -1)
           value = new Date().toLocaleString();
         else if (value.indexOf("number"))
@@ -755,6 +748,16 @@ export const Operators = {
           value = new Date().toISOString();
         else
           value = new Date();
+      }
+
+      else if (value.charAt(0) === "$") {
+        let ref = value.slice(1);
+        value = getValue(ctx.input, ref);
+
+        if (!value)
+          throw new ValidallError(ctx, `undefined reference '$${ref} passed to '${ctx.fullPath}'`);
+        else if (!!ctx.schema.$type && Types.getTypesOf(value).indexOf(ctx.schema.$type) === -1)
+          throw new ValidallError(ctx, `invalid reference type '$${ref} passed to '${ctx.fullPath}'`);
       }
     }
 
@@ -806,7 +809,7 @@ export const Operators = {
       if (schema.$props)
         keys.push(...Object.keys(schema.$props))
     }
-    
+
     // if no keys then strict mode is off
     if (!keys || keys.length === 0)
       return;
