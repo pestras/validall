@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 import { ValidallError } from "./errors";
-import { IRootSchema, ISchema, ValidationContext } from "./interfaces";
+import { IRootSchema, ISchema, Logger, ValidationContext } from "./interfaces";
 import { validateSchema } from "./validate-schema";
 import { extend } from '@pestras/toolbox/object/extend';
 import { setOwnDeepBulkProps } from '@pestras/toolbox/object/set-own-deep-bulk-props';
@@ -18,7 +18,7 @@ export class Validall {
   private _originalSchema: ISchema;
   private _schema: ISchema;
   private _error: ValidallError;
-  private _ctx = new ValidationContext();
+  private _ctx = new ValidationContext({ logger: Validall.Logger, loggerDisabled: Validall.LoggerDisabled });
   // private _checksCount = 0;
 
   constructor(schema: IRootSchema | { [key: string]: ISchema })
@@ -27,7 +27,6 @@ export class Validall {
     name: string | IRootSchema | { [key: string]: ISchema },
     schema?: IRootSchema | { [key: string]: ISchema }
   ) {
-
     if (name === undefined)
       throw new ValidallError(<ValidationContext>{}, 'expected a schema, got undefined');
 
@@ -84,6 +83,9 @@ export class Validall {
 
     ctx.message = ctx.schema.$message || '';
 
+    if (!!ctx.schema.$log)
+      Operators.$log(ctx);
+
     if (ctx.currentInput === undefined || ctx.currentInput === null)
       Operators.undefinedOrNullInput(ctx);
 
@@ -134,7 +136,7 @@ export class Validall {
     });
   }
 
-  validate(input: any, parentCtx?: ValidationContext) {
+  public validate(input: any, parentCtx?: ValidationContext) {
     this._reset();
 
     if (input === undefined) {
@@ -167,5 +169,13 @@ export class Validall {
     }
 
     return true;
+  }
+
+  private static Logger: Logger = console;
+  private static LoggerDisabled = false;
+
+  static UseLogger<T extends Logger>(logger: T, disabled = false) {
+    this.Logger = logger || console;
+    this.LoggerDisabled = disabled;
   }
 }

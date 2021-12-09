@@ -7,6 +7,7 @@ import { Is } from "@pestras/toolbox/is";
 import { getValue } from "@pestras/toolbox/object/get-value";
 import { injectValue } from "@pestras/toolbox/object/inject-value";
 import { omit } from "@pestras/toolbox/object/omit";
+import { compile } from "@pestras/toolbox/string/compile";
 import { Types } from "@pestras/toolbox/types";
 import { ValidallError } from "./errors";
 import { ISchema, ValidationContext } from "./interfaces";
@@ -71,6 +72,8 @@ const skippedOperators = new Set([
   '$required',
   '$nullable',
   '$message',
+  '$log',
+  '$logMode',
   '$then',
   '$else'
 ]);
@@ -147,6 +150,18 @@ export const Operators = {
     if (ctx.schema.$required)
       throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' field is required`, ctx.fullPath);
 
+  },
+
+  $log(ctx: ValidationContext): void {
+    
+    if (ctx.loggerDisabled)
+      return;
+
+    const logMode = ctx.schema.$logMode || 'debug';
+
+    ctx.logger[logMode](`Validall ${logMode}:`)
+
+    ctx.logger[logMode](compile(ctx.schema.$log, ctx));
   },
 
   /**

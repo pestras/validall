@@ -7,6 +7,15 @@ export type isOptions = 'name' | 'email' | 'url' | 'notEmpty' | 'number' | 'date
 export type castOptions = "number" | "string" | "boolean" | "date" | "regexp" | "array";
 export type toOptions = 'lowercase' | 'uppercase' | 'trim' | 'capitalizeFirst' | 'capitalizeFirstAll' | 'path';
 export type typeOptions = 'number' | 'int' | 'float' | 'string' | 'boolean' | 'primitive' | 'date' | 'regexp' | 'function' | 'object' | 'array';
+export type logOption = string;
+
+export interface Logger {
+  log :(...args: any[]) => void;
+  debug :(...args: any[]) => void;
+  info :(...args: any[]) => void;
+  warn :(...args: any[]) => void;
+  error :(...args: any[]) => void;
+}
 
 export interface IComparators {
   $equals?: any;
@@ -100,6 +109,8 @@ export interface INegatables {
 }
 
 export interface IMetaOperators {
+  $log?: logOption; 
+  $logMode?: keyof Logger;
   $message?: string;
   $name?: string | [string | (ISchema & { $as: string }), ...(ISchema & { $as: string })[]];
 }
@@ -144,6 +155,8 @@ export interface IRootSchema {
   $xor?: ISchema[];
   $nor?: ISchema[];
   $type?: typeOptions;
+  $log?: logOption; 
+  $logMode?: keyof Logger;
   $message?: string;
   $length?: INumberValidators | number;
   $cond?: ({ $if: ISchema, $then: ISchema } | { $else?: ISchema; })[];
@@ -165,6 +178,8 @@ export interface IValidationPaths {
 }
 
 export class ValidationContext {
+  logger: Logger;
+  loggerDisabled: boolean;
   currentInput: any;
   input: any;
   schema: Partial<ISchema>;

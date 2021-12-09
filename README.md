@@ -931,6 +931,56 @@ Note that *$cast* operator detects whether *$is* operator is a sibling, that wil
 }
 ```
 
+## Logging
+
+**Validall** provides the options to log messages for debuging purpose.  
+**Validall** uses default *console* utility class for logging, to change that we can use **SetLogger** static method of **Validall**.
+
+```ts
+const PROD = process.env.NODE_ENV === 'production
+
+// the second argument used to disable logging for production builds  
+Validall.SetLogger(customLogger, PROD);
+```
+
+Logger must implements core logging methods to be accepted: *debug, log, info, warn, error*;
+
+To use the log utility **Validall** provides the *$log* operator to do the job.
+
+```ts
+const schema = new Validall({
+  name: { $type: 'string', $requred: true, $message: 'nameRequired', $log: 'input: {{input}}' }
+});
+
+schema.validate(someObject);
+
+// console output
+// Validall debug:
+// input: some value
+// inputPath: name
+```
+
+The default log mode is **debug** to change that we use the **$logMode** operator passing the required mode as string.
+
+```ts
+const schema = new Validall({
+  name: { $type: 'string', $requred: true, $message: 'nameRequired', $log: 'input: {{input}}', $logMode: info'' }
+})
+
+schema.validate(someObject);
+
+// console output
+// Validall info:
+// input: some value
+// inputPath: name
+```
+
+The following are the values that can be logged in each validation block:
+
+```ts
+'currentInput' | 'input' | 'schema' | 'localPath' | 'inputPath' | 'parentOperator' | 'negateMode' | 'aliasStates'
+```
+
 --------------------------------------------------------------------------------
 Please if any bugs found, create an issue in [github](https://github.com/ammar6885/Validall "Validall github repo").
 
