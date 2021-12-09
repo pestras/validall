@@ -350,7 +350,8 @@ export const Operators = {
    * Checks that all fields in Input array are included in the provided list
    */
   $in(ctx: ValidationContext): void {
-    for (let val of ctx.currentInput)
+    const input = Array.isArray(ctx.currentInput) ? ctx.currentInput : [ctx.currentInput];
+    for (let val of input)
       if (!ctx.schema.$in.includes(val)) {
         let type = ctx.parentOperator === '$keys' ? 'property' : 'value';
         throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not have any ${type} out of [${ctx.schema.$in}], got: (${val})`, ctx.fullPath);

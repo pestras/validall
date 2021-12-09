@@ -683,7 +683,7 @@ Makes sure the input array has no value out of the giving list.
 
 ```ts
 let schame = new Schema({
-  roles: { $intersects: ['admin', 'author', 'viewer'] }
+  roles: { $in: ['admin', 'author', 'viewer'] }
 });
 ```
 
@@ -964,7 +964,7 @@ The default log mode is **debug** to change that we use the **$logMode** operato
 
 ```ts
 const schema = new Validall({
-  name: { $type: 'string', $requred: true, $message: 'nameRequired', $log: 'input: {{input}}', $logMode: info'' }
+  name: { $type: 'string', $requred: true, $message: 'nameRequired', $log: 'input: {{input}}', $logMode: 'info' }
 })
 
 schema.validate(someObject);
