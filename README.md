@@ -964,7 +964,7 @@ The default log mode is **debug** to change that we use the **$logMode** operato
 
 ```ts
 const schema = new Validall({
-  name: { $type: 'string', $requred: true, $message: 'nameRequired', $log: 'input: {{input}}', $logMode: 'info' }
+  name: { $type: 'string', $requred: true, $message: 'nameRequired', $log: ['input], $logMode: 'info' }
 })
 
 schema.validate(someObject);

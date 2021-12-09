@@ -159,9 +159,11 @@ export const Operators = {
 
     const logMode = ctx.schema.$logMode || 'debug';
 
-    ctx.logger[logMode](`Validall ${logMode}:`)
-
-    ctx.logger[logMode](compile(ctx.schema.$log, ctx));
+    
+    for (const key of ctx.schema.$log) {
+      ctx.logger[logMode](`Validall ${logMode}: [${key}]`)
+      ctx.logger[logMode](JSON.stringify(ctx[key], null, 2));
+    }
   },
 
   /**

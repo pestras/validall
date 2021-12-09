@@ -34,9 +34,9 @@ export function validateSchema(schema: ISchema, path: string, ctx: ValidationCon
     else if (['$on', '$before', '$after'].indexOf(operator) > -1) {
       if (!Is.date(value))
         throw new ValidallError(ctx, `invalid '${currPath}' date argument: (${typeof value}: ${value})`, currPath);
-      
-        schema[<'$on'>operator] = new Date(schema[<'$on'>operator]);
-        schema.$is = 'date';
+
+      schema[<'$on'>operator] = new Date(schema[<'$on'>operator]);
+      schema.$is = 'date';
 
     } else if (operator === '$ref') {
       if (vName && ReferenceState.HasReference(value, vName))
@@ -51,7 +51,7 @@ export function validateSchema(schema: ISchema, path: string, ctx: ValidationCon
     else if (operator === '$default' && schema.$type) {
       if (typeof value === 'string' && value.charAt(0) === '$')
         return;
-        
+
       if (!Types[schema.$type](value))
         throw new ValidallError(ctx, `invalid '${currPath}' argument type: (${typeof value}: ${value}), expected to be of type (${schema.$type})`, currPath);
     }
@@ -71,8 +71,10 @@ export function validateSchema(schema: ISchema, path: string, ctx: ValidationCon
     }
 
     else if (Operators.isParenting(operator)) {
-      if (operator === '$each' || operator === '$length')
+      if (operator === '$each')
         schema.$type = "array";
+      if (operator === '$length')
+        schema.$type = schema.$type === 'string' ? 'string' : "array";
       else if (operator === '$map' || operator === '$keys' || operator === '$size')
         schema.$type = 'object';
 

@@ -7,7 +7,7 @@ export type isOptions = 'name' | 'email' | 'url' | 'notEmpty' | 'number' | 'date
 export type castOptions = "number" | "string" | "boolean" | "date" | "regexp" | "array";
 export type toOptions = 'lowercase' | 'uppercase' | 'trim' | 'capitalizeFirst' | 'capitalizeFirstAll' | 'path';
 export type typeOptions = 'number' | 'int' | 'float' | 'string' | 'boolean' | 'primitive' | 'date' | 'regexp' | 'function' | 'object' | 'array';
-export type logOption = string;
+export type logOption = (keyof ValidationContext)[];
 
 export interface Logger {
   log :(...args: any[]) => void;
@@ -47,6 +47,8 @@ export interface IArrayValidators {
   $intersects?: any[];
   $in?: any[];
   $message?: string;
+  $log?: logOption; 
+  $logMode?: keyof Logger;
   $name?: string | [string | (ISchema & { $as: string }), ...(ISchema & { $as: string })[]];
 }
 
@@ -63,6 +65,8 @@ export interface INumberValidators {
   $lteRef?: string;
   $inRange?: [number, number];
   $message?: string;
+  $log?: logOption; 
+  $logMode?: keyof Logger;
   $name?: string | [string | (ISchema & { $as: string }), ...(ISchema & { $as: string })[]];
 }
 
@@ -74,6 +78,8 @@ export interface IDateValidators {
   $after?: Date | number | string;
   $afterRef?: string;
   $message?: string;
+  $log?: logOption; 
+  $logMode?: keyof Logger;
   $name?: string | [string | (ISchema & { $as: string }), ...(ISchema & { $as: string })[]];
 }
 
@@ -105,6 +111,8 @@ export interface INegatables {
   $regex?: RegExp;
   $alias?: string;
   $message?: string;
+  $log?: logOption; 
+  $logMode?: keyof Logger;
   $name?: string | [string | (ISchema & { $as: string }), ...(ISchema & { $as: string })[]];
 }
 
@@ -126,6 +134,8 @@ export interface IStructurals {
   $length?: INumberValidators | number;
   $size?: INumberValidators | number;
   $message?: string;
+  $log?: logOption; 
+  $logMode?: keyof Logger;                                  
   $name?: string | [string | (ISchema & { $as: string }), ...(ISchema & { $as: string })[]];
 }
 
