@@ -158,6 +158,8 @@ export interface IRootSchema {
   $paths?: { [key: string]: ISchema };
   $strict?: boolean;
   $filter?: boolean;
+  $default?: any;
+  $required?: boolean;
   $size?: INumberValidators | number;
   $keys?: IArrayValidators;
   $and?: ISchema[];
