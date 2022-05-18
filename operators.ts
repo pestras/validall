@@ -7,7 +7,6 @@ import { Is } from "@pestras/toolbox/is";
 import { getValue } from "@pestras/toolbox/object/get-value";
 import { injectValue } from "@pestras/toolbox/object/inject-value";
 import { omit } from "@pestras/toolbox/object/omit";
-import { compile } from "@pestras/toolbox/string/compile";
 import { Types } from "@pestras/toolbox/types";
 import { ValidallError } from "./errors";
 import { ISchema, ValidationContext } from "./interfaces";
@@ -43,6 +42,7 @@ const pureOperators = new Set([
 
 const parentingOperators = new Set([
   '$each',
+  '$tuple',
   '$map',
   '$keys',
   '$length',
@@ -587,6 +587,18 @@ export const Operators = {
         currentInput: ctx.currentInput[i],
         localPath: ValidationContext.JoinPath(ctx.localPath, i),
         schema: ctx.schema.$each
+      }));
+  },
+
+  /**
+   * Loops through each element in the input array and do the validation
+   */
+  $tuple(ctx: ValidationContext): void {
+    for (let i = 0; i < ctx.currentInput.length; i++)
+      ctx.next(ctx.clone({
+        currentInput: ctx.currentInput[i],
+        localPath: ValidationContext.JoinPath(ctx.localPath, i),
+        schema: ctx.schema.$tuple[i]
       }));
   },
 

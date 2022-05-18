@@ -43,6 +43,7 @@ export interface IComparators {
 
 export interface IArrayValidators {
   $each?: ISchema;
+  $tuple?: ISchema[];
   $length?: INumberValidators | number;
   $intersects?: any[];
   $in?: any[];
@@ -127,6 +128,7 @@ export interface IStructurals {
   $required?: boolean;
   $strict?: boolean;
   $each?: ISchema;
+  $tuple?: ISchema[];
   $map?: ISchema;
   $props?: { [key: string]: ISchema };
   $paths?: { [key: string]: ISchema };
@@ -154,6 +156,7 @@ export interface IConditionalOperators {
 export interface IRootSchema {
   $props?: { [key: string]: ISchema };
   $each?: ISchema;
+  $tuple?: ISchema[];
   $ref?: string;
   $paths?: { [key: string]: ISchema };
   $strict?: boolean;

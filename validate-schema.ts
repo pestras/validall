@@ -71,10 +71,15 @@ export function validateSchema(schema: ISchema, path: string, ctx: ValidationCon
     }
 
     else if (Operators.isParenting(operator)) {
-      if (operator === '$each')
+      if (operator === '$each' || operator === '$tuple') {
         schema.$type = "array";
-      if (operator === '$length')
+
+        if (operator === '$tuple')
+          schema.$length = schema.$tuple.length;
+
+      } else if (operator === '$length')
         schema.$type = schema.$type === 'string' ? 'string' : "array";
+        
       else if (operator === '$map' || operator === '$keys' || operator === '$size')
         schema.$type = 'object';
 

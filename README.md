@@ -331,7 +331,7 @@ let schema = new Validall({
 - object
 - array
 
-For array specific types, we can combine **$type** operator with **$each** operator, more on that later.
+For array specific types, we can combine **$type** operator with **$each** or **$tuple** operator, more on that later.
 
 ### **$is:** *isOptions*
 
@@ -648,6 +648,24 @@ schema.validate([{
     email: 'sam@there.com'
 }]);
 ```
+
+### **$tuple:** *ISchema[]*
+
+Validate each element in the input array by the corresponding schema with same index.
+
+```ts
+let schema = new Validall({
+  // used os the root operator instead of $props
+  $tuple: [
+    { $type: 'string' },
+    { $type: 'number' }
+  ]
+});
+
+schema.validate(["John", 35]);
+```
+
+**$tuple** checks for array length that must match its length implicitly.
 
 ### **$length:** *number | INumericOperators*
 
