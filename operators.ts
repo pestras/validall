@@ -42,6 +42,7 @@ const pureOperators = new Set([
 
 const parentingOperators = new Set([
   '$each',
+  '$tuple',
   '$map',
   '$keys',
   '$length',
@@ -71,6 +72,8 @@ const skippedOperators = new Set([
   '$required',
   '$nullable',
   '$message',
+  '$log',
+  '$logMode',
   '$then',
   '$else'
 ]);
@@ -147,6 +150,20 @@ export const Operators = {
     if (ctx.schema.$required)
       throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' field is required`, ctx.fullPath);
 
+  },
+
+  $log(ctx: ValidationContext): void {
+    
+    if (ctx.loggerDisabled)
+      return;
+
+    const logMode = ctx.schema.$logMode || 'debug';
+
+    
+    for (const key of ctx.schema.$log) {
+      ctx.logger[logMode](`Validall ${logMode}: [${key}]`)
+      ctx.logger[logMode](JSON.stringify(ctx[key], null, 2));
+    }
   },
 
   /**
@@ -335,7 +352,8 @@ export const Operators = {
    * Checks that all fields in Input array are included in the provided list
    */
   $in(ctx: ValidationContext): void {
-    for (let val of ctx.currentInput)
+    const input = Array.isArray(ctx.currentInput) ? ctx.currentInput : [ctx.currentInput];
+    for (let val of input)
       if (!ctx.schema.$in.includes(val)) {
         let type = ctx.parentOperator === '$keys' ? 'property' : 'value';
         throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not have any ${type} out of [${ctx.schema.$in}], got: (${val})`, ctx.fullPath);
@@ -569,6 +587,18 @@ export const Operators = {
         currentInput: ctx.currentInput[i],
         localPath: ValidationContext.JoinPath(ctx.localPath, i),
         schema: ctx.schema.$each
+      }));
+  },
+
+  /**
+   * Loops through each element in the input array and do the validation
+   */
+  $tuple(ctx: ValidationContext): void {
+    for (let i = 0; i < ctx.currentInput.length; i++)
+      ctx.next(ctx.clone({
+        currentInput: ctx.currentInput[i],
+        localPath: ValidationContext.JoinPath(ctx.localPath, i),
+        schema: ctx.schema.$tuple[i]
       }));
   },
 
