@@ -1,16 +1,12 @@
+// deno-lint-ignore-file no-explicit-any
 // Copyright (c) 2021 Pestras
 // 
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { Is } from "@pestras/toolbox/is";
-import { getValue } from "@pestras/toolbox/object/get-value";
-import { injectValue } from "@pestras/toolbox/object/inject-value";
-import { omit } from "@pestras/toolbox/object/omit";
-import { Types } from "@pestras/toolbox/types";
-import { ValidallError } from "./errors";
-import { ISchema, ValidationContext } from "./interfaces";
-import { cast, To, ValidallRepo } from "./util";
+import { ValidallError } from "./errors.ts";
+import { ISchema, ValidationContext } from "./interfaces.ts";
+import { cast, To, ValidallRepo, Types, Is, getValue, injectValue, omit } from "./util.ts";
 
 const pureOperators = new Set([
   '$equals',
@@ -90,10 +86,10 @@ const numberOperators = new Set([
   '$inRange'
 ]);
 
-const modifierOperators = new Set([
-  '$to',
-  '$cast'
-])
+// const modifierOperators = new Set([
+//   '$to',
+//   '$cast'
+// ])
 
 export const Operators = {
 
@@ -130,16 +126,16 @@ export const Operators = {
     // if src is null and $nullable is enabled
     // register field to validator nullables then exit
     if (ctx.currentInput === null)
-      if (ctx.schema.$nullable) return;
+      if (ctx.schema?.$nullable) return;
       else throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' is not nullable`, ctx.fullPath);
 
     // if input is undefined and $default operator was set, use the default value
-    if (ctx.schema.$default !== undefined)
+    if (ctx.schema?.$default !== undefined)
       return this.$default(ctx);
 
     // if $default was not set
     // check if $nullable operator is set to true
-    if (ctx.schema.$nullable) {
+    if (ctx.schema?.$nullable) {
       if (ctx.localPath)
         injectValue(ctx.input, ctx.localPath, null);
 
@@ -147,59 +143,59 @@ export const Operators = {
     }
 
     // if field is required throw a validation error
-    if (ctx.schema.$required)
+    if (ctx.schema?.$required)
       throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' field is required`, ctx.fullPath);
 
   },
 
   $log(ctx: ValidationContext): void {
-    
+
     if (ctx.loggerDisabled)
       return;
 
-    const logMode = ctx.schema.$logMode || 'debug';
+    const logMode = ctx.schema?.$logMode || 'debug';
 
-    
-    for (const key of ctx.schema.$log) {
-      ctx.logger[logMode](`Validall ${logMode}: [${key}]`)
-      ctx.logger[logMode](JSON.stringify(ctx[key], null, 2));
-    }
+    if (ctx.schema?.$log && ctx.logger)
+      for (const key of ctx.schema?.$log) {
+        ctx.logger[logMode](`Validall ${logMode}: [${key}]`)
+        ctx.logger[logMode](JSON.stringify(ctx[key], null, 2));
+      }
   },
 
   /**
    * Checks whether the current value equals the value provided: shollow comparission
    */
   $equals(ctx: ValidationContext): void {
-    if (ctx.currentInput === ctx.schema.$equals && ctx.negateMode)
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not equal '${ctx.schema.$equals}'`, ctx.fullPath);
+    if (ctx.currentInput === ctx.schema?.$equals && ctx.negateMode)
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not equal '${ctx.schema?.$equals}'`, ctx.fullPath);
 
-    else if (ctx.currentInput !== ctx.schema.$equals && !ctx.negateMode)
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must equal '${ctx.schema.$equals}', got: (${typeof ctx.currentInput}, '${ctx.currentInput}')`, ctx.fullPath);
+    else if (ctx.currentInput !== ctx.schema?.$equals && !ctx.negateMode)
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must equal '${ctx.schema?.$equals}', got: (${typeof ctx.currentInput}, '${ctx.currentInput}')`, ctx.fullPath);
   },
 
   /**
    * Checks whether the current value equals the referenced value provided: shollow comparission
    */
   $equalsRef(ctx: ValidationContext): void {
-    if (ctx.currentInput === ctx.schema.$equalsRef && ctx.negateMode)
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not equal '${ctx.schema.$equalsRef}'`, ctx.fullPath);
+    if (ctx.currentInput === ctx.schema?.$equalsRef && ctx.negateMode)
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not equal '${ctx.schema?.$equalsRef}'`, ctx.fullPath);
 
-    else if (ctx.currentInput !== ctx.schema.$equalsRef && !ctx.negateMode)
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must equal '${ctx.schema.$equalsRef}', got: (${typeof ctx.currentInput}, '${ctx.currentInput}')`, ctx.fullPath);
+    else if (ctx.currentInput !== ctx.schema?.$equalsRef && !ctx.negateMode)
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must equal '${ctx.schema?.$equalsRef}', got: (${typeof ctx.currentInput}, '${ctx.currentInput}')`, ctx.fullPath);
   },
 
   /**
    * Checks whether the current value is greater than the one provided
    */
   $gt(ctx: ValidationContext): void {
-    if (ctx.currentInput <= ctx.schema.$gt) {
-      let context = ctx.parentOperator === '$size'
+    if (ctx.currentInput <= ctx.schema?.$gt!) {
+      const context = ctx.parentOperator === '$size'
         ? 'size'
         : ctx.parentOperator === '$length'
           ? 'length'
           : 'value';
 
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be greater than ${ctx.schema.$gt}, got: ${ctx.currentInput}`, ctx.fullPath)
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be greater than ${ctx.schema?.$gt}, got: ${ctx.currentInput}`, ctx.fullPath)
     }
   },
 
@@ -207,14 +203,14 @@ export const Operators = {
    * Checks whether the current value is greater than the reference provided
    */
   $gtRef(ctx: ValidationContext): void {
-    if (ctx.currentInput <= ctx.schema.$gtRef) {
-      let context = ctx.parentOperator === '$size'
+    if (ctx.currentInput <= ctx.schema?.$gtRef!) {
+      const context = ctx.parentOperator === '$size'
         ? 'size'
         : ctx.parentOperator === '$length'
           ? 'length'
           : 'value';
 
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be greater than ${ctx.schema.$gtRef}, got: ${ctx.currentInput}`, ctx.fullPath)
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be greater than ${ctx.schema?.$gtRef}, got: ${ctx.currentInput}`, ctx.fullPath)
     }
   },
 
@@ -222,14 +218,14 @@ export const Operators = {
    * Checks whether the current value is greater than or equals to the one provided
    */
   $gte(ctx: ValidationContext): void {
-    if (ctx.currentInput < ctx.schema.$gte) {
-      let context = ctx.parentOperator === '$size'
+    if (ctx.currentInput < ctx.schema?.$gte!) {
+      const context = ctx.parentOperator === '$size'
         ? 'size'
         : ctx.parentOperator === '$length'
           ? 'length'
           : 'value';
 
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be greater than or equals to ${ctx.schema.$gte}, got: ${ctx.currentInput}`, ctx.fullPath)
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be greater than or equals to ${ctx.schema?.$gte}, got: ${ctx.currentInput}`, ctx.fullPath)
     }
   },
 
@@ -237,14 +233,14 @@ export const Operators = {
    * Checks whether the current value is greater than or equals to the reference provided
    */
   $gteRef(ctx: ValidationContext): void {
-    if (ctx.currentInput < ctx.schema.$gteRef) {
-      let context = ctx.parentOperator === '$size'
+    if (ctx.currentInput < ctx.schema?.$gteRef!) {
+      const context = ctx.parentOperator === '$size'
         ? 'size'
         : ctx.parentOperator === '$length'
           ? 'length'
           : 'value';
 
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be greater than or equals to ${ctx.schema.$gteRef}, got: ${ctx.currentInput}`, ctx.fullPath)
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be greater than or equals to ${ctx.schema?.$gteRef}, got: ${ctx.currentInput}`, ctx.fullPath)
     }
   },
 
@@ -252,14 +248,14 @@ export const Operators = {
    * Checks whether the current value is less than the one provided
    */
   $lt(ctx: ValidationContext): void {
-    if (ctx.currentInput >= ctx.schema.$lt) {
-      let context = ctx.parentOperator === '$size'
+    if (ctx.currentInput >= ctx.schema?.$lt!) {
+      const context = ctx.parentOperator === '$size'
         ? 'size'
         : ctx.parentOperator === '$length'
           ? 'length'
           : 'value';
 
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be less than ${ctx.schema.$lt}, got: ${ctx.currentInput}`, ctx.fullPath)
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be less than ${ctx.schema?.$lt}, got: ${ctx.currentInput}`, ctx.fullPath)
     }
   },
 
@@ -267,14 +263,14 @@ export const Operators = {
    * Checks whether the current value is less than the reference provided
    */
   $ltRef(ctx: ValidationContext): void {
-    if (ctx.currentInput >= ctx.schema.$ltRef) {
-      let context = ctx.parentOperator === '$size'
+    if (ctx.currentInput >= ctx.schema?.$ltRef!) {
+      const context = ctx.parentOperator === '$size'
         ? 'size'
         : ctx.parentOperator === '$length'
           ? 'length'
           : 'value';
 
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be less than ${ctx.schema.$ltRef}, got: ${ctx.currentInput}`, ctx.fullPath)
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be less than ${ctx.schema?.$ltRef}, got: ${ctx.currentInput}`, ctx.fullPath)
     }
   },
 
@@ -282,14 +278,14 @@ export const Operators = {
    * Checks whether the current value is less than or equals to the one provided
    */
   $lte(ctx: ValidationContext): void {
-    if (ctx.currentInput > ctx.schema.$lte) {
-      let context = ctx.parentOperator === '$size'
+    if (ctx.currentInput > ctx.schema?.$lte!) {
+      const context = ctx.parentOperator === '$size'
         ? 'size'
         : ctx.parentOperator === '$length'
           ? 'length'
           : 'value';
 
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be less than or equals to ${ctx.schema.$lte}, got: ${ctx.currentInput}`, ctx.fullPath)
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be less than or equals to ${ctx.schema?.$lte}, got: ${ctx.currentInput}`, ctx.fullPath)
     }
   },
 
@@ -297,14 +293,14 @@ export const Operators = {
    * Checks whether the current value is less than or equals to the reference provided
    */
   $lteRef(ctx: ValidationContext): void {
-    if (ctx.currentInput > ctx.schema.$lteRef) {
-      let context = ctx.parentOperator === '$size'
+    if (ctx.currentInput > ctx.schema?.$lteRef!) {
+      const context = ctx.parentOperator === '$size'
         ? 'size'
         : ctx.parentOperator === '$length'
           ? 'length'
           : 'value';
 
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be less than or equals to ${ctx.schema.$lteRef}, got: ${ctx.currentInput}`, ctx.fullPath)
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be less than or equals to ${ctx.schema?.$lteRef}, got: ${ctx.currentInput}`, ctx.fullPath)
     }
   },
 
@@ -312,8 +308,11 @@ export const Operators = {
    * Checks whether the current value is in the range provided
    */
   $inRange(ctx: ValidationContext): void {
-    let inRange = ctx.currentInput >= ctx.schema.$inRange[0] && ctx.currentInput <= ctx.schema.$inRange[1];
-    let context = ctx.parentOperator === '$size'
+    if (!ctx.schema?.$inRange)
+      return;
+
+    const inRange = ctx.currentInput >= ctx.schema?.$inRange[0] && ctx.currentInput <= ctx.schema?.$inRange[1];
+    const context = ctx.parentOperator === '$size'
       ? 'size'
       : ctx.parentOperator === '$length'
         ? 'length'
@@ -321,9 +320,9 @@ export const Operators = {
 
     if (inRange) {
       if (ctx.negateMode)
-        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be out of range between [${ctx.schema.$inRange}], got: ${ctx.currentInput}`, ctx.fullPath)
+        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be out of range between [${ctx.schema?.$inRange}], got: ${ctx.currentInput}`, ctx.fullPath)
     } else
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be in range between [${ctx.schema.$inRange}], got: ${ctx.currentInput}`, ctx.fullPath)
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be in range between [${ctx.schema?.$inRange}], got: ${ctx.currentInput}`, ctx.fullPath)
   },
 
   /**
@@ -331,21 +330,21 @@ export const Operators = {
    * In negate mode input data must not share any value with provided list
    */
   $intersects(ctx: ValidationContext): void {
-    let type = ctx.parentOperator === '$keys' ? 'property' : 'value';
-    let [looper, checker]: [string[], string[]] = ctx.currentInput.length < ctx.schema.$intersects
-      ? [ctx.currentInput, ctx.schema.$intersects]
-      : [ctx.schema.$intersects, ctx.currentInput];
+    const type = ctx.parentOperator === '$keys' ? 'property' : 'value';
+    const [looper, checker]: [string[], string[]] = ctx.currentInput.length < (ctx.schema?.$intersects as string[])
+      ? [ctx.currentInput, ctx.schema?.$intersects as string[]]
+      : [ctx.schema?.$intersects as string[], ctx.currentInput];
 
-    for (let prop of looper) {
+    for (const prop of looper) {
       if (checker.includes(prop))
         if (ctx.negateMode)
-          throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not have any ${type} with [${ctx.schema.$intersects}], got: (${prop})`, ctx.fullPath)
+          throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not have any ${type} with [${ctx.schema?.$intersects}], got: (${prop})`, ctx.fullPath)
         else
           return;
     }
 
     if (!ctx.negateMode)
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must have at least on ${type} with [${ctx.schema.$intersects}]`, ctx.fullPath);
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must have at least on ${type} with [${ctx.schema?.$intersects}]`, ctx.fullPath);
   },
 
   /**
@@ -353,10 +352,10 @@ export const Operators = {
    */
   $in(ctx: ValidationContext): void {
     const input = Array.isArray(ctx.currentInput) ? ctx.currentInput : [ctx.currentInput];
-    for (let val of input)
-      if (!ctx.schema.$in.includes(val)) {
-        let type = ctx.parentOperator === '$keys' ? 'property' : 'value';
-        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not have any ${type} out of [${ctx.schema.$in}], got: (${val})`, ctx.fullPath);
+    for (const val of input)
+      if (!ctx.schema?.$in?.includes(val)) {
+        const type = ctx.parentOperator === '$keys' ? 'property' : 'value';
+        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not have any ${type} out of [${ctx.schema?.$in}], got: (${val})`, ctx.fullPath);
       }
   },
 
@@ -365,32 +364,32 @@ export const Operators = {
    * Or in negate mode, the input string must not be in the provided list
    */
   $enum(ctx: ValidationContext): void {
-    let included = ctx.schema.$enum.includes(ctx.currentInput);
+    const included = ctx.schema?.$enum?.includes(ctx.currentInput);
     if (included && ctx.negateMode)
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not equals any value in [${ctx.schema.$enum}], got: (${ctx.currentInput})`, ctx.fullPath);
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not equals any value in [${ctx.schema?.$enum}], got: (${ctx.currentInput})`, ctx.fullPath);
     else if (!included && !ctx.negateMode)
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must equals any value in [${ctx.schema.$enum}], got: (${ctx.currentInput})`, ctx.fullPath);
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must equals any value in [${ctx.schema?.$enum}], got: (${ctx.currentInput})`, ctx.fullPath);
   },
 
   /**
    * checks whether the input is equal to the provided date
    */
   $on(ctx: ValidationContext): void {
-    let date = new Date(ctx.currentInput);
+    const date = new Date(ctx.currentInput);
 
-    if (date.getTime() === (<Date>ctx.schema.$on).getTime()) {
+    if (date.getTime() === (<Date>ctx.schema?.$on).getTime()) {
       if (ctx.negateMode)
-        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not be on date: '${ctx.schema.$on.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not be on date: '${ctx.schema?.$on?.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
     } else
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be on date: '${ctx.schema.$on.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be on date: '${ctx.schema?.$on?.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
   },
 
   /**
    * checks whether the input is equal to the provided date reference
    */
   $onRef(ctx: ValidationContext): void {
-    let date = new Date(ctx.currentInput);
-    let refDate = new Date(ctx.schema.$onRef);
+    const date = new Date(ctx.currentInput);
+    const refDate = new Date(ctx.schema?.$onRef!);
 
     if (date.getTime() === refDate.getTime()) {
       if (ctx.negateMode)
@@ -403,21 +402,21 @@ export const Operators = {
    * checks whether the input is before the provided date
    */
   $before(ctx: ValidationContext): void {
-    let date = new Date(ctx.currentInput);
+    const date = new Date(ctx.currentInput);
 
-    if (date.getTime() < (<Date>ctx.schema.$before).getTime()) {
+    if (date.getTime() < (<Date>ctx.schema?.$before).getTime()) {
       if (ctx.negateMode)
-        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not be before date: '${ctx.schema.$before.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not be before date: '${ctx.schema?.$before?.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
     } else
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be before date: '${ctx.schema.$before.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be before date: '${ctx.schema?.$before?.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
   },
 
   /**
    * checks whether the input is before the provided date reference
    */
   $beforeRef(ctx: ValidationContext): void {
-    let date = new Date(ctx.currentInput);
-    let refDate = new Date(ctx.schema.$beforeRef);
+    const date = new Date(ctx.currentInput);
+    const refDate = new Date(ctx.schema?.$beforeRef!);
 
     if (date.getTime() < refDate.getTime()) {
       if (ctx.negateMode)
@@ -430,21 +429,21 @@ export const Operators = {
    * checks whether the input is after the provided date
    */
   $after(ctx: ValidationContext): void {
-    let date = new Date(ctx.currentInput);
+    const date = new Date(ctx.currentInput);
 
-    if (date.getTime() > (<Date>ctx.schema.$after).getTime()) {
+    if (date.getTime() > (<Date>ctx.schema?.$after).getTime()) {
       if (ctx.negateMode)
-        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not be after date: '${ctx.schema.$after.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not be after date: '${ctx.schema?.$after?.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
     } else
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be after date: '${ctx.schema.$after.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be after date: '${ctx.schema?.$after?.toLocaleString()}', got: (${date.toLocaleString()})`, ctx.fullPath);
   },
 
   /**
    * checks whether the input is after the provided date reference
    */
   $afterRef(ctx: ValidationContext): void {
-    let date = new Date(ctx.currentInput);
-    let refDate = new Date(ctx.schema.$afterRef);
+    const date = new Date(ctx.currentInput);
+    const refDate = new Date(ctx.schema?.$afterRef!);
 
     if (date.getTime() > refDate.getTime()) {
       if (ctx.negateMode)
@@ -457,14 +456,14 @@ export const Operators = {
    * Checks whether the type of the current value matches the type provided
    */
   $type(ctx: ValidationContext): void {
-    if (Types.getTypesOf(ctx.currentInput).indexOf(ctx.schema.$type) === -1) {
-      let inputType = Array.isArray(ctx.currentInput)
+    if (Types.getTypesOf(ctx.currentInput).indexOf(ctx.schema?.$type!) === -1) {
+      const inputType = Array.isArray(ctx.currentInput)
         ? 'array'
-        : ctx.schema.$type === 'int' || ctx.schema.$type === 'float'
+        : ctx.schema?.$type === 'int' || ctx.schema?.$type === 'float'
           ? Types.getTypesOf(ctx.currentInput)
           : typeof ctx.currentInput;
 
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be of type '${ctx.schema.$type}', got: (${inputType}, ${ctx.currentInput})`, ctx.fullPath);
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be of type '${ctx.schema?.$type}', got: (${inputType}, ${ctx.currentInput})`, ctx.fullPath);
     }
   },
 
@@ -472,33 +471,33 @@ export const Operators = {
    * Validate input date with a reference schema
    */
   $ref(ctx: ValidationContext): void {
-    ValidallRepo.get(ctx.schema.$ref).validate(ctx.currentInput, ctx);
+    ValidallRepo.get(ctx.schema?.$ref!).validate(ctx.currentInput, ctx);
   },
 
   /**
    * Checks whether thi input value is instanve or the provided class
    */
   $instanceof(ctx: ValidationContext): void {
-    if (ctx.currentInput instanceof ctx.schema.$instanceof) {
+    if (ctx.currentInput instanceof ctx.schema?.$instanceof!) {
       if (ctx.negateMode)
-        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not be instance of '${ctx.schema.$instanceof.name}}'`, ctx.fullPath);
+        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not be instance of '${ctx.schema?.$instanceof?.name}}'`, ctx.fullPath);
     } else
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be instance of '${ctx.schema.$instanceof.name}'`, ctx.fullPath);
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be instance of '${ctx.schema?.$instanceof?.name}'`, ctx.fullPath);
   },
 
   /**
    * Checks whether the input value matches a spcific predeifned pattern
    */
   $is(ctx: ValidationContext): void {
-    if (['email', 'name', 'url'].includes(ctx.schema.$is) && ctx.currentInput === '' && ctx.schema.$default === '')
+    if (['email', 'name', 'url'].includes(ctx.schema?.$is!) && ctx.currentInput === '' && ctx.schema?.$default === '')
       return;
 
-    if (!Is[ctx.schema.$is](ctx.currentInput)) {
-      let msgSuffix = ["email", "date", "url"].indexOf(ctx.schema.$is) > -1
-        ? `be a valid ${ctx.schema.$is}`
-        : ctx.schema.$is === "name"
+    if (!Is[ctx.schema?.$is!](ctx.currentInput)) {
+      const msgSuffix = ["email", "date", "url"].indexOf(ctx.schema?.$is!) > -1
+        ? `be a valid ${ctx.schema?.$is}`
+        : ctx.schema?.$is === "name"
           ? 'include only alphabetical characters'
-          : ctx.schema.$is === "number"
+          : ctx.schema?.$is === "number"
             ? "include only numbers"
             : "be not empty";
 
@@ -510,24 +509,24 @@ export const Operators = {
    * Checks whether the previously referenced condition by '$name' operator has passed or not
    */
   $alias(ctx: ValidationContext): void {
-    let passed = ctx.aliasStates[ctx.schema.$alias];
+    const passed = ctx.aliasStates[ctx.schema?.$alias!];
 
     if (passed) {
       if (ctx.negateMode)
-        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' name '${ctx.schema.$alias}' should not pass`, ctx.fullPath);
+        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' name '${ctx.schema?.$alias}' should not pass`, ctx.fullPath);
     } else
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' name '${ctx.schema.$alias}' should pass`, ctx.fullPath);
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' name '${ctx.schema?.$alias}' should pass`, ctx.fullPath);
   },
 
   $name(ctx: ValidationContext): void {
-    for (let test of ctx.schema.$name) {
+    for (const test of ctx.schema?.$name!) {
       if (typeof test === 'string')
         continue;
 
       try {
         ctx.next(ctx.clone({ schema: test }));
         ctx.aliasStates[test.$as] = true;
-      } catch (error) {
+      } catch (_) {
         ctx.aliasStates[test.$as] = false;
       }
     }
@@ -537,11 +536,11 @@ export const Operators = {
    * Checks whether the input value matches a RegExp pattern
    */
   $regex(ctx: ValidationContext): void {
-    if (ctx.schema.$regex.test(ctx.currentInput)) {
+    if (ctx.schema?.$regex?.test(ctx.currentInput)) {
       if (ctx.negateMode)
-        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not match pattern '${ctx.schema.$regex}', got: (${ctx.currentInput})`, ctx.fullPath)
+        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not match pattern '${ctx.schema?.$regex}', got: (${ctx.currentInput})`, ctx.fullPath)
     } else
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must match pattern '${ctx.schema.$regex}', got: (${ctx.currentInput})`, ctx.fullPath)
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must match pattern '${ctx.schema?.$regex}', got: (${ctx.currentInput})`, ctx.fullPath)
   },
 
   /**
@@ -551,7 +550,7 @@ export const Operators = {
   $if(ctx: ValidationContext): boolean {
     try {
       ctx.next(ctx);
-    } catch (error) {
+    } catch (_) {
       return false;
     }
 
@@ -562,7 +561,7 @@ export const Operators = {
    * Loops through provided conditions until one passes or throwing error
    */
   $cond(ctx: ValidationContext) {
-    for (let condition of ctx.schema.$cond) {
+    for (const condition of ctx.schema?.$cond!) {
       if ((<any>condition).$if) {
         if (typeof (<any>condition).$if === 'string') {
           if (ctx.aliasStates[(<any>condition).$if])
@@ -585,8 +584,8 @@ export const Operators = {
     for (let i = 0; i < ctx.currentInput.length; i++)
       ctx.next(ctx.clone({
         currentInput: ctx.currentInput[i],
-        localPath: ValidationContext.JoinPath(ctx.localPath, i),
-        schema: ctx.schema.$each
+        localPath: ValidationContext.JoinPath(ctx.localPath!, i),
+        schema: ctx.schema?.$each
       }));
   },
 
@@ -597,8 +596,8 @@ export const Operators = {
     for (let i = 0; i < ctx.currentInput.length; i++)
       ctx.next(ctx.clone({
         currentInput: ctx.currentInput[i],
-        localPath: ValidationContext.JoinPath(ctx.localPath, i),
-        schema: ctx.schema.$tuple[i]
+        localPath: ValidationContext.JoinPath(ctx.localPath!, i),
+        schema: ctx.schema?.$tuple?.[i]
       }));
   },
 
@@ -606,11 +605,11 @@ export const Operators = {
    * loop through a map or hashmap keys and do the validation
    */
   $map(ctx: ValidationContext): void {
-    for (let prop in ctx.currentInput)
+    for (const prop in ctx.currentInput)
       ctx.next(ctx.clone({
         currentInput: ctx.currentInput[prop],
-        localPath: ValidationContext.JoinPath(ctx.localPath, prop),
-        schema: ctx.schema.$map
+        localPath: ValidationContext.JoinPath(ctx.localPath!, prop),
+        schema: ctx.schema?.$map
       }));
   },
 
@@ -620,7 +619,7 @@ export const Operators = {
   $keys(ctx: ValidationContext): void {
     ctx.next(ctx.clone({
       currentInput: Object.keys(ctx.currentInput),
-      schema: ctx.schema.$keys,
+      schema: ctx.schema?.$keys,
       parentOperator: '$keys'
     }));
   },
@@ -629,15 +628,15 @@ export const Operators = {
    * Puts an array length into the validation context
    */
   $length(ctx: ValidationContext): void {
-    let length = ctx.currentInput.length;
-    if (typeof ctx.schema.$length === 'number') {
-      if (length !== ctx.schema.$length)
-        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' length must be ${ctx.schema.$length}, got: ${length}`);
+    const length = ctx.currentInput.length;
+    if (typeof ctx.schema?.$length === 'number') {
+      if (length !== ctx.schema?.$length)
+        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' length must be ${ctx.schema?.$length}, got: ${length}`);
 
     } else
       ctx.next(ctx.clone({
         currentInput: length,
-        schema: ctx.schema.$length,
+        schema: ctx.schema?.$length,
         parentOperator: '$length'
       }));
   },
@@ -646,15 +645,15 @@ export const Operators = {
    * Puts an object list of keys length into the validation context
    */
   $size(ctx: ValidationContext): void {
-    let size = Object.keys(ctx.currentInput).length;
-    if (typeof ctx.schema.$size === 'number') {
-      if (size !== ctx.schema.$size)
-        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' size must be ${ctx.schema.$size}, got: ${size}`);
+    const size = Object.keys(ctx.currentInput).length;
+    if (typeof ctx.schema?.$size === 'number') {
+      if (size !== ctx.schema?.$size)
+        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' size must be ${ctx.schema?.$size}, got: ${size}`);
 
     } else
       ctx.next(ctx.clone({
         currentInput: size,
-        schema: ctx.schema.$size,
+        schema: ctx.schema?.$size,
         parentOperator: '$size'
       }));
   },
@@ -664,7 +663,7 @@ export const Operators = {
    */
   $not(ctx: ValidationContext): void {
     ctx.next(ctx.clone({
-      schema: ctx.schema.$not,
+      schema: ctx.schema?.$not,
       negateMode: true
     }));
   },
@@ -673,11 +672,11 @@ export const Operators = {
    * Executes individual validation for each property in an object
    */
   $props(ctx: ValidationContext): void {
-    for (let prop in ctx.schema.$props)
+    for (const prop in ctx.schema?.$props)
       ctx.next(ctx.clone({
         currentInput: ctx.currentInput[prop],
-        schema: ctx.schema.$props[prop],
-        localPath: ValidationContext.JoinPath(ctx.localPath, prop)
+        schema: ctx.schema?.$props[prop],
+        localPath: ValidationContext.JoinPath(ctx.localPath!, prop)
       }));
   },
 
@@ -685,11 +684,11 @@ export const Operators = {
    * Executes individual validation for each property path provided 
    */
   $paths(ctx: ValidationContext): void {
-    for (let prop in ctx.schema.$paths)
+    for (const prop in ctx.schema?.$paths)
       ctx.next(ctx.clone({
         currentInput: getValue(ctx.currentInput, prop),
-        schema: ctx.schema.$paths[prop],
-        localPath: ValidationContext.JoinPath(ctx.localPath, prop)
+        schema: ctx.schema?.$paths[prop],
+        localPath: ValidationContext.JoinPath(ctx.localPath!, prop)
       }));
   },
 
@@ -697,11 +696,11 @@ export const Operators = {
    * Makes sure at least on condition passes otherwise throwing an error
    */
   $or(ctx: ValidationContext): void {
-    for (let condition of (ctx.schema.$or)) {
+    for (const condition of (ctx.schema?.$or!)) {
       try {
         ctx.next(ctx.clone({ schema: condition }));
         return;
-      } catch (e) {
+      } catch (_) {
         continue;
       }
     }
@@ -714,7 +713,7 @@ export const Operators = {
    */
   $and(ctx: ValidationContext): void {
     try {
-      for (let condition of ctx.schema.$and)
+      for (const condition of ctx.schema?.$and!)
         ctx.next(ctx.clone({ schema: condition }));
     } catch (e: any) {
       throw new ValidallError(ctx, ctx.message || e.message, e.path);
@@ -725,19 +724,20 @@ export const Operators = {
    * Makes sure only one condition passes otherwise throwing an error
    */
   $xor(ctx: ValidationContext): void {
-    let passedIndexes: number[] = [];
+    const passedIndexes: number[] = [];
 
-    for (let [i, condition] of ctx.schema.$xor.entries()) {
-      try {
-        ctx.next(ctx.clone({ schema: condition }));
-        passedIndexes.push(i);
-      } catch (e) {
-        continue;
+    if (ctx.schema?.$xor)
+      for (const [i, condition] of ctx.schema?.$xor.entries()) {
+        try {
+          ctx.next(ctx.clone({ schema: condition }));
+          passedIndexes.push(i);
+        } catch (_) {
+          continue;
+        }
+
+        if (passedIndexes.length > 1)
+          throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' has passed more then one validation: [${passedIndexes}]`, ctx.fullPath);
       }
-
-      if (passedIndexes.length > 1)
-        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' has passed more then one validation: [${passedIndexes}]`, ctx.fullPath);
-    }
 
     if (passedIndexes.length === 0)
       throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' failed all validations`, ctx.fullPath);
@@ -747,15 +747,17 @@ export const Operators = {
    * Makes sure none conditions pass otherwise throwing an error
    */
   $nor(ctx: ValidationContext): void {
-    let passed: number[] = [];
-    for (let [i, condition] of ctx.schema.$nor.entries()) {
-      try {
-        ctx.next(ctx.clone({ schema: condition }));
-        passed.push(i);
-      } catch (e) {
-        continue;
+    const passed: number[] = [];
+
+    if (ctx.schema?.$nor)
+      for (const [i, condition] of ctx.schema?.$nor.entries()) {
+        try {
+          ctx.next(ctx.clone({ schema: condition }));
+          passed.push(i);
+        } catch (_) {
+          continue;
+        }
       }
-    }
     if (passed.length > 0)
       throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' has passed one or more validation: [${passed}]`, ctx.fullPath);
   },
@@ -766,7 +768,7 @@ export const Operators = {
    * or if a pipe added to converted to string, number or Iso Date string
    */
   $default(ctx: ValidationContext): void {
-    let value = ctx.schema.$default;
+    let value = ctx.schema?.$default;
 
     if (typeof value === 'string') {
       if (value.indexOf("$now") === 0) {
@@ -781,20 +783,20 @@ export const Operators = {
       }
 
       else if (value.charAt(0) === "$") {
-        let ref = value.slice(1);
+        const ref = value.slice(1);
         value = getValue(ctx.input, ref);
 
         if (!value)
           throw new ValidallError(ctx, `undefined reference '$${ref} passed to '${ctx.fullPath}'`);
-        else if (!!ctx.schema.$type && Types.getTypesOf(value).indexOf(ctx.schema.$type) === -1)
+        else if (!!ctx.schema?.$type && Types.getTypesOf(value).indexOf(ctx.schema?.$type) === -1)
           throw new ValidallError(ctx, `invalid reference type '$${ref} passed to '${ctx.fullPath}'`);
       }
     }
 
-    if (ctx.schema.$checkDefaultType !== false && !!ctx.schema.$type && Types.getTypesOf(value).indexOf(ctx.schema.$type) === -1)
+    if (ctx.schema?.$checkDefaultType !== false && !!ctx.schema?.$type && Types.getTypesOf(value).indexOf(ctx.schema?.$type) === -1)
       throw new ValidallError(ctx, `invalid default value type passed to '${ctx.fullPath}'`);
 
-    injectValue(ctx.input, ctx.localPath, value);
+    injectValue(ctx.input, ctx.localPath!, value);
   },
 
   /**
@@ -802,22 +804,22 @@ export const Operators = {
    * in '$props' operator
    */
   $filter(ctx: ValidationContext): void {
-    let keys = Object.keys(ctx.schema.$props);
+    const keys = Object.keys(ctx.schema?.$props!);
 
-    if (ctx.parentCtx && ctx.parentCtx.schema.$props) {
-      keys.push(...Object.keys(ctx.parentCtx.schema.$props))
-    };
+    if (ctx.parentCtx && ctx.parentCtx.schema?.$props) {
+      keys.push(...Object.keys(ctx.parentCtx.schema?.$props))
+    }
 
-    if (ctx.schema.$ref) {
-      let schema: Partial<ISchema> = ValidallRepo.get(ctx.schema.$ref).schema;
+    if (ctx.schema?.$ref) {
+      const schema: Partial<ISchema> = ValidallRepo.get(ctx.schema?.$ref).schema;
 
       if (schema.$props)
         keys.push(...Object.keys(schema.$props))
     }
 
-    let omitKeys: string[] = [];
+    const omitKeys: string[] = [];
 
-    for (let key in ctx.currentInput)
+    for (const key in ctx.currentInput)
       if (keys.indexOf(key) === -1)
         omitKeys.push(key);
 
@@ -830,14 +832,14 @@ export const Operators = {
    * defined in '$props' operator 
    */
   $strict(ctx: ValidationContext): void {
-    let keys = Object.keys(ctx.schema.$props);
+    const keys = Object.keys(ctx.schema?.$props!);
 
-    if (ctx.parentCtx && ctx.parentCtx.schema.$props) {
-      keys.push(...Object.keys(ctx.parentCtx.schema.$props))
-    };
+    if (ctx.parentCtx && ctx.parentCtx.schema?.$props) {
+      keys.push(...Object.keys(ctx.parentCtx.schema?.$props))
+    }
 
-    if (ctx.schema.$ref) {
-      let schema: Partial<ISchema> = ValidallRepo.get(ctx.schema.$ref).schema;
+    if (ctx.schema?.$ref) {
+      const schema: Partial<ISchema> = ValidallRepo.get(ctx.schema?.$ref).schema;
 
       if (schema.$props)
         keys.push(...Object.keys(schema.$props))
@@ -848,17 +850,17 @@ export const Operators = {
       return;
 
     // loop through src keys and find invalid keys
-    for (let key in ctx.currentInput)
+    for (const key in ctx.currentInput)
       if (keys.indexOf(key) === -1)
         throw new ValidallError(ctx, ctx.message || `'${ValidationContext.JoinPath(ctx.fullPath, key)}' field is not allowed`, ctx.fullPath);
   },
 
   $to(ctx: ValidationContext) {
-    for (let method of ctx.schema.$to) {
+    for (const method of ctx.schema?.$to!) {
       try {
-        injectValue(ctx.input, ctx.localPath, To[method](getValue(ctx.input, ctx.localPath)));
+        injectValue(ctx.input, ctx.localPath!, To[method](getValue(ctx.input, ctx.localPath)));
       }
-      catch (err) {
+      catch (_) {
         throw new ValidallError(ctx, `error modifying input value '${ctx.currentInput}' using ($to: ${method})`);
       }
     }
@@ -867,7 +869,7 @@ export const Operators = {
   $cast(ctx: ValidationContext) {
     try {
       // try to cast src
-      injectValue(ctx.input, ctx.localPath, cast(ctx.schema.$cast, ctx.currentInput, ctx.schema.$is));
+      injectValue(ctx.input, ctx.localPath!, cast(ctx.schema?.$cast!, ctx.currentInput, ctx.schema?.$is));
     }
     catch (err: any) {
       throw new ValidallError(ctx, `${err}, path: '${ctx.fullPath}'`);

@@ -3,8 +3,8 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { compile } from '@pestras/toolbox/string/compile';
-import { ValidationContext } from "./interfaces";
+import { compile } from './util.ts';
+import { ValidationContext } from "./interfaces.ts";
 
 /**
  * Validall error class

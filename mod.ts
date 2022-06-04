@@ -1,23 +1,24 @@
+// deno-lint-ignore-file no-explicit-any
 // Copyright (c) 2021 Pestras
 // 
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { ValidallError } from "./errors";
-import { IRootSchema, ISchema, Logger, ValidationContext } from "./interfaces";
-import { validateSchema } from "./validate-schema";
-import { extend } from '@pestras/toolbox/object/extend';
-import { setOwnDeepBulkProps } from '@pestras/toolbox/object/set-own-deep-bulk-props';
-import { getValue } from '@pestras/toolbox/object/get-value';
-import { Operators } from "./operators";
-import { isSchema, ValidallRepo } from "./util";
+import { ValidallError } from "./errors.ts";
+import { IRootSchema, ISchema, Logger, ValidationContext } from "./interfaces.ts";
+import { validateSchema } from "./validate-schema.ts";
+import { Operators } from "./operators.ts";
+import { isSchema, ValidallRepo, getValue, extend, setOwnDeepBulkProps } from "./util.ts";
 
 export class Validall {
+  private static Logger: Logger = console;
+  private static LoggerDisabled = false;
+
   /** Unique identifier to reference the current instance in other schemas */
-  private _name: string;
+  private _name = '';
   private _originalSchema: ISchema;
-  private _schema: ISchema;
-  private _error: ValidallError;
+  private _schema: ISchema | null = null;
+  private _error: ValidallError | null = null;
   private _ctx = new ValidationContext({ logger: Validall.Logger, loggerDisabled: Validall.LoggerDisabled });
   // private _checksCount = 0;
 
@@ -65,7 +66,7 @@ export class Validall {
     this._schema = null;
     // this._checksCount = 0;
 
-    for (let prop in this._ctx.aliasStates)
+    for (const prop in this._ctx.aliasStates)
       this._ctx.aliasStates[prop] = false;
   }
 
@@ -81,19 +82,19 @@ export class Validall {
     // console.log('-----------------------------------------------------------------------------------------');
     // console.log('');
 
-    ctx.message = ctx.schema.$message || '';
+    ctx.message = ctx.schema?.$message || '';
 
-    if (!!ctx.schema.$log)
+    if (ctx.schema?.$log)
       Operators.$log(ctx);
 
     if (ctx.currentInput === undefined || ctx.currentInput === null)
       Operators.undefinedOrNullInput(ctx);
 
-    else if (ctx.currentInput === '' && ctx.schema.$type === 'string' && ctx.schema.$default !== undefined)
+    else if (ctx.currentInput === '' && ctx.schema?.$type === 'string' && ctx.schema.$default !== undefined)
       Operators.$default(ctx);
 
     else {
-      for (let operator in ctx.schema) {
+      for (const operator in ctx.schema) {
         // skip none validators operators or already checked operaotrs
         if (Operators.isSkipping(operator))
           continue;
@@ -105,11 +106,11 @@ export class Validall {
       }
     }
 
-    if (ctx.schema.$name) {
+    if (ctx.schema?.$name) {
       if (typeof ctx.schema.$name === 'string')
       ctx.aliasStates[ctx.schema.$name] = true;
       else
-        for (let $name of ctx.schema.$name)
+        for (const $name of ctx.schema.$name)
           if (typeof $name === 'string')
             ctx.aliasStates[$name] = true;
     }
@@ -140,12 +141,12 @@ export class Validall {
     this._reset();
 
     if (input === undefined) {
-      this._error = new ValidallError(<ValidationContext>{}, this._schema.$message || 'undefinedValidallInput');
+      this._error = new ValidallError(<ValidationContext>{}, this._schema?.$message || 'undefinedValidallInput');
 
       return false;
     }
 
-    let ctx = this._ctx.clone({
+    const ctx = this._ctx.clone({
       input,
       currentInput: input,
       parentCtx,
@@ -156,12 +157,12 @@ export class Validall {
 
     this._prepareSchema(ctx);
 
-    ctx.schema = this._schema;
+    ctx.schema = this._schema ?? undefined;
 
     try {
       this._next(ctx);
 
-    } catch (e: any) {
+    } catch (e) {
       if (ctx.parentCtx) throw e;
 
       this._error = e;
@@ -171,11 +172,8 @@ export class Validall {
     return true;
   }
 
-  private static Logger: Logger = console;
-  private static LoggerDisabled = false;
-
   static UseLogger<T extends Logger>(logger: T, disabled = false) {
-    this.Logger = logger || console;
-    this.LoggerDisabled = disabled;
+    Validall.Logger = logger || console;
+    Validall.LoggerDisabled = disabled;
   }
 }

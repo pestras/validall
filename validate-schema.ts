@@ -3,17 +3,15 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { ValidallError } from "./errors";
-import { ISchema, ValidationContext } from "./interfaces";
-import { Is } from "@pestras/toolbox/is";
-import { Types } from '@pestras/toolbox/types';
-import { Operators } from "./operators";
-import { ReferenceState, ValidallRepo } from "./util";
+import { ValidallError } from "./errors.ts";
+import { ISchema, ValidationContext } from "./interfaces.ts";
+import { ReferenceState, ValidallRepo, Types, Is } from "./util.ts";
+import { Operators } from "./operators.ts";
 
 export function validateSchema(schema: ISchema, path: string, ctx: ValidationContext, vName?: string) {
-  for (let operator in schema) {
-    let currPath = `${path}.${operator}`;
-    let value = schema[<keyof ISchema>operator];
+  for (const operator in schema) {
+    const currPath = `${path}.${operator}`;
+    const value = schema[<keyof ISchema>operator];
 
     // console.log('');
     // console.log(currPath);
@@ -25,7 +23,7 @@ export function validateSchema(schema: ISchema, path: string, ctx: ValidationCon
       if (typeof schema.$name === 'string')
         ctx.aliasStates[schema.$name] = false;
       else
-        for (let $name of schema.$name)
+        for (const $name of schema.$name!)
           if (typeof $name === 'string')
             ctx.aliasStates[$name] = false;
           else
@@ -35,7 +33,7 @@ export function validateSchema(schema: ISchema, path: string, ctx: ValidationCon
       if (!Is.date(value))
         throw new ValidallError(ctx, `invalid '${currPath}' date argument: (${typeof value}: ${value})`, currPath);
 
-      schema[<'$on'>operator] = new Date(schema[<'$on'>operator]);
+      schema[<'$on'>operator] = new Date(schema[<'$on'>operator]!);
       schema.$is = 'date';
 
     } else if (operator === '$ref') {
@@ -45,7 +43,7 @@ export function validateSchema(schema: ISchema, path: string, ctx: ValidationCon
       if (!ValidallRepo.has(value))
         throw new ValidallError(ctx, `'${currPath}' reference not found: (${value})`, currPath);
 
-      ReferenceState.SetReference(value, vName);
+      ReferenceState.SetReference(value, vName!);
     }
 
     else if (operator === '$default' && schema.$type) {
@@ -66,7 +64,7 @@ export function validateSchema(schema: ISchema, path: string, ctx: ValidationCon
     else if (Operators.isParentingObject(operator)) {
       schema.$type = "object";
 
-      for (let prop in schema[<keyof ISchema>operator])
+      for (const prop in schema[<keyof ISchema>operator])
         validateSchema(schema[<keyof ISchema>operator][prop], `${currPath}.${prop}`, ctx);
     }
 
@@ -74,8 +72,12 @@ export function validateSchema(schema: ISchema, path: string, ctx: ValidationCon
       if (operator === '$each' || operator === '$tuple') {
         schema.$type = "array";
 
-        if (operator === '$tuple')
-          schema.$length = schema.$tuple.length;
+        if (operator === '$tuple') {
+          if (!Array.isArray(schema.$tuple))
+            throw new ValidallError(ctx, `'${currPath}' must be an array of validators`, currPath);
+            
+          schema.$length = schema.$tuple?.length;
+        }
 
       } else if (operator === '$length')
         schema.$type = schema.$type === 'string' ? 'string' : "array";
@@ -87,7 +89,7 @@ export function validateSchema(schema: ISchema, path: string, ctx: ValidationCon
     }
 
     else if (Operators.isParentingArray(operator)) {
-      for (let [index, segment] of schema[<keyof ISchema>operator].entries())
+      for (const [index, segment] of schema[<keyof ISchema>operator].entries())
         validateSchema(segment, `${currPath}.[${index}]`, ctx);
     }
   }

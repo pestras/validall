@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 // Copyright (c) 2021 Pestras
 // 
 // This software is released under the MIT License.
@@ -87,6 +88,7 @@ export interface IDateValidators {
 export interface IContextuals {
   $type?: typeOptions;
   $ref?: string;
+  // deno-lint-ignore ban-types
   $instanceof?: Function;
   $is?: isOptions;
   $regex?: RegExp;
@@ -108,6 +110,7 @@ export interface INegatables {
   $intersects?: any[];
   $on?: Date | number | string;
   $onRef?: string;
+  // deno-lint-ignore ban-types
   $instanceof?: Function;
   $regex?: RegExp;
   $alias?: string;
@@ -193,11 +196,11 @@ export interface IValidationPaths {
 }
 
 export class ValidationContext {
-  logger: Logger;
-  loggerDisabled: boolean;
+  logger: Logger | undefined;
+  loggerDisabled = true;
   currentInput: any;
   input: any;
-  schema: Partial<ISchema>;
+  schema: Partial<ISchema> | undefined;
   localPath?: string;
   inputPath?: string;
   message = '';
@@ -205,7 +208,7 @@ export class ValidationContext {
   negateMode = false;
   aliasStates: { [key: string]: boolean } = {};
   parentCtx?: ValidationContext;
-  next: (ctx: ValidationContext) => void;
+  next: ((ctx: ValidationContext) => void) = _ => undefined;
 
   constructor(ctx?: Partial<ValidationContext>) {
     !!ctx && Object.assign(this, ctx);
@@ -216,7 +219,7 @@ export class ValidationContext {
   }
 
   get fullPath() {
-    return ValidationContext.JoinPath(this.inputPath, this.localPath);
+    return ValidationContext.JoinPath(this.inputPath!, this.localPath!);
   }
 
   static JoinPath(parent: string, child: string | number) {
