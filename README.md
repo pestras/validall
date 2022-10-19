@@ -949,6 +949,16 @@ Note that *$cast* operator detects whether *$is* operator is a sibling, that wil
 }
 ```
 
+### **$set**
+
+Reassign the current input.
+
+```ts
+{
+  $cond: [{ $if: $props: { kpi: { $gt: 50 } }, $then: { $set: 50 } }]
+}
+```
+
 ## Logging
 
 **Validall** provides the options to log messages for debuging purpose.  

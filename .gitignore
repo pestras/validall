@@ -1,6 +1,6 @@
 .vscode/**
 node_modules
-test
+test/
 *.js
 *.js.map
 *.d.ts
@@ -8,4 +8,3 @@ test
 !*.spec.js
 TODO.md
 packege-lock.json
-lib/
