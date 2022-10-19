@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "target": "ES2016",
+    "lib": ["ES2016", "DOM"],
     "strict": true,
     "strictNullChecks": false,
     "esModuleInterop": true,
@@ -11,5 +13,5 @@
     "declarationMap": true,
     "allowSyntheticDefaultImports": true
   },
-  "files": ["../src/index.ts"]
+  "files": ["./src/index.ts"]
 }

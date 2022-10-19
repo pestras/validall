@@ -35,7 +35,7 @@ export function validateSchema(schema: ISchema, path: string, ctx: ValidationCon
       if (!Is.date(value))
         throw new ValidallError(ctx, `invalid '${currPath}' date argument: (${typeof value}: ${value})`, currPath);
 
-      schema[<'$on'>operator] = new Date(schema[<'$on'>operator]);
+      schema[<'$on'>operator] = new Date(schema[<'$on'>operator] as string);
       schema.$is = 'date';
 
     } else if (operator === '$ref') {

@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 import { ValidallError } from "./errors";
-import { IRootSchema, ISchema, Logger, ValidationContext } from "./interfaces";
+import { ISchema, Logger, ValidationContext } from "./interfaces";
 import { validateSchema } from "./validate-schema";
 import { getValue, extend, setOwnDeepBulkProps } from './util';
 import { Operators } from "./operators";
@@ -19,11 +19,11 @@ export class Validall {
   private _ctx = new ValidationContext({ logger: Validall.Logger, loggerDisabled: Validall.LoggerDisabled });
   // private _checksCount = 0;
 
-  constructor(schema: IRootSchema | { [key: string]: ISchema })
-  constructor(name: string, schema: IRootSchema | { [key: string]: ISchema })
+  constructor(schema: ISchema | { [key: string]: ISchema })
+  constructor(name: string, schema: ISchema | { [key: string]: ISchema })
   constructor(
-    name: string | IRootSchema | { [key: string]: ISchema },
-    schema?: IRootSchema | { [key: string]: ISchema }
+    name: string | ISchema | { [key: string]: ISchema },
+    schema?: ISchema | { [key: string]: ISchema }
   ) {
     if (name === undefined)
       throw new ValidallError(<ValidationContext>{}, 'expected a schema, got undefined');
@@ -34,7 +34,7 @@ export class Validall {
       schema = name
 
     this._originalSchema = isSchema(schema)
-      ? <IRootSchema>schema
+      ? <ISchema>schema
       : <ISchema>{ $props: schema };
 
     /**
