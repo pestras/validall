@@ -38,16 +38,21 @@ export class Validall {
       : <ISchema>{ $props: schema };
 
     /**
-     * ensure schema is valid
-     */
-    validateSchema(this._originalSchema, 'Schema', this._ctx);
-
-    /**
      * if validator has a name, then it will be saved in the store repo, for later referencing,
      * it will replace any matching previuos validator name if set to replaceSchema
      */
     if (this._name)
       ValidallRepo.set(this._name, this);
+
+    /** ensure schema is valid */
+    try {
+      validateSchema(this._originalSchema, 'Schema', this._ctx);
+    } catch (error) {
+      if (this._name)
+        ValidallRepo.delete(this._name);
+        
+      throw error;
+    }
   }
 
   static Get(name: string): Validall {
@@ -105,7 +110,7 @@ export class Validall {
 
     if (ctx.schema.$name) {
       if (typeof ctx.schema.$name === 'string')
-      ctx.aliasStates[ctx.schema.$name] = true;
+        ctx.aliasStates[ctx.schema.$name] = true;
       else
         for (let $name of ctx.schema.$name)
           if (typeof $name === 'string')

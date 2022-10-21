@@ -154,30 +154,6 @@ export interface IConditionalOperators {
   $cond?: ({ $if: string | ISchema, $then: ISchema } | { $else?: ISchema; })[];
 }
 
-export interface IRootSchema {
-  $props?: { [key: string]: ISchema };
-  $each?: ISchema;
-  $tuple?: ISchema[];
-  $ref?: string;
-  $paths?: { [key: string]: ISchema };
-  $strict?: boolean;
-  $filter?: boolean;
-  $default?: any;
-  $required?: boolean;
-  $size?: INumberValidators | number;
-  $keys?: IArrayValidators;
-  $and?: ISchema[];
-  $or?: ISchema[];
-  $xor?: ISchema[];
-  $nor?: ISchema[];
-  $type?: typeOptions;
-  $log?: logOption; 
-  $logMode?: keyof Logger;
-  $message?: string;
-  $length?: INumberValidators | number;
-  $cond?: ({ $if: ISchema, $then: ISchema } | { $else?: ISchema; })[];
-}
-
 export interface ISchema
   extends
   IComparators,
