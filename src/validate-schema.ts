@@ -33,7 +33,7 @@ export function validateSchema(schema: ISchema, path: string, ctx: ValidationCon
     // check date
     else if (['$on', '$before', '$after'].indexOf(operator) > -1) {
       if (!Is.date(value))
-        throw new ValidallError(ctx, `invalid '${currPath}' date argument: (${typeof value}: ${value})`, currPath);
+        throw new ValidallError(ctx.clone({ fullPath: currPath }), `invalid '${currPath}' date argument: (${typeof value}: ${value})`);
 
       schema[<'$on'>operator] = new Date(schema[<'$on'>operator] as string);
       schema.$is = 'date';
@@ -43,7 +43,7 @@ export function validateSchema(schema: ISchema, path: string, ctx: ValidationCon
         throw new ValidallError(ctx, `cycle referencing between ${value} and ${vName} validators`);
 
       if (!ValidallRepo.has(value))
-        throw new ValidallError(ctx, `'${currPath}' reference not found: (${value})`, currPath);
+        throw new ValidallError(ctx.clone({ fullPath: currPath }), `'${currPath}' reference not found: (${value})`);
 
       ReferenceState.SetReference(value, vName);
     }
@@ -53,11 +53,13 @@ export function validateSchema(schema: ISchema, path: string, ctx: ValidationCon
         return;
 
       if (!Types[schema.$type](value))
-        throw new ValidallError(ctx, `invalid '${currPath}' argument type: (${typeof value}: ${value}), expected to be of type (${schema.$type})`, currPath);
-    }
+        throw new ValidallError(ctx.clone({ fullPath: currPath }), `invalid '${currPath}' argument type: (${typeof value}: ${value}), expected to be of type (${schema.$type})`);
+
+    } else if (operator === '$min' || operator === '$max')
+      schema.$type = 'number';
 
     else if ((operator === '$filter' || operator === '$strict') && !schema.$props)
-      throw new ValidallError(ctx, `'${currPath}' requires a sibling '$props' operator`, currPath);
+      throw new ValidallError(ctx.clone({ fullPath: currPath }), `'${currPath}' requires a sibling '$props' operator`);
 
     else if (Operators.isNumberOperator(operator)) {
       schema.$type = "number";

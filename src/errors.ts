@@ -11,11 +11,17 @@ import { ValidationContext } from "./interfaces";
  */
 export class ValidallError extends Error {
   public path: string;
+  public input: any;
+  public inputType: string;
+  public prop: string;
 
-  constructor(ctx: ValidationContext, message: string, path = '') {
-    super(compile(message, { path: ctx.fullPath, input: ctx.currentInput, inputType: typeof ctx.input } ));
-    
+  constructor(ctx: ValidationContext, message: string) {
+    super(compile(message, { path: ctx.fullPath, input: ctx.currentInput, inputType: typeof ctx.currentInput, prop: ctx.prop }));
+
     this.name = this.constructor.name;
-    this.path = path;
+    this.path = ctx.fullPath;
+    this.input = ctx.currentInput;
+    this.inputType = typeof ctx.input
+    this.prop = ctx.prop;
   }
 }

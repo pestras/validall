@@ -166,17 +166,17 @@ console.log(schema.validate({ name: 123 })); // false
 console.log(schema.error.message); // 'invalidName'
 ```
 
-**$message** can be a template that support three keywords **path**, **input** and **inputType** to provide more details when needed.
+**$message** can be a template that support three keywords **path**, **prop**, **input** and **inputType** to provide more details when needed.
 
 ```ts
 let schema = new Validall({
   profile: {
-    name: { $type: 'string', $message: 'invalid input, path: {{path}}, input value: ({{inputType}}: {{input}})' }
+    name: { $type: 'string', $message: 'invalid input {{prop}}, path: {{path}}, got: (type: {{inputType}}, value: {{input}})' }
   }
 });
 
 console.log(schema.validate({ name: 123 })); // false
-console.log(schema.error.message); // 'invalid input, path: profile.name, input value: (number: 123)'
+console.log(schema.error.message); // 'invalid input name, path: profile.name, got: (type: number, value: 123)'
 ```
 
 ## Equality Operators:
@@ -955,8 +955,29 @@ Reassign the current input.
 
 ```ts
 {
-  $cond: [{ $if: $props: { kpi: { $gt: 50 } }, $then: { $set: 50 } }]
+  // we can use $max operator instead
+  $cond: [{ $if: { $props: { kpi: { $gt: 50 } } }, $then: { $set: 50 } }]
 }
+```
+
+### **$min**
+
+Reassign the current input with minimum value when less than input.
+
+**Note:** **$min** implictly user **$type** 'number' operator.
+
+```ts
+{ totalCharge: { $min: 5 } }
+```
+
+### **$max**
+
+Reassign the current input with maximum value when exceeding input.
+
+**Note:** **$max** implictly user **$type** 'number' operator.
+
+```ts
+{ age: { $max: 100 } }
 ```
 
 ## Logging

@@ -99,6 +99,8 @@ export interface IModifiers {
   $filter?: boolean;
   $cast?: castOptions;
   $set?: any;
+  $min?: number;
+  $max?: number;
   $to?: toOptions[];
 }
 
@@ -188,12 +190,16 @@ export class ValidationContext {
     !!ctx && Object.assign(this, ctx);
   }
 
-  clone(ctx: Partial<ValidationContext>): ValidationContext {
-    return new ValidationContext(Object.assign({}, this, ctx));
-  }
-
   get fullPath() {
     return ValidationContext.JoinPath(this.inputPath, this.localPath);
+  }
+
+  get prop() {
+    return this.localPath.split(".").pop();
+  }
+
+  clone(ctx: Partial<ValidationContext>): ValidationContext {
+    return new ValidationContext(Object.assign({}, this, ctx));
   }
 
   static JoinPath(parent: string, child: string | number) {
