@@ -195,7 +195,7 @@ export class ValidationContext {
   }
 
   get prop() {
-    return this.localPath.split(".").pop();
+    return this.localPath?.split(".").pop() || "";
   }
 
   clone(ctx: Partial<ValidationContext>): ValidationContext {
