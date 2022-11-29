@@ -718,7 +718,7 @@ export const Operators = {
       for (let condition of ctx.schema.$and)
         ctx.next(ctx.clone({ schema: condition }));
     } catch (e: any) {
-      throw new ValidallError(ctx.clone({ fullPath: e.path }), ctx.message || e.message);
+      throw new ValidallError(ctx.clone({ localPath: e.path }), ctx.message || e.message);
     }
   },
 
