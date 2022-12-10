@@ -143,7 +143,7 @@ export class Validall {
     this._reset();
 
     if (input === undefined) {
-      this._error = new ValidallError(<ValidationContext>{}, this._schema.$message || 'undefinedValidallInput');
+      this._error = new ValidallError(<ValidationContext>{}, this._schema?.$message || 'undefinedValidallInput');
 
       return false;
     }
