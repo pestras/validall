@@ -39,6 +39,7 @@ export interface IComparators {
   $after?: Date | number | string;
   $afterRef?: string;
   $alias?: string;
+  $fn?: (value: any, ctx?: ValidationContext) => void | never;
 }
 
 export interface IArrayValidators {
@@ -97,11 +98,11 @@ export interface IModifiers {
   $checkDefaultType?: boolean;
   $nullable?: boolean;
   $filter?: boolean;
-  $cast?: castOptions;
+  $cast?: castOptions | ((value: any, ctx?: ValidationContext) => any | never);
   $set?: any;
   $min?: number;
   $max?: number;
-  $to?: toOptions[];
+  $to?: toOptions[] | ((value: any, ctx?: ValidationContext) => any | never);
 }
 
 export interface INegatables {

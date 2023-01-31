@@ -508,6 +508,27 @@ let schema = new Validall({
 
 We can use other operators at the root level instead of **$props**.
 
+
+### **$fn:** *(value: any, ctx: ValidationContext) => void | never*
+
+Although **Validall** provides many operators trying to handle most case, however excpetions alwayes come on the way.
+Therefor **$fn** operator lets us define our custom validation function.
+
+It when validation fails the function should throw a **ValidallError** or a normal **Error** instance as follows:
+
+```ts
+let schema = new Validall({
+  fullname: {
+    $type: 'string',
+    $fn(value: string, ctx: ValidationContext) {
+      if (value.split(" ").length < 3)
+        throw new ValidallError(ctx, 'middle name and last name must be provided, got: {{input}}')
+    }
+  }
+});
+```
+
+
 ### **$paths:** *{ [key: string]: ISchema }*
 
 It provides the same functionality as **props** operator, however it can jump to nested propertes directly.
@@ -899,7 +920,7 @@ So the previous condition can be written in another way:
 
 ## Modifiers Operators:
 
-### **$to:** toOptions[]
+### **$to:** toOptions[] | (value: any, ctx: ValidationContext) => any
 
 We can modify the input data in some ways using **$to** or **$cast** operators
 
@@ -917,6 +938,14 @@ We can modify the input data in some ways using **$to** or **$cast** operators
 - **capitalizeFirstAll:** capitalize the first character in each string separated by a space.
 - **trim:** trim white space from the start and the end of a string and any repeated space in the middle.
 - **path:** cleans a path from duplicated or repeated slashes also remove any end slashes and any unnecessary '../' in the middle of the path.
+
+Also we can defune our custom function for any special cases:
+
+```ts
+{
+  username: { $type: 'string', $to(value: string) => value.trim().replace(/\s+/, ' ') }
+}
+```
 
 ### **$cast:**
 
@@ -946,6 +975,14 @@ Note that *$cast* operator detects whether *$is* operator is a sibling, that wil
 
   // when providing $is: 'date', $cast will change behavior to new Date(value).getTime()
   date: { $cast: 'number' $is: 'date' }
+}
+```
+
+Also we can defune our custom function for any special cases:
+
+```ts
+{
+  date: { $is: 'date', $cast(value: string) => new Date().getFullYear() }
 }
 ```
 

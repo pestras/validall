@@ -35,7 +35,8 @@ const pureOperators = new Set([
   '$ref',
   '$instanceof',
   '$is',
-  '$regex'
+  '$regex',
+  '$fn'
 ]);
 
 const parentingOperators = new Set([
@@ -93,7 +94,8 @@ const modifierOperators = new Set([
   '$cast',
   '$set',
   '$min',
-  '$max'
+  '$max',
+  '$map'
 ]);
 
 export const Operators = {
@@ -855,23 +857,34 @@ export const Operators = {
   },
 
   $to(ctx: ValidationContext) {
-    for (let method of ctx.schema.$to) {
-      try {
-        injectValue(ctx.input, ctx.localPath, To[method](getValue(ctx.input, ctx.localPath)));
+    if (Array.isArray(ctx.schema.$to)) {
+      for (let method of ctx.schema.$to) {
+        try {
+          injectValue(ctx.input, ctx.localPath, To[method](getValue(ctx.input, ctx.localPath)));
+        }
+        catch (err) {
+          throw new ValidallError(ctx, `error modifying input value '${ctx.currentInput}' using ($to: ${method})`);
+        }
       }
-      catch (err) {
-        throw new ValidallError(ctx, `error modifying input value '${ctx.currentInput}' using ($to: ${method})`);
-      }
+    } else {
+      const newValue = ctx.schema.$to(ctx.currentInput, ctx);
+      injectValue(ctx.input, ctx.localPath, newValue);
     }
   },
 
   $cast(ctx: ValidationContext) {
-    try {
-      // try to cast src
-      injectValue(ctx.input, ctx.localPath, cast(ctx.schema.$cast, ctx.currentInput, ctx.schema.$is));
-    }
-    catch (err: any) {
-      throw new ValidallError(ctx, `${err}, path: '${ctx.fullPath}'`);
+    if (typeof ctx.schema.$cast === "function") {
+      const newValue = ctx.schema.$cast(ctx.currentInput, ctx);
+      injectValue(ctx.input, ctx.localPath, newValue);
+
+    } else {
+      try {
+        // try to cast src
+        injectValue(ctx.input, ctx.localPath, cast(ctx.schema.$cast, ctx.currentInput, ctx.schema.$is));
+      }
+      catch (err: any) {
+        throw new ValidallError(ctx, `${err}, path: '${ctx.fullPath}'`);
+      }
     }
   },
 
@@ -887,5 +900,16 @@ export const Operators = {
   $max(ctx: ValidationContext) {
     if (ctx.currentInput > ctx.schema.$max)
       injectValue(ctx.input, ctx.localPath, ctx.schema.$max);
+  },
+
+  $fn(ctx: ValidationContext) {
+    try {
+      ctx.schema.$fn(ctx.currentInput, ctx);
+    } catch (error: any) {
+      if (error instanceof ValidallError)
+        throw error;
+      else
+        throw new ValidallError(ctx, error.message);
+    }
   }
 }
