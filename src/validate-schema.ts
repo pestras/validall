@@ -79,10 +79,7 @@ export function validateSchema(schema: ISchema, path: string, ctx: ValidationCon
         if (operator === '$tuple')
           schema.$length = schema.$tuple.length;
 
-      } else if (operator === '$length')
-        schema.$type = schema.$type === 'string' ? 'string' : "array";
-        
-      else if (operator === '$map' || operator === '$keys' || operator === '$size')
+      } else if (operator === '$map' || operator === '$keys' || operator === '$size')
         schema.$type = 'object';
 
       validateSchema(schema[<keyof ISchema>operator], `${currPath}`, ctx);
