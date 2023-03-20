@@ -78,14 +78,19 @@ export const Types = {
           types.push(this.typesList[i] + '[]');
 
       if (this.object(value[0])) {
-        types.push(value[0].constructor.name + '[]');
+        types.push((value[0].constructor?.name) || 'object' + '[]');
         types.push('object[]');
       }
     }
 
     if (types.indexOf("object") > -1) {
-      types.push(value.constructor);
-      types.push(value.constructor.name);
+      if (value.constructor) {
+        types.push(value.constructor);
+        types.push(value.constructor.name);
+
+      } else {
+        types.push('object');
+      }
     }
 
     return types;
