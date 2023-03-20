@@ -690,7 +690,7 @@ schema.validate(["John", 35]);
 
 ### **$length:** *number | INumericOperators*
 
-Validates arrays length.
+Validates arrays or strings length.
 
 ```ts
 let schema = new Validall({

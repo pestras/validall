@@ -44,7 +44,7 @@ export const Types = {
   },
 
   object(value: any): boolean {
-    return value && typeof value === "object" && value.toString() === "[object Object]";
+    return value && typeof value === "object" && Object.prototype.toString.call(value) === "[object Object]";
   },
 
   array(value: any): boolean {
