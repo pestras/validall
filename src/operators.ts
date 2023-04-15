@@ -7,7 +7,7 @@ import { Is } from "./is";
 import { getValue, injectValue, omit } from "./util";
 import { Types } from "./types";
 import { ValidallError } from "./errors";
-import { ISchema, ValidationContext } from "./interfaces";
+import { IOperators, ValidationContext } from "./interfaces";
 import { cast, To, ValidallRepo } from "./util";
 
 const pureOperators = new Set([
@@ -49,7 +49,13 @@ const parentingOperators = new Set([
   '$not',
   '$if',
   '$then',
-  '$else'
+  '$else',
+  '$year',
+  '$month',
+  '$day',
+  '$hours',
+  '$minutes',
+  '$seconds',
 ]);
 
 const parentingObjectOperators = new Set([
@@ -196,11 +202,7 @@ export const Operators = {
    */
   $gt(ctx: ValidationContext): void {
     if (ctx.currentInput <= ctx.schema.$gt) {
-      let context = ctx.parentOperator === '$size'
-        ? 'size'
-        : ctx.parentOperator === '$length'
-          ? 'length'
-          : 'value';
+      let context = ctx.parentOperator ? ctx.parentOperator.slice(1) : 'value';
 
       throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be greater than ${ctx.schema.$gt}, got: ${ctx.currentInput}`)
     }
@@ -211,11 +213,7 @@ export const Operators = {
    */
   $gtRef(ctx: ValidationContext): void {
     if (ctx.currentInput <= ctx.schema.$gtRef) {
-      let context = ctx.parentOperator === '$size'
-        ? 'size'
-        : ctx.parentOperator === '$length'
-          ? 'length'
-          : 'value';
+      let context = ctx.parentOperator ? ctx.parentOperator.slice(1) : 'value';
 
       throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be greater than ${ctx.schema.$gtRef}, got: ${ctx.currentInput}`)
     }
@@ -226,11 +224,7 @@ export const Operators = {
    */
   $gte(ctx: ValidationContext): void {
     if (ctx.currentInput < ctx.schema.$gte) {
-      let context = ctx.parentOperator === '$size'
-        ? 'size'
-        : ctx.parentOperator === '$length'
-          ? 'length'
-          : 'value';
+      let context = ctx.parentOperator ? ctx.parentOperator.slice(1) : 'value';
 
       throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be greater than or equals to ${ctx.schema.$gte}, got: ${ctx.currentInput}`)
     }
@@ -241,11 +235,7 @@ export const Operators = {
    */
   $gteRef(ctx: ValidationContext): void {
     if (ctx.currentInput < ctx.schema.$gteRef) {
-      let context = ctx.parentOperator === '$size'
-        ? 'size'
-        : ctx.parentOperator === '$length'
-          ? 'length'
-          : 'value';
+      let context = ctx.parentOperator ? ctx.parentOperator.slice(1) : 'value';
 
       throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be greater than or equals to ${ctx.schema.$gteRef}, got: ${ctx.currentInput}`)
     }
@@ -256,11 +246,7 @@ export const Operators = {
    */
   $lt(ctx: ValidationContext): void {
     if (ctx.currentInput >= ctx.schema.$lt) {
-      let context = ctx.parentOperator === '$size'
-        ? 'size'
-        : ctx.parentOperator === '$length'
-          ? 'length'
-          : 'value';
+      let context = ctx.parentOperator ? ctx.parentOperator.slice(1) : 'value';
 
       throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be less than ${ctx.schema.$lt}, got: ${ctx.currentInput}`)
     }
@@ -271,11 +257,7 @@ export const Operators = {
    */
   $ltRef(ctx: ValidationContext): void {
     if (ctx.currentInput >= ctx.schema.$ltRef) {
-      let context = ctx.parentOperator === '$size'
-        ? 'size'
-        : ctx.parentOperator === '$length'
-          ? 'length'
-          : 'value';
+      let context = ctx.parentOperator ? ctx.parentOperator.slice(1) : 'value';
 
       throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be less than ${ctx.schema.$ltRef}, got: ${ctx.currentInput}`)
     }
@@ -286,11 +268,7 @@ export const Operators = {
    */
   $lte(ctx: ValidationContext): void {
     if (ctx.currentInput > ctx.schema.$lte) {
-      let context = ctx.parentOperator === '$size'
-        ? 'size'
-        : ctx.parentOperator === '$length'
-          ? 'length'
-          : 'value';
+      let context = ctx.parentOperator ? ctx.parentOperator.slice(1) : 'value';
 
       throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be less than or equals to ${ctx.schema.$lte}, got: ${ctx.currentInput}`)
     }
@@ -301,11 +279,7 @@ export const Operators = {
    */
   $lteRef(ctx: ValidationContext): void {
     if (ctx.currentInput > ctx.schema.$lteRef) {
-      let context = ctx.parentOperator === '$size'
-        ? 'size'
-        : ctx.parentOperator === '$length'
-          ? 'length'
-          : 'value';
+      let context = ctx.parentOperator ? ctx.parentOperator.slice(1) : 'value';
 
       throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' ${context} must be less than or equals to ${ctx.schema.$lteRef}, got: ${ctx.currentInput}`)
     }
@@ -316,11 +290,7 @@ export const Operators = {
    */
   $inRange(ctx: ValidationContext): void {
     let inRange = ctx.currentInput >= ctx.schema.$inRange[0] && ctx.currentInput <= ctx.schema.$inRange[1];
-    let context = ctx.parentOperator === '$size'
-      ? 'size'
-      : ctx.parentOperator === '$length'
-        ? 'length'
-        : 'value';
+    let context = ctx.parentOperator ? ctx.parentOperator.slice(1) : 'value';
 
     if (inRange) {
       if (ctx.negateMode)
@@ -454,6 +424,108 @@ export const Operators = {
         throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not be after date: '${refDate.toLocaleString()}', got: (${date.toLocaleString()})`);
     } else
       throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be after date: '${refDate.toLocaleString()}', got: (${date.toLocaleString()})`);
+  },
+
+  /**
+   * Puts date year into the validation context
+   */
+  $year(ctx: ValidationContext): void {
+    let year = new Date(ctx.currentInput).getFullYear();
+    if (typeof ctx.schema.$year === 'number') {
+      if (year !== ctx.schema.$year)
+        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' date year must be ${ctx.schema.$year}, got: ${year}`);
+
+    } else
+      ctx.next(ctx.clone({
+        currentInput: year,
+        schema: ctx.schema.$year,
+        parentOperator: '$year'
+      }));
+  },
+
+  /**
+   * Puts date month into the validation context
+   */
+  $month(ctx: ValidationContext): void {
+    let month = new Date(ctx.currentInput).getMonth() + 1;
+    if (typeof ctx.schema.$month === 'number') {
+      if (month !== ctx.schema.$month)
+        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' date month must be ${ctx.schema.$month}, got: ${month}`);
+
+    } else
+      ctx.next(ctx.clone({
+        currentInput: month,
+        schema: ctx.schema.$month,
+        parentOperator: '$month'
+      }));
+  },
+
+  /**
+   * Puts date day into the validation context
+   */
+  $day(ctx: ValidationContext): void {
+    let day = new Date(ctx.currentInput).getDate();
+    if (typeof ctx.schema.$day === 'number') {
+      if (day !== ctx.schema.$day)
+        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' date day must be ${ctx.schema.$day}, got: ${day}`);
+
+    } else
+      ctx.next(ctx.clone({
+        currentInput: day,
+        schema: ctx.schema.$day,
+        parentOperator: '$day'
+      }));
+  },
+
+  /**
+   * Puts date minutes into the validation context
+   */
+  $minutes(ctx: ValidationContext): void {
+    let minutes = new Date(ctx.currentInput).getMinutes();
+    if (typeof ctx.schema.$minutes === 'number') {
+      if (minutes !== ctx.schema.$minutes)
+        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' date minutes must be ${ctx.schema.$minutes}, got: ${minutes}`);
+
+    } else
+      ctx.next(ctx.clone({
+        currentInput: minutes,
+        schema: ctx.schema.$minutes,
+        parentOperator: '$minutes'
+      }));
+  },
+
+  /**
+   * Puts date seconds into the validation context
+   */
+  $seconds(ctx: ValidationContext): void {
+    let seconds = new Date(ctx.currentInput).getSeconds();
+    if (typeof ctx.schema.$seconds === 'number') {
+      if (seconds !== ctx.schema.$seconds)
+        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' date seconds must be ${ctx.schema.$seconds}, got: ${seconds}`);
+
+    } else
+      ctx.next(ctx.clone({
+        currentInput: seconds,
+        schema: ctx.schema.$seconds,
+        parentOperator: '$seconds'
+      }));
+  },
+
+  /**
+   * Puts date hours into the validation context
+   */
+  $hours(ctx: ValidationContext): void {
+    let hours = new Date(ctx.currentInput).getHours();
+    if (typeof ctx.schema.$hours === 'number') {
+      if (hours !== ctx.schema.$hours)
+        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' date hours must be ${ctx.schema.$hours}, got: ${hours}`);
+
+    } else
+      ctx.next(ctx.clone({
+        currentInput: hours,
+        schema: ctx.schema.$hours,
+        parentOperator: '$hours'
+      }));
   },
 
   /**
@@ -812,7 +884,7 @@ export const Operators = {
     };
 
     if (ctx.schema.$ref) {
-      let schema: Partial<ISchema> = ValidallRepo.get(ctx.schema.$ref).schema;
+      let schema: Partial<IOperators> = ValidallRepo.get(ctx.schema.$ref).schema;
 
       if (schema.$props)
         keys.push(...Object.keys(schema.$props))
@@ -840,7 +912,7 @@ export const Operators = {
     };
 
     if (ctx.schema.$ref) {
-      let schema: Partial<ISchema> = ValidallRepo.get(ctx.schema.$ref).schema;
+      let schema: Partial<IOperators> = ValidallRepo.get(ctx.schema.$ref).schema;
 
       if (schema.$props)
         keys.push(...Object.keys(schema.$props))

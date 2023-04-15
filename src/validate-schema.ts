@@ -4,16 +4,16 @@
 // https://opensource.org/licenses/MIT
 
 import { ValidallError } from "./errors";
-import { ISchema, ValidationContext } from "./interfaces";
+import { IOperators, ValidationContext } from "./interfaces";
 import { Is } from "./is";
 import { Types } from './types';
 import { Operators } from "./operators";
 import { ReferenceState, ValidallRepo } from "./util";
 
-export function validateSchema(schema: ISchema, path: string, ctx: ValidationContext, vName?: string) {
-  for (let operator in schema) {
+export function validateSchema(schema: IOperators, path: string, ctx: ValidationContext, vName?: string) {
+  for (const operator in schema) {
     let currPath = `${path}.${operator}`;
-    let value = schema[<keyof ISchema>operator];
+    let value = schema[<keyof IOperators>operator];
 
     // console.log('');
     // console.log(currPath);
@@ -68,8 +68,8 @@ export function validateSchema(schema: ISchema, path: string, ctx: ValidationCon
     else if (Operators.isParentingObject(operator)) {
       schema.$type = "object";
 
-      for (let prop in schema[<keyof ISchema>operator])
-        validateSchema(schema[<keyof ISchema>operator][prop], `${currPath}.${prop}`, ctx);
+      for (let prop in schema[<keyof IOperators>operator])
+        validateSchema(schema[<keyof IOperators>operator][prop], `${currPath}.${prop}`, ctx);
     }
 
     else if (Operators.isParenting(operator)) {
@@ -82,11 +82,14 @@ export function validateSchema(schema: ISchema, path: string, ctx: ValidationCon
       } else if (operator === '$map' || operator === '$keys' || operator === '$size')
         schema.$type = 'object';
 
-      validateSchema(schema[<keyof ISchema>operator], `${currPath}`, ctx);
+      else if (['$year', '$month', '$day', '$hours', '$minutes', '$seconds'].indexOf(operator) > -1)
+        schema.$is = 'date';
+
+      validateSchema(schema[<keyof IOperators>operator], `${currPath}`, ctx);
     }
 
     else if (Operators.isParentingArray(operator)) {
-      for (let [index, segment] of schema[<keyof ISchema>operator].entries())
+      for (let [index, segment] of schema[<keyof IOperators>operator].entries())
         validateSchema(segment, `${currPath}.[${index}]`, ctx);
     }
   }

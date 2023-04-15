@@ -179,6 +179,8 @@ console.log(schema.validate({ name: 123 })); // false
 console.log(schema.error.message); // 'invalid input name, path: profile.name, got: (type: number, value: 123)'
 ```
 
+----
+
 ## Equality Operators:
 
 ### **$equals:** *any*
@@ -202,6 +204,9 @@ let schema = new Validall({
 
 console.log(schema.validate({ password: 123, repassword: 123 })); // true
 ```
+
+----
+
 
 ## Numerics Operaotrs:
 
@@ -304,6 +309,8 @@ let schema = new Validall({
 
 **Note:** 12 and 18 are considered in range as well.
 
+----
+
 ## Types & Patterns Operators:
 
 ### **$type:** *typeOptions*
@@ -391,6 +398,8 @@ let schema = new Validall({
 });
 ```
 
+----
+
 ## Dates Operators:
 
 ### **$on:** *Date | string | number*
@@ -471,7 +480,93 @@ let schema = new Validall({
 });
 ```
 
-## Objects Operaotrs:
+### **$year:** *number | INumericOperators*
+
+Checks whether the current date year equals the specified value or match nested validation.
+
+```ts
+let schema = new Validall({
+  publish: { $year: 2020 }
+  // or
+  publish: { $year: { $gt: 2020 } }
+});
+```
+
+**$year** operator adds **$is: 'date'** operator implicitly.
+
+### **$month:** *number | INumericOperators*
+
+Checks whether the current date month equals the specified value or match nested validation.
+
+```ts
+let schema = new Validall({
+  publish: { $month: 9 }
+  // or
+  publish: { $month: { $gt: 9 } }
+});
+```
+
+**$month** operator adds **$is: 'date'** operator implicitly.
+
+### **$day:** *number | INumericOperators*
+
+Checks whether the current date day of the month equals the specified value or match nested validation.
+
+```ts
+let schema = new Validall({
+  publish: { $day: 13 }
+  // or
+  publish: { $day: { $gt: 13 } }
+});
+```
+
+**$day** operator adds **$is: 'date'** operator implicitly.
+
+### **$hours:** *number | INumericOperators*
+
+Checks whether the current date hours equal the specified value or match nested validation.
+
+```ts
+let schema = new Validall({
+  publish: { $hours: 12 }
+  // or
+  publish: { $hours: { $gt: 12 } }
+});
+```
+
+**$hours** operator adds **$is: 'date'** operator implicitly.
+
+### **$minutes:** *number | INumericOperators*
+
+Checks whether the current date minutes equal the specified value or match nested validation.
+
+```ts
+let schema = new Validall({
+  publish: { $minutes: 12 }
+  // or
+  publish: { $minutes: { $gt: 12 } }
+});
+```
+
+**$minutes** operator adds **$is: 'date'** operator implicitly.
+
+### **$seconds:** *number | INumericOperators*
+
+Checks whether the current date seconds equal the specified value or match nested validation.
+
+```ts
+let schema = new Validall({
+  publish: { $seconds: 12 }
+  // or
+  publish: { $seconds: { $gt: 12 } }
+});
+```
+
+**$seconds** operator adds **$is: 'date'** operator implicitly.
+
+----
+
+## Objects Operators:
 
 ### **$props:** *{ [key: string]: ISchema }*
 
@@ -480,6 +575,7 @@ Used to validate objects properties.
 ```ts
 let schema = new Validall({
   contacts: {
+    $size: 3,
     $props: {
       name: { $type: 'string' },
       mobile: { $tye: 'string', $is: 'number' },
@@ -488,6 +584,9 @@ let schema = new Validall({
   }
 });
 ```
+
+There is no need to use **props** operator explicitly since it is auto injected when ever an object type is detected, except when we need to validate the whole object as we did using
+**$size** or maybe **$strict** or **$filter** ..etc.
 
 Actually the root object is nested inside **$props** operator implicitly, so the previous example can be rewritten as:
 
@@ -506,7 +605,20 @@ let schema = new Validall({
 });
 ```
 
-We can use other operators at the root level instead of **$props**.
+or
+```ts
+let schema = new Validall({
+  contacts: {
+    name: { $type: 'string' },
+    mobile: { $tye: 'string', $is: 'number' },
+    email: { $is: 'email' }
+  }
+});
+```
+
+much simpler
+
+We can use other operators at the root level instead of **$props** for instance **$each** to validate root array.
 
 
 ### **$fn:** *(value: any, ctx: ValidationContext) => void | never*
@@ -546,18 +658,16 @@ let schema = new Validall({
 
 ### **$map:** *ISchema*
 
-Used to validate map or hashMaps where keys are unknown but values should follow the schema.
+Used to validate map or hashMaps where keys are unknown but values should follow some schema.
 
 ```ts
 let schema = new Validall({
   // used as rool operator instead of $props
   $map: {
-    // each value ot the map is a document with some properties
-    $props: {
-      title: { $type: 'string' $required: true },
-      content: { $type: 'string', $default: '' },
-      createDate: { $is: 'date', $default: 'Date.now number' }
-    }
+    // each value ot the map is a document with the following props
+    title: { $type: 'string' $required: true },
+    content: { $type: 'string', $default: '' },
+    createDate: { $is: 'date', $default: 'Date.now number' }
   }
 });
 ```
@@ -591,7 +701,7 @@ let schema = new Validall({
 
 ### **$strict:** *boolean*
 
-Strict the object keys only to the keys that are defined in sibling **$props** operator, any more key will make the validation fali.
+Strict the object keys only to the keys that are defined in sibling **$props** operator, any other keys will cause the validation fails.
 
 ```ts
 let schema = new Validall({
@@ -641,6 +751,8 @@ console.log(user); // { name: 'John', email 'john@there.com' }
 
 **Note:** Using **$filter** with no **$props** operator, will throw an error the time of instantiation.
 
+----
+
 ## Arrays Operators:
 
 ### **$each:** *ISchema*
@@ -651,10 +763,8 @@ Validate each element in the input array.
 let schema = new Validall({
   // used os the root operator instead of $props
   $each: {
-    $props: {
-      name: { $is: 'name' },
-      email: { $is: 'email' }
-    }
+    name: { $is: 'name' },
+    email: { $is: 'email' }
   }
 });
 
@@ -695,10 +805,8 @@ Validates arrays or strings length.
 ```ts
 let schema = new Validall({
   $each: {
-    $props: {
-      name: { $is: 'name' },
-      email: { $is: 'email' }
-    }
+    name: { $is: 'name' },
+    email: { $is: 'email' }
   },
   // restrict length to specific value
   $length: 10,
@@ -725,6 +833,8 @@ let schame = new Schema({
   roles: { $in: ['admin', 'author', 'viewer'] }
 });
 ```
+
+----
 
 ## Logical Operators:
 
@@ -800,6 +910,8 @@ let schema = new Validall({
 });
 ```
 
+----
+
 ## Conditional Operators:
 
 ### **$cond:**
@@ -816,7 +928,7 @@ let schema = new Validall({
     address: {
       $type: 'string',
       $cond: [
-        { $if: { $props: { type: { $equals: 'company' } } }, $then: { $required: true } },
+        { $if: { type: { $equals: 'company' } }, $then: { $required: true } },
         { $else: { $default: '' } }
       ]
     }
@@ -827,6 +939,8 @@ let schema = new Validall({
 **Note:** **$if** operator always has the root scope whereas **then** and **else** are local scoped.
 
 We can simplify condition using **$name** and **alias** operators, more on that later on.
+
+----
 
 ## Referencial Operators:
 
@@ -890,12 +1004,10 @@ let schema = new Validall({
   }
   // ----------------------------------------
   contacts: {
-    $props: {
-      email: { $is: 'email' },
-      mobile: { $is: 'number' },
-      address: {
-        $cond: [{ $if: 'company', $then: { $required: true } }, { $else: { $default: '' } }],
-      }
+    email: { $is: 'email' },
+    mobile: { $is: 'number' },
+    address: {
+      $cond: [{ $if: 'company', $then: { $required: true } }, { $else: { $default: '' } }],
     }
   }
 });
@@ -909,14 +1021,13 @@ So the previous condition can be written in another way:
 {
   // ...
   contancts: {
-    $props: {
-      email: { $is: 'email' },
-      mobile: { $is: 'number' },
-      address: { $xor: [{ $alias: 'individual' }, { $required: true }]}
-    }
+    // ..
+    address: { $xor: [{ $alias: 'individual' }, { $required: true }]}
   }
 }
 ```
+
+----
 
 ## Modifiers Operators:
 
@@ -993,7 +1104,7 @@ Reassign the current input.
 ```ts
 {
   // we can use $max operator instead
-  $cond: [{ $if: { $props: { kpi: { $gt: 50 } } }, $then: { $set: 50 } }]
+  $cond: [{ $if: { { kpi: { $gt: 50 } }, $then: { $set: 50 } }]
 }
 ```
 
@@ -1016,6 +1127,8 @@ Reassign the current input with maximum value when exceeding input.
 ```ts
 { age: { $max: 100 } }
 ```
+
+----
 
 ## Logging
 

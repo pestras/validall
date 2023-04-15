@@ -43,15 +43,15 @@ export interface IComparators {
 }
 
 export interface IArrayValidators {
-  $each?: ISchema;
-  $tuple?: ISchema[];
+  $each?: ISchema | IOperators;
+  $tuple?: ISchema[] | IOperators[];
   $length?: INumberValidators | number;
   $intersects?: any[];
   $in?: any[];
   $message?: string;
   $log?: logOption; 
   $logMode?: keyof Logger;
-  $name?: string | [string | (ISchema & { $as: string }), ...(ISchema & { $as: string })[]];
+  $name?: string | [string | (IOperators & { $as: string }), ...(IOperators & { $as: string })[]];
 }
 
 export interface INumberValidators {
@@ -69,7 +69,7 @@ export interface INumberValidators {
   $message?: string;
   $log?: logOption; 
   $logMode?: keyof Logger;
-  $name?: string | [string | (ISchema & { $as: string }), ...(ISchema & { $as: string })[]];
+  $name?: string | [string | (IOperators & { $as: string }), ...(IOperators & { $as: string })[]];
 }
 
 export interface IDateValidators {
@@ -82,7 +82,7 @@ export interface IDateValidators {
   $message?: string;
   $log?: logOption; 
   $logMode?: keyof Logger;
-  $name?: string | [string | (ISchema & { $as: string }), ...(ISchema & { $as: string })[]];
+  $name?: string | [string | (IOperators & { $as: string }), ...(IOperators & { $as: string })[]];
 }
 
 export interface IContextuals {
@@ -118,46 +118,52 @@ export interface INegatables {
   $message?: string;
   $log?: logOption; 
   $logMode?: keyof Logger;
-  $name?: string | [string | (ISchema & { $as: string }), ...(ISchema & { $as: string })[]];
+  $name?: string | [string | (IOperators & { $as: string }), ...(IOperators & { $as: string })[]];
 }
 
 export interface IMetaOperators {
   $log?: logOption; 
   $logMode?: keyof Logger;
   $message?: string;
-  $name?: string | [string | (ISchema & { $as: string }), ...(ISchema & { $as: string })[]];
+  $name?: string | [string | (IOperators & { $as: string }), ...(IOperators & { $as: string })[]];
 }
 
 export interface IStructurals {
   $required?: boolean;
   $strict?: boolean;
-  $each?: ISchema;
-  $tuple?: ISchema[];
-  $map?: ISchema;
-  $props?: { [key: string]: ISchema };
-  $paths?: { [key: string]: ISchema };
+  $each?: ISchema | IOperators;
+  $tuple?: ISchema[] | IOperators[];
+  $map?: ISchema | IOperators;
+  $props?: { [key: string]: ISchema | IOperators };
+  $paths?: { [key: string]: ISchema | IOperators };
   $keys?: IArrayValidators;
   $length?: INumberValidators | number;
   $size?: INumberValidators | number;
+  $year?: INumberValidators | number;
+  $month?: INumberValidators | number;
+  $day?: INumberValidators | number;
+  $hours?: INumberValidators | number;
+  $minutes?: INumberValidators | number;
+  $seconds?: INumberValidators | number;
   $message?: string;
   $log?: logOption; 
   $logMode?: keyof Logger;                                  
-  $name?: string | [string | (ISchema & { $as: string }), ...(ISchema & { $as: string })[]];
+  $name?: string | [string | (IOperators & { $as: string }), ...(IOperators & { $as: string })[]];
 }
 
 export interface ILogicals {
   $not?: INegatables;
-  $and?: ISchema[];
-  $or?: ISchema[];
-  $xor?: ISchema[];
-  $nor?: ISchema[];
+  $and?: ISchema[] | IOperators[];
+  $or?: ISchema[] | IOperators[];
+  $xor?: ISchema[] | IOperators[];
+  $nor?: ISchema[] | IOperators[];
 }
 
 export interface IConditionalOperators {
-  $cond?: ({ $if: string | ISchema, $then: ISchema } | { $else?: ISchema; })[];
+  $cond?: ({ $if: string | ISchema | IOperators, $then: ISchema | IOperators } | { $else?: ISchema | IOperators; })[];
 }
 
-export interface ISchema
+export interface IOperators
   extends
   IComparators,
   IContextuals,
@@ -166,6 +172,10 @@ export interface ISchema
   IStructurals,
   ILogicals,
   IConditionalOperators { }
+
+export interface ISchema {
+  [key: string]: IOperators | ISchema;
+}
 
 export interface IValidationPaths {
   localInputPath?: string;
@@ -177,7 +187,7 @@ export class ValidationContext {
   loggerDisabled: boolean;
   currentInput: any;
   input: any;
-  schema: Partial<ISchema>;
+  schema: Partial<IOperators>;
   localPath?: string;
   inputPath?: string;
   message = '';

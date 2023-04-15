@@ -27,6 +27,43 @@ export function isSchema(input: { [key: string]: any }) {
   return Object.keys(input).every(key => key.charAt(0) === '$');
 }
 
+export function plant$propsOperator(schema: any, parent?: { [key: string]: any }, prop?: string) {
+  if (!schema || Types.primitive(schema))
+    return;
+
+  if (Array.isArray(schema)) {
+    for (const el in schema)
+      plant$propsOperator(el);
+
+    return;
+  }
+
+  if (Types.object(schema)) {
+    if (isSchema(schema)) {
+      for (const prop in schema) {
+        if (prop !== '$props' && prop !== '$paths')
+          plant$propsOperator(schema[prop], schema, prop);
+        else
+          plant$propsOperator(schema[prop]);
+      }
+
+      return;
+    }
+
+    for (const prop in schema)
+      plant$propsOperator(schema[prop], schema, prop);
+
+    if (parent && prop)
+      parent[prop] = { $props: schema };
+    else
+      schema = { $props: schema }
+
+  } else
+    return;
+
+  return schema;
+}
+
 export class ReferenceState {
   private static state: { [key: string]: Set<string> } = {};
 
@@ -100,7 +137,7 @@ export function cast(to: castOptions, value: any, expected?: isOptions) {
   if (to === 'array')
     return Array.isArray(value) ? value : [value];
 
-    throw `unsupported cast type ${to}`;
+  throw `unsupported cast type ${to}`;
 }
 
 export function cleanPropPath(path: string = ""): string {
@@ -110,7 +147,7 @@ export function cleanPropPath(path: string = ""): string {
     .replace(/\.{2,}/g, ".");
 }
 
-export function getValue(src: any, path = ""): any { 
+export function getValue(src: any, path = ""): any {
   let parts = cleanPropPath(path).split('.');
   let currentField = parts.shift();
 
@@ -176,7 +213,7 @@ export function setValue(src: any, path: string, value: any | ((curr: any) => an
   }
 
   return setValue(src[currentField], parts.join('.'), value, inject);
-} 
+}
 
 export function injectValue(obj: any, path: string, value: any) { return setValue(obj, path, value, true); }
 
@@ -195,7 +232,7 @@ export function omit(obj: any, props: string[]): any {
 
       if (!temp)
         break;
-        
+
       if (j === path.length - 2) {
         delete temp[path[j + 1]];
         break;
@@ -278,7 +315,7 @@ export function setOwnDeepBulkProps(src: any | any[], props: string[], value: an
 
   for (let key in src) {
     let index = props.indexOf(key);
-    
+
     if (index > -1) {
       (<any>src)[key] = typeof value === "function" ? value((<any>src)[key], props[index]) : value;
     } else {
@@ -298,18 +335,18 @@ export function compile(template: string, ...data: { [key: string]: any }[]): st
     template = template.replace(reg, (match: string, $1: string): string => {
       let parts = $1.split("."), temp: any;
       match = match;
-  
+
       if (parts.length == 1) {
         let value = source[parts[0]];
         return value === undefined ? (skip ? `{{${$1}}}` : "") : value;
       }
-  
+
       temp = source[parts[0]];
-  
+
       for (let i = 1; i < parts.length; i++) {
         temp = temp[parts[i]];
       }
-  
+
       return temp === undefined ? (skip ? `{{${$1}}}` : "") : temp;
     });
   }
