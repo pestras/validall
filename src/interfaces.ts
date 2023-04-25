@@ -44,7 +44,7 @@ export interface IComparators {
 
 export interface IArrayValidators {
   $each?: ISchema | IOperators;
-  $tuple?: ISchema[] | IOperators[];
+  $tuple?: (ISchema | IOperators)[];
   $length?: INumberValidators | number;
   $intersects?: any[];
   $in?: any[];
@@ -132,7 +132,7 @@ export interface IStructurals {
   $required?: boolean;
   $strict?: boolean;
   $each?: ISchema | IOperators;
-  $tuple?: ISchema[] | IOperators[];
+  $tuple?: (ISchema | IOperators)[];
   $map?: ISchema | IOperators;
   $props?: { [key: string]: ISchema | IOperators };
   $paths?: { [key: string]: ISchema | IOperators };
@@ -153,10 +153,10 @@ export interface IStructurals {
 
 export interface ILogicals {
   $not?: INegatables;
-  $and?: ISchema[] | IOperators[];
-  $or?: ISchema[] | IOperators[];
-  $xor?: ISchema[] | IOperators[];
-  $nor?: ISchema[] | IOperators[];
+  $and?: (ISchema | IOperators)[];
+  $or?: (ISchema | IOperators)[];
+  $xor?: (ISchema | IOperators)[];
+  $nor?: (ISchema | IOperators)[];
 }
 
 export interface IConditionalOperators {
