@@ -44,7 +44,7 @@ export class Validall {
 
     /** ensure schema is valid */
     try {
-      validateSchema(this._originalSchema, 'Schema', this._ctx);
+      validateSchema(this._originalSchema, 'Schema', this._ctx, this._name);
     } catch (error) {
       if (this._name)
         ValidallRepo.delete(this._name);
@@ -113,6 +113,11 @@ export class Validall {
         for (let $name of ctx.schema.$name)
           if (typeof $name === 'string')
             ctx.aliasStates[$name] = true;
+          else
+            ctx.next(ctx.clone({ schema: $name }));
+
+    } else if ((ctx.schema as any).$as) {
+      ctx.aliasStates[(ctx.schema as any).$as] = true;
     }
   }
 

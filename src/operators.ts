@@ -149,8 +149,10 @@ export const Operators = {
     // if $default was not set
     // check if $nullable operator is set to true
     if (ctx.schema.$nullable) {
-      if (ctx.localPath)
+      if (ctx.localPath) {
         injectValue(ctx.input, ctx.localPath, null);
+        ctx.currentInput = getValue(ctx.input, ctx.localPath);
+      }
 
       return;
     }
@@ -183,7 +185,7 @@ export const Operators = {
       throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not equal '${ctx.schema.$equals}'`);
 
     else if (ctx.currentInput !== ctx.schema.$equals && !ctx.negateMode)
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must equal '${ctx.schema.$equals}', got: (${typeof ctx.currentInput}, '${ctx.currentInput}')`);
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath} ${ctx.parentOperator || ''}' must equal '${ctx.schema.$equals}', got: (${typeof ctx.currentInput}, '${ctx.currentInput}')`);
   },
 
   /**
@@ -342,7 +344,7 @@ export const Operators = {
     if (included && ctx.negateMode)
       throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not equals any value in [${ctx.schema.$enum}], got: (${ctx.currentInput})`);
     else if (!included && !ctx.negateMode)
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must equals any value in [${ctx.schema.$enum}], got: (${ctx.currentInput})`);
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath} ${ctx.parentOperator || ''}' must equals any value in [${ctx.schema.$enum}], got: (${ctx.currentInput})`);
   },
 
   /**
@@ -532,14 +534,23 @@ export const Operators = {
    * Checks whether the type of the current value matches the type provided
    */
   $type(ctx: ValidationContext): void {
-    if (Types.getTypesOf(ctx.currentInput).indexOf(ctx.schema.$type) === -1) {
-      let inputType = Array.isArray(ctx.currentInput)
-        ? 'array'
-        : ctx.schema.$type === 'int' || ctx.schema.$type === 'float'
-          ? Types.getTypesOf(ctx.currentInput)
-          : typeof ctx.currentInput;
+    if (typeof ctx.schema.$type === 'string') {
+      if (Types.getTypesOf(ctx.currentInput).indexOf(ctx.schema.$type) === -1) {
+        let inputType = Array.isArray(ctx.currentInput)
+          ? 'array'
+          : ctx.schema.$type === 'int' || ctx.schema.$type === 'float'
+            ? Types.getTypesOf(ctx.currentInput)
+            : typeof ctx.currentInput;
 
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be of type '${ctx.schema.$type}', got: (${inputType}, ${ctx.currentInput})`);
+        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must be of type '${ctx.schema.$type}', got: (${inputType}, ${ctx.currentInput})`);
+      }
+
+    } else {
+      ctx.next(ctx.clone({
+        currentInput: Types.getTypesOf(ctx.currentInput)[0],
+        schema: ctx.schema.$type,
+        parentOperator: '$type'
+      }));
     }
   },
 
@@ -616,7 +627,7 @@ export const Operators = {
       if (ctx.negateMode)
         throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must not match pattern '${ctx.schema.$regex}', got: (${ctx.currentInput})`)
     } else
-      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' must match pattern '${ctx.schema.$regex}', got: (${ctx.currentInput})`)
+      throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath} ${ctx.parentOperator || ''}' must match pattern '${ctx.schema.$regex}', got: (${ctx.currentInput})`)
   },
 
   /**
@@ -861,15 +872,16 @@ export const Operators = {
 
         if (!value)
           throw new ValidallError(ctx, `undefined reference '$${ref} passed to '${ctx.fullPath}'`);
-        else if (!!ctx.schema.$type && Types.getTypesOf(value).indexOf(ctx.schema.$type) === -1)
+        else if (typeof ctx.schema.$type === 'string' && Types.getTypesOf(value).indexOf(ctx.schema.$type) === -1)
           throw new ValidallError(ctx, `invalid reference type '$${ref} passed to '${ctx.fullPath}'`);
       }
     }
 
-    if (ctx.schema.$checkDefaultType !== false && !!ctx.schema.$type && Types.getTypesOf(value).indexOf(ctx.schema.$type) === -1)
+    if (ctx.schema.$checkDefaultType !== false && typeof ctx.schema.$type === 'string' && Types.getTypesOf(value).indexOf(ctx.schema.$type) === -1)
       throw new ValidallError(ctx, `invalid default value type passed to '${ctx.fullPath}'`);
 
     injectValue(ctx.input, ctx.localPath, value);
+    ctx.currentInput = getValue(ctx.input, ctx.localPath);
   },
 
   /**
@@ -933,6 +945,7 @@ export const Operators = {
       for (let method of ctx.schema.$to) {
         try {
           injectValue(ctx.input, ctx.localPath, To[method](getValue(ctx.input, ctx.localPath)));
+          ctx.currentInput = getValue(ctx.input, ctx.localPath);
         }
         catch (err) {
           throw new ValidallError(ctx, `error modifying input value '${ctx.currentInput}' using ($to: ${method})`);
@@ -941,6 +954,7 @@ export const Operators = {
     } else {
       const newValue = ctx.schema.$to(ctx.currentInput, ctx);
       injectValue(ctx.input, ctx.localPath, newValue);
+      ctx.currentInput = newValue;
     }
   },
 
@@ -948,11 +962,13 @@ export const Operators = {
     if (typeof ctx.schema.$cast === "function") {
       const newValue = ctx.schema.$cast(ctx.currentInput, ctx);
       injectValue(ctx.input, ctx.localPath, newValue);
+      ctx.currentInput = getValue(ctx.input, ctx.localPath);
 
     } else {
       try {
         // try to cast src
         injectValue(ctx.input, ctx.localPath, cast(ctx.schema.$cast, ctx.currentInput, ctx.schema.$is));
+        ctx.currentInput = getValue(ctx.input, ctx.localPath);
       }
       catch (err: any) {
         throw new ValidallError(ctx, `${err}, path: '${ctx.fullPath}'`);
@@ -962,16 +978,23 @@ export const Operators = {
 
   $set(ctx: ValidationContext) {
     injectValue(ctx.input, ctx.localPath, ctx.schema.$set);
+    ctx.currentInput = getValue(ctx.input, ctx.localPath);
   },
 
   $min(ctx: ValidationContext) {
-    if (ctx.currentInput < ctx.schema.$min)
+    console.log(typeof ctx.currentInput, ctx.currentInput)
+    if (ctx.currentInput < ctx.schema.$min) {
       injectValue(ctx.input, ctx.localPath, ctx.schema.$min);
+      ctx.currentInput = getValue(ctx.input, ctx.localPath);
+
+    }
   },
 
   $max(ctx: ValidationContext) {
-    if (ctx.currentInput > ctx.schema.$max)
+    if (ctx.currentInput > ctx.schema.$max) {
       injectValue(ctx.input, ctx.localPath, ctx.schema.$max);
+      ctx.currentInput = getValue(ctx.input, ctx.localPath);
+    }
   },
 
   $fn(ctx: ValidationContext) {

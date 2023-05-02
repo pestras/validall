@@ -66,10 +66,18 @@ export interface INumberValidators {
   $lte?: number;
   $lteRef?: string;
   $inRange?: [number, number];
+  $min?: number;
+  $max?: number;
   $message?: string;
   $log?: logOption; 
   $logMode?: keyof Logger;
   $name?: string | [string | (IOperators & { $as: string }), ...(IOperators & { $as: string })[]];
+}
+
+export interface IStringVaidators {
+  $equals?: any;
+  $enum?: string[];
+  $regex?: RegExp;
 }
 
 export interface IDateValidators {

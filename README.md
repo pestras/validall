@@ -340,6 +340,16 @@ let schema = new Validall({
 
 For array specific types, we can combine **$type** operator with **$each** or **$tuple** operator, more on that later.
 
+We can also validate type with **string operators: ($equals, $enum, $regex)**
+
+```ts
+let schema = new Validall({
+  // Only Date instances are accepted
+  createDate: { $type: { $enum: ['date', 'string'], $is: 'date' } }
+});
+```
+
+
 ### **$is:** *isOptions*
 
 Checks whether the current value matched the provided option prebuilt pattern.
