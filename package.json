@@ -1,6 +1,6 @@
 {
   "name": "@pestras/validall",
-  "version": "2.6.2",
+  "version": "2.7.0",
   "description": "JavaScript validator",
   "files": [
     "lib/**/*"
