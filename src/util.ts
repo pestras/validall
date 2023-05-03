@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 import { Types } from './types';
-import { castOptions, isOptions } from './interfaces';
+import { ValidallOptions, castOptions, isOptions } from './interfaces';
 
 export function cleanPath(path: string) {
   if (!path)
@@ -40,6 +40,15 @@ export function plant$propsOperator(schema: any, parent?: { [key: string]: any }
 
   if (Types.object(schema)) {
     if (isSchema(schema)) {
+
+      if (schema.$required === undefined && schema.$default === undefined && schema.$nullable === undefined)
+        schema.$required = !!globalOptions.required;
+
+      if (schema.$props !== undefined && schema.$filter === undefined && schema.strict == undefined) {
+        schema.$strict = !!globalOptions.strict;
+        schema.$filter = !!globalOptions.filter;
+      }
+
       for (const prop in schema) {
         if (prop !== '$props' && prop !== '$paths')
           plant$propsOperator(schema[prop], schema, prop);
@@ -54,9 +63,9 @@ export function plant$propsOperator(schema: any, parent?: { [key: string]: any }
       plant$propsOperator(schema[prop], schema, prop);
 
     if (parent && prop)
-      parent[prop] = { $props: schema };
+      parent[prop] = { $props: schema, $required: !!globalOptions.required, $strict: !!globalOptions.strict, $filter: !!globalOptions.filter };
     else
-      schema = { $props: schema }
+      schema = { $props: schema, $required: !!globalOptions.required, $strict: !!globalOptions.strict, $filter: !!globalOptions.filter }
 
   } else
     return;
@@ -352,4 +361,10 @@ export function compile(template: string, ...data: { [key: string]: any }[]): st
   }
 
   return template;
+}
+
+export const globalOptions: ValidallOptions = {
+  required: false,
+  strict: false,
+  filter: false
 }

@@ -4,9 +4,9 @@
 // https://opensource.org/licenses/MIT
 
 import { ValidallError } from "./errors";
-import { IOperators, ISchema, Logger, ValidationContext } from "./interfaces";
+import { IOperators, ISchema, Logger, ValidallOptions, ValidationContext } from "./interfaces";
 import { validateSchema } from "./validate-schema";
-import { getValue, extend, setOwnDeepBulkProps, plant$propsOperator } from './util';
+import { getValue, extend, setOwnDeepBulkProps, plant$propsOperator, globalOptions } from './util';
 import { Operators } from "./operators";
 import { ValidallRepo } from "./util";
 
@@ -17,7 +17,6 @@ export class Validall {
   private _schema: IOperators;
   private _error: ValidallError;
   private _ctx = new ValidationContext({ logger: Validall.Logger, loggerDisabled: Validall.LoggerDisabled });
-  // private _checksCount = 0;
 
   constructor(schema: ISchema | IOperators)
   constructor(name: string, schema: ISchema | IOperators)
@@ -28,13 +27,13 @@ export class Validall {
     if (name === undefined)
       throw new ValidallError(<ValidationContext>{}, 'expected a schema, got undefined');
 
-    if (typeof name === 'string')
+    if (typeof name === 'string') {
       this._name = name;
-    else
-      schema = name
+      this._originalSchema = plant$propsOperator(schema);
+    } else {
+      this._originalSchema = plant$propsOperator(name);
+    }
 
-    this._originalSchema = plant$propsOperator(schema);
-    
     /**
      * if validator has a name, then it will be saved in the store repo, for later referencing,
      * it will replace any matching previuos validator name if set to replaceSchema
@@ -48,13 +47,19 @@ export class Validall {
     } catch (error) {
       if (this._name)
         ValidallRepo.delete(this._name);
-        
+
       throw error;
     }
   }
 
   static Get(name: string): Validall {
     return ValidallRepo.get(name);
+  }
+
+  static Defaults(options: ValidallOptions) {
+    globalOptions.required = !!options.required;
+    globalOptions.strict = !!options.strict;
+    globalOptions.filter = !!options.filter;
   }
 
   get name() { return this._name; }
@@ -90,10 +95,14 @@ export class Validall {
     if (ctx.currentInput === undefined || ctx.currentInput === null)
       Operators.undefinedOrNullInput(ctx);
 
-    else if (ctx.currentInput === '' && ctx.schema.$type === 'string' && ctx.schema.$default !== undefined)
-      Operators.$default(ctx);
+    else if (ctx.currentInput === '' && ctx.schema.$type === 'string') {
+      if (ctx.schema.$required)
+        throw new ValidallError(ctx, ctx.message || `'${ctx.fullPath}' field is required`);
 
-    else {
+      if (ctx.schema.$default !== undefined)
+        Operators.$default(ctx);
+
+    } else {
       for (let operator in ctx.schema) {
         // skip none validators operators or already checked operaotrs
         if (Operators.isSkipping(operator))

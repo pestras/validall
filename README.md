@@ -38,7 +38,7 @@ Operators can be categorized by their behavior or type:
 
 ### **$required:** *boolean*
 
-Marks the field as required.
+Validate *undifined* fields only.
 
 ```ts
 let schema = new Validall({
@@ -50,7 +50,26 @@ console.log(schema.validate({})); // false
 console.log(schema.error.message); // 'username' is required
 ```
 
-So if the username or the password is undefined, **Validall** will return **false** value with a proper error message of failure.
+So when the username or the password is undefined, **Validall** will return **false** value with a proper error message of failure.
+
+**Note:** **null** values are considered true values according to **$required** operator, use **$nullable** operator to check for nulls.
+
+**Note:** Empty strings are considered true values as well unless **$type** operator with value **string** is detected then no empty strings are allowed.
+
+```ts
+let schema = new Validall({
+  // empty username shall pass
+  username: { $required: true },
+  // empty password shall not pass
+  password: { $required: true, $type: 'string' },
+});
+```
+
+**Note:** **$required** operator can be set globaly to true using **Validall.Defaults** static method:
+
+```ts
+Validall.Defaults({ required: true });
+```
 
 ### **$nullable:** *boolean*
 
@@ -711,7 +730,7 @@ let schema = new Validall({
 
 ### **$strict:** *boolean*
 
-Strict the object keys only to the keys that are defined in sibling **$props** operator, any other keys will cause the validation fails.
+Strict the object keys only to the keys that are defined in sibling **$props** operator, any other keys will cause the validation to fail.
 
 ```ts
 let schema = new Validall({
@@ -734,6 +753,12 @@ console.log(schema.error.message); // "'mobile' field is not allowed"
 
 **Note:** Using **$strict** with no **$props** operator, will throw an error the time of instantiation.
 
+**Note:** **$strict** operator can be set globaly to true using **Validall.Defaults** static method, so each object type detected will be stricted:
+
+```ts
+Validall.Defaults({ strict: true });
+```
+
 ### **$filter:** *boolean*
 
 filter object keys to match the keys that are defined in sibling **$props** operator.
@@ -750,7 +775,7 @@ let schema = new Validall({
 let user = {
   name: 'John',
   email: 'john@there.com',
-  // this will be filtered
+  // mobile will be omited
   mobile: '468446743'
 }
 
@@ -760,6 +785,12 @@ console.log(user); // { name: 'John', email 'john@there.com' }
 ```
 
 **Note:** Using **$filter** with no **$props** operator, will throw an error the time of instantiation.
+
+**Note:** **$filter** operator can be set globaly to true using **Validall.Defaults** static method, so each object type detected will filter feature:
+
+```ts
+Validall.Defaults({ filter: true });
+```
 
 ----
 

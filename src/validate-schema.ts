@@ -8,18 +8,13 @@ import { IOperators, ValidationContext } from "./interfaces";
 import { Is } from "./is";
 import { Types } from './types';
 import { Operators } from "./operators";
-import { ReferenceState, ValidallRepo } from "./util";
+import { ReferenceState, ValidallRepo, globalOptions } from "./util";
 
 export function validateSchema(schema: IOperators, path: string, ctx: ValidationContext, vName?: string) {
   for (const operator in schema) {
     let currPath = `${path}.${operator}`;
     let value = schema[<keyof IOperators>operator];
 
-    // console.log('');
-    // console.log(currPath);
-    // console.log(schema);
-    // console.log('-----------------------------------');
-    // console.log('');
 
     if (operator === '$name')
       if (typeof schema.$name === 'string')

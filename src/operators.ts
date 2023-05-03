@@ -889,6 +889,9 @@ export const Operators = {
    * in '$props' operator
    */
   $filter(ctx: ValidationContext): void {
+    if (!ctx.schema.$filter)
+      return;
+
     let keys = Object.keys(ctx.schema.$props);
 
     if (ctx.parentCtx && ctx.parentCtx.schema.$props) {
@@ -917,6 +920,9 @@ export const Operators = {
    * defined in '$props' operator 
    */
   $strict(ctx: ValidationContext): void {
+    if (!ctx.schema.$strict)
+      return;
+
     let keys = Object.keys(ctx.schema.$props);
 
     if (ctx.parentCtx && ctx.parentCtx.schema.$props) {

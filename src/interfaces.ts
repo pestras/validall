@@ -243,3 +243,9 @@ export class ValidationContext {
     return path;
   }
 }
+
+export interface ValidallOptions {
+  required?: boolean | null;
+  strict?: boolean | null;
+  filter?: boolean | null;
+}
