@@ -29,9 +29,9 @@ export interface IComparators {
   $lte?: number;
   $lteRef?: string;
   $inRange?: [number, number];
-  $intersects?: any[];
-  $in?: any[];
-  $enum?: any[];
+  $intersects?: any[] | Readonly<any[]>;
+  $in?: any[] | Readonly<any[]>;
+  $enum?: any[] | Readonly<any[]>;
   $on?: Date | number | string;
   $onRef?: string;
   $before?: Date | number | string;
@@ -46,8 +46,8 @@ export interface IArrayValidators {
   $each?: ISchema | IOperators;
   $tuple?: (ISchema | IOperators)[];
   $length?: INumberValidators | number;
-  $intersects?: any[];
-  $in?: any[];
+  $intersects?: any[] | Readonly<any[]>;
+  $in?: any[] | Readonly<any[]>;
   $message?: string;
   $log?: logOption; 
   $logMode?: keyof Logger;
@@ -117,7 +117,7 @@ export interface INegatables {
   $equals?: any;
   $equalsRef?: string;
   $inRange?: [number, number];
-  $intersects?: any[];
+  $intersects?: any[] | Readonly<any[]>;
   $on?: Date | number | string;
   $onRef?: string;
   $instanceof?: Function;

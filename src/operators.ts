@@ -307,7 +307,7 @@ export const Operators = {
    */
   $intersects(ctx: ValidationContext): void {
     let type = ctx.parentOperator === '$keys' ? 'property' : 'value';
-    let [looper, checker]: [string[], string[]] = ctx.currentInput.length < ctx.schema.$intersects
+    let [looper, checker]: [string[] | Readonly<string[]>, string[] | Readonly<string[]>] = ctx.currentInput.length < ctx.schema.$intersects
       ? [ctx.currentInput, ctx.schema.$intersects]
       : [ctx.schema.$intersects, ctx.currentInput];
 
