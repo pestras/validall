@@ -8,3 +8,4 @@ test/
 !*.spec.js
 TODO.md
 packege-lock.json
+dist/

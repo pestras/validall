@@ -1,6 +1,6 @@
 # Validall
 
-Advanced javaScript schema validator written with typescript.
+Advanced NodeJs schema validator written with typescript.
 
 ## Installation
 

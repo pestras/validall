@@ -1,17 +1,19 @@
 {
   "compilerOptions": {
-    "target": "ES2016",
+    "module": "commonjs",
     "lib": ["ES2016", "DOM"],
-    "strict": true,
-    "strictNullChecks": false,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
-    "checkJs": true,
-    "allowJs": true,
+    "strictNullChecks": false,
+    "target": "es6",
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "outDir": "dist",
+    "baseUrl": ".",
     "declaration": true,
-    "declarationMap": true,
-    "allowSyntheticDefaultImports": true
+    "declarationMap": true
   },
-  "files": ["./src/index.ts"]
+  "include": ["src/**/*"]
 }
