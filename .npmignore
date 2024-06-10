@@ -2,3 +2,4 @@ node_modules
 test/
 src/
 *.d.ts.map
+legacy/
