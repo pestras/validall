@@ -1,6 +1,7 @@
 import { SchemaContext } from "../ctx";
 import { ValidallError } from "../errors";
 import { register } from "../registry";
+import { parseDate } from "../util/date/format";
 import { stringTypeMethods } from "../util/string";
 import { BaseOperatorOptions, OperationOptions } from "./base";
 
@@ -10,7 +11,6 @@ export type StringType = typeof stringTypes[number];
 // IsString
 // ---------------------------------------------------------------------------------
 export interface IsStringOperationOptions extends BaseOperatorOptions {
-  name: 'isString';
   type?: StringType | null;
 }
 
@@ -32,7 +32,6 @@ register('isString', (ctx: SchemaContext, opt: IsStringOperationOptions) => {
 // Regex
 // ---------------------------------------------------------------------------------
 export interface RegexOperationOptions extends BaseOperatorOptions {
-  name: 'regex';
   regex: RegExp;
 }
 
@@ -54,7 +53,6 @@ register('regex', (ctx: SchemaContext, opt: RegexOperationOptions) => {
 // Length
 // ---------------------------------------------------------------------------------
 export interface LengthOperationOptions extends BaseOperatorOptions {
-  name: 'length';
   length: number | [number?, number?];
 }
 
@@ -79,4 +77,25 @@ register('length', (ctx: SchemaContext, opt: LengthOperationOptions) => {
     if (typeof opt.length[1] === 'number' && ctx.value.length > opt.length[1])
       throw new ValidallError(ctx, opt.options?.message ?? `${ctx.path}: length must be at max ${opt.length[1]} characters`);
   }
+});
+
+// dateFormat
+// ---------------------------------------------------------------------------------
+export interface IsDateFormatOperationOptions extends BaseOperatorOptions {
+  format: string;
+}
+
+export function IsDateFormat(format: string, options?: OperationOptions): IsDateFormatOperationOptions {
+  return { name: 'isDateFormat', format, options };
+}
+
+register('isDateFormat', (ctx: SchemaContext, opt: IsDateFormatOperationOptions) => {
+  if (ctx.value === undefined || ctx.value === null)
+    return;
+
+  if (typeof ctx.value !== 'string')
+    throw new ValidallError(ctx, opt.options?.message ?? `${ctx.path}: must be a date string`);
+
+  if (!parseDate(ctx.value, opt.format))
+    throw new ValidallError(ctx, opt.options?.message ?? `${ctx.path}: date does not match format ${opt.format}`);
 });

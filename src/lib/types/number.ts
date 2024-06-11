@@ -5,15 +5,11 @@ import { BaseOperatorOptions, OperationOptions } from "./base";
 
 // IsNumber
 // ----------------------------------------------------------------------------------
-export interface IsNumberOperationOptions extends BaseOperatorOptions {
-  name: 'isNumber';
-}
-
-export function IsNumebr(options?: OperationOptions): IsNumberOperationOptions {
+export function IsNumebr(options?: OperationOptions): BaseOperatorOptions {
   return { name: 'isNumber', options };
 }
 
-register('isNumber', (ctx: SchemaContext, opt: IsNumberOperationOptions) => {
+register('isNumber', (ctx: SchemaContext, opt: BaseOperatorOptions) => {
   if (ctx.value === undefined || ctx.value === null)
     return;
 
@@ -23,15 +19,11 @@ register('isNumber', (ctx: SchemaContext, opt: IsNumberOperationOptions) => {
 
 // IsInt
 // ----------------------------------------------------------------------------------
-export interface IsIntOperationOptions extends BaseOperatorOptions {
-  name: 'isInt';
-}
-
-export function IsInt(options?: OperationOptions): IsIntOperationOptions {
+export function IsInt(options?: OperationOptions): BaseOperatorOptions {
   return { name: "isInt", options };
 }
 
-register('isInt', (ctx: SchemaContext, opt: IsIntOperationOptions) => {
+register('isInt', (ctx: SchemaContext, opt: BaseOperatorOptions) => {
   if (ctx.value === undefined || ctx.value === null)
     return;
 
@@ -44,15 +36,11 @@ register('isInt', (ctx: SchemaContext, opt: IsIntOperationOptions) => {
 
 // IsFloat
 // ----------------------------------------------------------------------------------
-export interface IsFloatOperationOptions extends BaseOperatorOptions {
-  name: 'isFloat';
-}
-
-export function IsFloat(options?: OperationOptions): IsFloatOperationOptions {
+export function IsFloat(options?: OperationOptions): BaseOperatorOptions {
   return { name: "isFloat", options };
 }
 
-register('isFloat', (ctx: SchemaContext, opt: IsFloatOperationOptions) => {
+register('isFloat', (ctx: SchemaContext, opt: BaseOperatorOptions) => {
   if (ctx.value === undefined || ctx.value === null)
     return;
 
@@ -66,7 +54,6 @@ register('isFloat', (ctx: SchemaContext, opt: IsFloatOperationOptions) => {
 // InRange
 // ----------------------------------------------------------------------
 export interface InRangeOperationOptions extends BaseOperatorOptions {
-  name: 'inRange';
   range: [number?, number?];
 }
 
@@ -92,7 +79,6 @@ register('inRange', (ctx: SchemaContext, opt: InRangeOperationOptions) => {
 // OutRange
 // ----------------------------------------------------------------------
 export interface OutRangeOperationOptions extends BaseOperatorOptions {
-  name: 'outRange';
   range: [number, number];
 }
 

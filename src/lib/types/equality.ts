@@ -7,7 +7,6 @@ import { BaseOperatorOptions, OperationOptions } from "./base";
 // Equals
 // ----------------------------------------------------------------------
 export interface EqualsOperationOptions extends BaseOperatorOptions {
-  name: 'equals';
   value: any;
 }
 
@@ -30,7 +29,6 @@ register('equals', (ctx: SchemaContext, opt: EqualsOperationOptions) => {
 // NotEquals
 // ----------------------------------------------------------------------
 export interface NotEqualsOperationOptions extends BaseOperatorOptions {
-  name: 'notEquals';
   value: any;
 }
 
@@ -53,7 +51,6 @@ register('notEquals', (ctx: SchemaContext, opt: NotEqualsOperationOptions) => {
 // IsIn
 // ----------------------------------------------------------------------
 export interface IsInOperationOptions extends BaseOperatorOptions {
-  name: 'isIn';
   values: Readonly<any[]> | any[];
 }
 
@@ -80,7 +77,6 @@ register('isIn', (ctx: SchemaContext, opt: IsInOperationOptions) => {
 // IsNotIn
 // ----------------------------------------------------------------------
 export interface IsNotInOperationOptions extends BaseOperatorOptions {
-  name: 'isNotIn';
   values: Readonly<any[]> | any[];
 }
 
@@ -107,7 +103,6 @@ register('isNotIn', (ctx: SchemaContext, opt: IsNotInOperationOptions) => {
 // Intersect
 // ----------------------------------------------------------------------------------
 export interface IntersectOperationOptions extends BaseOperatorOptions {
-  name: 'intersect';
   values: Readonly<any[]> | any[];
 }
 

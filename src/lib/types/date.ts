@@ -6,15 +6,11 @@ import { BaseOperatorOptions, OperationOptions } from "./base";
 
 // IsDate
 // ---------------------------------------------------------------------------------------
-export interface IsDateOperationOptions extends BaseOperatorOptions {
-  name: 'isDate';
-}
-
-export function IsDate(options?: OperationOptions): IsDateOperationOptions {
+export function IsDate(options?: OperationOptions): BaseOperatorOptions {
   return { name: 'isDate', options };
 }
 
-register('isDate', (ctx: SchemaContext, opt: IsDateOperationOptions) => {
+register('isDate', (ctx: SchemaContext, opt: BaseOperatorOptions) => {
   if (ctx.value === undefined || ctx.value === null)
     return;
 
@@ -25,7 +21,6 @@ register('isDate', (ctx: SchemaContext, opt: IsDateOperationOptions) => {
 // IsDateInRange
 // ---------------------------------------------------------------------------------------
 export interface IsDateInRangeOperationOptions extends BaseOperatorOptions {
-  name: 'isDateInRange';
   range: [(Date | number)?, (Date | number)?];
   unit?: DateUnit | null;
 }
@@ -74,7 +69,6 @@ register('isDateInRange', (ctx: SchemaContext, opt: IsDateInRangeOperationOption
 // IsDateOutRange
 // ---------------------------------------------------------------------------------------
 export interface IsDateOutRangeOperationOptions extends BaseOperatorOptions {
-  name: 'isDateOutRange';
   range: [Date | number, Date | number];
   unit?: DateUnit | null;
 }
@@ -117,7 +111,6 @@ register('isDateOutRange', (ctx: SchemaContext, opt: IsDateOutRangeOperationOpti
 // IsDateIn
 // ---------------------------------------------------------------------------------------
 export interface IsDateInOperationOptions extends BaseOperatorOptions {
-  name: 'isDateIn';
   values: number[];
   unit: DateUnit;
 }
@@ -144,7 +137,6 @@ register('isDateIn', (ctx: SchemaContext, opt: IsDateInOperationOptions) => {
 // IsDateNotIn
 // ---------------------------------------------------------------------------------------
 export interface IsDateNotInOperationOptions extends BaseOperatorOptions {
-  name: 'isDateNotIn';
   values: number[];
   unit: DateUnit;
 }

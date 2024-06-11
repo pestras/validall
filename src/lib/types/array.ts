@@ -8,7 +8,6 @@ import { BaseOperatorOptions, OperationOptions } from "./base";
 // IsArray
 // ----------------------------------------------------------------------------------
 export interface IsArrayOperationOptions extends BaseOperatorOptions {
-  name: 'isArray';
   operations?: (BaseOperatorOptions | Schema<any>)[] | null;
 }
 
@@ -40,7 +39,6 @@ register('isArray', (ctx: SchemaContext, opt: IsArrayOperationOptions) => {
 // ArrayLength
 // ---------------------------------------------------------------------------------
 export interface ArrayLengthOperationOptions extends BaseOperatorOptions {
-  name: 'arrayLength';
   length: number | [number?, number?];
 }
 

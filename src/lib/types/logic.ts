@@ -7,7 +7,6 @@ import { BaseOperatorOptions, OperationOptions } from "./base";
 // And
 // -----------------------------------------------------------------------
 export interface AndOperationOptions extends BaseOperatorOptions {
-  name: 'and';
   operators: (BaseOperatorOptions | Schema<any>)[];
 }
 
@@ -28,7 +27,6 @@ register('and', (ctx: SchemaContext, opt: AndOperationOptions) => {
 // Or
 // -----------------------------------------------------------------------
 export interface OrOperationOptions extends BaseOperatorOptions {
-  name: 'or';
   operators: (BaseOperatorOptions | Schema<any>)[];
 }
 
@@ -62,7 +60,6 @@ register('or', (ctx: SchemaContext, opt: OrOperationOptions) => {
 // Xor
 // -----------------------------------------------------------------------
 export interface XorOperationOptions extends BaseOperatorOptions {
-  name: 'xor';
   operators: (BaseOperatorOptions | Schema<any>)[];
 }
 
@@ -100,7 +97,6 @@ register('xor', (ctx: SchemaContext, opt: XorOperationOptions) => {
 // Nor
 // -----------------------------------------------------------------------
 export interface NorOperationOptions extends BaseOperatorOptions {
-  name: 'nor';
   operators: (BaseOperatorOptions | Schema<any>)[];
 }
 

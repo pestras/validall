@@ -5,15 +5,11 @@ import { BaseOperatorOptions, OperationOptions } from "./base";
 
 // IsBoolean
 // -----------------------------------------------------------------------
-export interface IsBooleanOperationOptions extends BaseOperatorOptions {
-  name: 'isBoolean';
-}
-
-export function IsBoolean(options?: OperationOptions): IsBooleanOperationOptions {
+export function IsBoolean(options?: OperationOptions): BaseOperatorOptions {
   return { name: 'isBoolean', options };
 }
 
-register('isBoolean', (ctx: SchemaContext, opt: IsBooleanOperationOptions) => {
+register('isBoolean', (ctx: SchemaContext, opt: BaseOperatorOptions) => {
   if (ctx.value === undefined || ctx.value === null)
     return;
 

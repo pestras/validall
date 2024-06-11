@@ -5,30 +5,22 @@ import { BaseOperatorOptions, OperationOptions } from "./base";
 
 // IsRequired
 // ----------------------------------------------------------------------
-export interface IsRequiredOperationOptions extends BaseOperatorOptions {
-  name: 'isRequired';
-}
-
-export function IsRequired(options?: OperationOptions): IsRequiredOperationOptions {
+export function IsRequired(options?: OperationOptions): BaseOperatorOptions {
   return { name: 'isRequired', options };
 }
 
-register('isRequired', (ctx: SchemaContext, opt: IsRequiredOperationOptions) => {
+register('isRequired', (ctx: SchemaContext, opt: BaseOperatorOptions) => {
   if (ctx.value === undefined || ctx.value === null)
     throw new ValidallError(ctx, opt.options?.message ?? `${ctx.path}: is required`);
 });
 
 // IsNullable
 // ----------------------------------------------------------------------
-export interface IsNullableOperationOptions extends BaseOperatorOptions {
-  name: 'isNullable';
-}
-
-export function IsNullable(options?: OperationOptions): IsNullableOperationOptions {
+export function IsNullable(options?: OperationOptions): BaseOperatorOptions {
   return { name: 'isNullable', options };
 }
 
-register('isNullable', (ctx: SchemaContext, opt: IsNullableOperationOptions) => {
+register('isNullable', (ctx: SchemaContext, opt: BaseOperatorOptions) => {
   if (!ctx.value && ctx.value !== null)
     throw new ValidallError(ctx, opt.options?.message ?? `${ctx.path}: must be null`);
 });
@@ -36,7 +28,6 @@ register('isNullable', (ctx: SchemaContext, opt: IsNullableOperationOptions) => 
 // Validate
 // ----------------------------------------------------------------------
 export interface ValidateOperationOptions extends BaseOperatorOptions {
-  name: 'validate';
   func: (val: any, path: string) => void
 }
 
