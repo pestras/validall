@@ -1,6 +1,7 @@
 import { SchemaContext } from "./ctx";
 import { ValidallError } from "./errors";
-import { validate } from "./operations";
+import { register, runHandler } from "./registry";
+import { BaseOperatorOptions } from "./types/base";
 import { ObjectSchema } from "./types/object-schema";
 
 export class Schema<T extends object> {
@@ -36,6 +37,13 @@ export class Schema<T extends object> {
     return Schema.repo.get(name) ?? null;
   }
 
+  static Register<OPTIONS extends BaseOperatorOptions>(
+    name: string,
+    handler: (ctx: SchemaContext, opt: OPTIONS) => void
+  ) {
+    register(name, handler);
+  }
+
   validate(input: T, prefix?: string): ValidallError | undefined {
 
     const ctx: SchemaContext = { path: prefix ?? '', value: input };
@@ -44,14 +52,18 @@ export class Schema<T extends object> {
       return new ValidallError(ctx, `validation input is not an object!`);
 
     try {
-      for (const prop in this.schema)
-        validate(
-          {
-            path: ctx.path ? `${ctx.path}.${prop}` : prop,
-            value: input[prop]
-          },
-          this.schema[prop]
-        );
+      for (const prop in this.schema) {
+        const localCtx: SchemaContext = {
+          path: ctx.path ? `${ctx.path}.${prop}` : prop,
+          value: input[prop]
+        };
+
+        for (const op of this.schema[prop]) {
+          op instanceof Schema
+            ? op.validate(localCtx.value, localCtx.path)
+            : runHandler(op.name, localCtx, op);
+        }
+      }
     } catch (error) {
       if (prefix)
         throw error;

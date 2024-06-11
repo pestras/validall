@@ -1,14 +1,17 @@
+import { SchemaContext } from "../ctx";
+import { ValidallError } from "../errors";
+import { register } from "../registry";
 import { BaseOperatorOptions, OperationOptions } from "./base";
 
 
 // Equals
 // ----------------------------------------------------------------------
-export interface EqualsOperationOptions<T> extends BaseOperatorOptions {
+export interface EqualsOperationOptions extends BaseOperatorOptions {
   name: 'equals';
-  value: T;
+  value: any;
 }
 
-export function Equals<T>(value: T, options?: OperationOptions): EqualsOperationOptions<T> {
+export function Equals(value: any, options?: OperationOptions): EqualsOperationOptions {
   return { 
     name: 'equals',
     value,
@@ -16,14 +19,22 @@ export function Equals<T>(value: T, options?: OperationOptions): EqualsOperation
   };
 }
 
+register('equals', (ctx: SchemaContext, opt: EqualsOperationOptions) => {
+  if (ctx.value === undefined || ctx.value === null)
+    return;
+
+  if (opt.value !== ctx.value)
+    throw new ValidallError(ctx, opt.options?.message ?? `${ctx.path}: must be equals to ${opt.value}`);
+});
+
 // NotEquals
 // ----------------------------------------------------------------------
-export interface NotEqualsOperationOptions<T> extends BaseOperatorOptions {
+export interface NotEqualsOperationOptions extends BaseOperatorOptions {
   name: 'notEquals';
-  value: T;
+  value: any;
 }
 
-export function NotEquals<T>(value: T, options?: OperationOptions): NotEqualsOperationOptions<T> {
+export function NotEquals(value: any, options?: OperationOptions): NotEqualsOperationOptions {
   return { 
     name: 'notEquals',
     value,
@@ -31,44 +42,22 @@ export function NotEquals<T>(value: T, options?: OperationOptions): NotEqualsOpe
   };
 }
 
-// InRange
-// ----------------------------------------------------------------------
-export interface InRangeOperationOptions<T> extends BaseOperatorOptions {
-  name: 'inRange';
-  range: [T?, T?];
-}
+register('notEquals', (ctx: SchemaContext, opt: NotEqualsOperationOptions) => {
+  if (ctx.value === undefined || ctx.value === null)
+    return;
 
-export function InRange<T>(range: [T?, T?], options?: OperationOptions): InRangeOperationOptions<T> {
-  return { 
-    name: 'inRange',
-    range,
-    options
-  };
-}
-
-// OutRange
-// ----------------------------------------------------------------------
-export interface OutRangeOperationOptions<T> extends BaseOperatorOptions {
-  name: 'outRange';
-  range: [T, T];
-}
-
-export function OutRange<T>(range: [T, T], options?: OperationOptions): OutRangeOperationOptions<T> {
-  return { 
-    name: 'outRange',
-    range,
-    options
-  };
-}
+  if (opt.value === ctx.value)
+    throw new ValidallError(ctx, opt.options?.message ?? `${ctx.path}: must not be equals to ${opt.value}`);
+});
 
 // IsIn
 // ----------------------------------------------------------------------
-export interface IsInOperationOptions<T> extends BaseOperatorOptions {
+export interface IsInOperationOptions extends BaseOperatorOptions {
   name: 'isIn';
-  values: Readonly<T[]> | T[];
+  values: Readonly<any[]> | any[];
 }
 
-export function IsIn<T>(values: Readonly<T[]> | T[], options?: OperationOptions): IsInOperationOptions<T> {
+export function IsIn(values: Readonly<any[]> | any[], options?: OperationOptions): IsInOperationOptions {
   return { 
     name: 'isIn',
     values,
@@ -76,14 +65,26 @@ export function IsIn<T>(values: Readonly<T[]> | T[], options?: OperationOptions)
   };
 }
 
+register('isIn', (ctx: SchemaContext, opt: IsInOperationOptions) => {
+  if (ctx.value === undefined || ctx.value === null)
+    return;
+
+  if (Array.isArray(ctx.value)) {
+    if (ctx.value.some(v => !opt.values.includes(v)))
+      throw new ValidallError(ctx, opt.options?.message ?? `${ctx.path}: all values must be in [${opt.values}]`);
+
+  } else if (!opt.values.includes(ctx.value))
+    throw new ValidallError(ctx, opt.options?.message ?? `${ctx.path}: must be in [${opt.values}]`);
+});
+
 // IsNotIn
 // ----------------------------------------------------------------------
-export interface IsNotInOperationOptions<T> extends BaseOperatorOptions {
+export interface IsNotInOperationOptions extends BaseOperatorOptions {
   name: 'isNotIn';
-  values: Readonly<T[]> | T[];
+  values: Readonly<any[]> | any[];
 }
 
-export function IsNotIn<T>(values: Readonly<T[]> | T[], options?: OperationOptions): IsNotInOperationOptions<T> {
+export function IsNotIn(values: Readonly<any[]> | any[], options?: OperationOptions): IsNotInOperationOptions {
   return { 
     name: 'isNotIn',
     values,
@@ -91,13 +92,36 @@ export function IsNotIn<T>(values: Readonly<T[]> | T[], options?: OperationOptio
   };
 }
 
+register('isNotIn', (ctx: SchemaContext, opt: IsNotInOperationOptions) => {
+  if (ctx.value === undefined || ctx.value === null)
+    return;
+
+  if (Array.isArray(ctx.value)) {
+    if (ctx.value.some(v => opt.values.includes(v)))
+      throw new ValidallError(ctx, opt.options?.message ?? `${ctx.path}: all values must not be in [${opt.values}]`);
+
+  } else if (opt.values.includes(ctx.value))
+    throw new ValidallError(ctx, opt.options?.message ?? `${ctx.path}: must not be in [${opt.values}]`);
+});
+
 // Intersect
 // ----------------------------------------------------------------------------------
-export interface IntersectOperationOptions<T> extends BaseOperatorOptions {
+export interface IntersectOperationOptions extends BaseOperatorOptions {
   name: 'intersect';
-  values: Readonly<T[]> | T[];
+  values: Readonly<any[]> | any[];
 }
 
-export function Intersect<T>(values: Readonly<T[]> | T[], options?: OperationOptions): IntersectOperationOptions<T> {
+export function Intersect(values: Readonly<any[]> | any[], options?: OperationOptions): IntersectOperationOptions {
   return { name: 'intersect', values, options };
 }
+
+register('intersect', (ctx: SchemaContext, opt: IntersectOperationOptions) => {
+  if (ctx.value === undefined || ctx.value === null)
+    return;
+
+  if (!Array.isArray(ctx.value))
+    throw new ValidallError(ctx, opt.options?.message ?? `${ctx.path}: must be an array`);
+
+  if (ctx.value.every(v => !opt.values.includes(v)))
+    throw new ValidallError(ctx, opt.options?.message ?? `${ctx.path}: must include any of [${opt.values}]`);
+});
