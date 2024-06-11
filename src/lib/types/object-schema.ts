@@ -6,7 +6,7 @@ import { EqualsOperationOptions, InRangeOperationOptions, IsInOperationOptions, 
 import { AndOperationOptions, NorOperationOptions, OrOperationOptions, XorOperationOptions } from './logic';
 import { IsFloatOperationOptions, IsIntOperationOptions, IsNumberOperationOptions } from './number';
 import { IsStringOperationOptions, LengthOperationOptions, RegexOperationOptions } from './string';
-import { IsAnyOperationOptions, IsNullableOperationOptions, IsRequiredOperationOptions } from './util';
+import { ValidateOperationOptions, IsNullableOperationOptions, IsRequiredOperationOptions } from './util';
 
 export type SchemaOperation<T> = 
 ArrayLengthOperationOptions | IsArrayOperationOptions
@@ -16,7 +16,7 @@ ArrayLengthOperationOptions | IsArrayOperationOptions
 | AndOperationOptions | NorOperationOptions | OrOperationOptions | XorOperationOptions
 | IsFloatOperationOptions | IsIntOperationOptions | IsNumberOperationOptions
 | IsStringOperationOptions | LengthOperationOptions | RegexOperationOptions
-| IsAnyOperationOptions | IsNullableOperationOptions | IsRequiredOperationOptions;
+| ValidateOperationOptions | IsNullableOperationOptions | IsRequiredOperationOptions;
 
 export type ArrayElement<A> = A extends readonly (infer T)[] ? T : never;
 

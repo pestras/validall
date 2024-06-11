@@ -4,7 +4,7 @@ import { Schema } from "../schema";
 
 export const operators = [
   // util
-  "isAny",
+  "validate",
   "isRequired",
   "isNullable",
   // boolean

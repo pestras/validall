@@ -6,7 +6,7 @@ import { EqualsOperationOptions, InRangeOperationOptions, IsInOperationOptions, 
 import { AndOperationOptions, NorOperationOptions, OrOperationOptions, XorOperationOptions } from './types/logic';
 import { IsFloatOperationOptions, IsIntOperationOptions, IsNumberOperationOptions } from './types/number';
 import { IsStringOperationOptions, LengthOperationOptions, RegexOperationOptions } from './types/string';
-import { IsAnyOperationOptions, IsNullableOperationOptions, IsRequiredOperationOptions } from './types/util';
+import { ValidateOperationOptions, IsNullableOperationOptions, IsRequiredOperationOptions } from './types/util';
 import { SchemaContext } from "./ctx";
 import { ValidallError } from "./errors";
 import { stringTypeMethods } from "./util/string";
@@ -18,7 +18,7 @@ interface OperationsMap {
   // util
   isRequired: IsRequiredOperationOptions;
   isNullable: IsNullableOperationOptions;
-  isAny: IsAnyOperationOptions;
+  validate: ValidateOperationOptions;
   // boolean
   isBoolean: IsBooleanOperationOptions;
   // number
@@ -67,8 +67,12 @@ export const operations: Record<
     if (!ctx.value && ctx.value !== null)
       throw new ValidallError(ctx, opt.options?.message ?? `${ctx.path}: must be null`);
   },
-  isAny() {
-    return;
+  validate(ctx: SchemaContext, opt: ValidateOperationOptions) {
+    try {
+      opt.func(ctx.value, ctx.path);
+    } catch (error) {
+      throw new ValidallError(ctx, error.message);
+    }
   },
   // boolean
   // ===================================================================================

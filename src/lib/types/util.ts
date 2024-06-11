@@ -21,12 +21,13 @@ export function IsNullable(options?: OperationOptions): IsNullableOperationOptio
   return { name: 'isNullable', options };
 }
 
-// required
+// Validate
 // ----------------------------------------------------------------------
-export interface IsAnyOperationOptions extends BaseOperatorOptions {
-  name: 'isAny';
+export interface ValidateOperationOptions extends BaseOperatorOptions {
+  name: 'validate';
+  func: (val: any, path: string) => void
 }
 
-export function IsAny(options?: OperationOptions): IsAnyOperationOptions {
-  return { name: 'isAny', options };
+export function Validate(func: (val: any, path: string) => void, options?: OperationOptions): ValidateOperationOptions {
+  return { name: 'validate', func, options };
 }

@@ -5,4 +5,4 @@ export { Equals, InRange, IsIn, IsNotIn, NotEquals, OutRange, Intersect } from '
 export { And, Or, Nor, Xor } from './logic';
 export { IsFloat, IsInt, IsNumebr } from './number';
 export { IsString, Length, Regex } from './string';
-export { IsAny, IsRequired, IsNullable } from './util';
+export { Validate, IsRequired, IsNullable } from './util';
