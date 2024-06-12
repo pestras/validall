@@ -5,7 +5,6 @@ import { BaseOperatorOptions } from "./types/base";
 import { ObjectSchema } from "./types/object-schema";
 
 export interface SchemaOptions {
-  name?: string;
   strict?: boolean;
   nullable?: boolean;
 }
@@ -13,16 +12,20 @@ export interface SchemaOptions {
 export class Schema<T extends object> {
   private static repo = new Map<string, Schema<any>>;
 
-  constructor(private schema: ObjectSchema<T>, private options: SchemaOptions = {}) {
+  constructor(
+    readonly name: string,
+    private schema: ObjectSchema<T>,
+    private options: SchemaOptions = {}
+  ) {
 
     if (!this.schema)
       throw "validation schema is required";
 
-    if (options.name) {
-      if (Schema.repo.has(options.name))
-        throw `validation schema name '${options.name}' already exists`;
+    if (this.name) {
+      if (Schema.repo.has(this.name))
+        throw `validation schema name '${this.name}' already exists`;
 
-      Schema.repo.set(options.name, this);
+      Schema.repo.set(this.name, this);
     }
   }
 

@@ -5,7 +5,7 @@ import { parseDate } from "../util/date/format";
 import { stringTypeMethods } from "../util/string";
 import { BaseOperatorOptions, OperationOptions } from "./base";
 
-export const stringTypes = ['email', 'URL', 'date', 'number', 'boolean'] as const;
+export const stringTypes = ['notEmpty', 'email', 'URL', 'date', 'number', 'boolean'] as const;
 export type StringType = typeof stringTypes[number];
 
 // IsString
