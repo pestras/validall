@@ -4,6 +4,8 @@ import { register, runHandler } from "./registry";
 import { BaseOperatorOptions } from "./types/base";
 import { ObjectSchema } from "./types/object-schema";
 
+type Diff<T extends object, U extends T> = Omit<U, keyof T>;
+
 export interface SchemaOptions {
   strict?: boolean;
   nullable?: boolean;
@@ -38,6 +40,12 @@ export class Schema<T extends object> {
     handler: (ctx: SchemaContext, opt: OPTIONS) => void
   ) {
     register(name, handler);
+  }
+
+  extend<U extends T>(name: string, schema: ObjectSchema<Diff<T, U>>, options?: SchemaOptions) {
+    const extendedSchema = Object.assign({}, this.schema, schema);
+
+    return new Schema<T>(name, extendedSchema, options ?? this.options);
   }
 
   validate(input: T, prefix?: string): ValidallError | undefined {
@@ -80,6 +88,5 @@ export class Schema<T extends object> {
         return error;
       }
     }
-
   }
 }
