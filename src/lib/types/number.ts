@@ -5,7 +5,7 @@ import { BaseOperatorOptions, OperationOptions } from "./base";
 
 // IsNumber
 // ----------------------------------------------------------------------------------
-export function IsNumebr(options?: OperationOptions): BaseOperatorOptions {
+export function IsNumber(options?: OperationOptions): BaseOperatorOptions {
   return { name: 'isNumber', options };
 }
 
