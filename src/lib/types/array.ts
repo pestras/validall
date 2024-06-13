@@ -12,7 +12,7 @@ export interface IsArrayOperationOptions extends BaseOperatorOptions {
 }
 
 export function IsArray(operations?: (BaseOperatorOptions | Schema<any>)[] | null, options?: OperationOptions): IsArrayOperationOptions {
-  return { 
+  return {
     name: 'isArray',
     operations,
     options
@@ -27,12 +27,9 @@ register('isArray', (ctx: SchemaContext, opt: IsArrayOperationOptions) => {
     throw new ValidallError(ctx, opt.options?.message ?? `${ctx.path}: must be an array`);
 
   if (opt.operations) {
-    for (let i = 0; i < ctx.value.length; i++) {
+    for (let i = 0; i < ctx.value.length; i++)
       for (const op of opt.operations)
-        op instanceof Schema
-          ? op.validate(ctx.value[i], `${ctx.path}.${i}`)
-          : runHandler(op.name, { value: ctx.value[i], path: `${ctx.path}.${i}` }, op);
-    }
+        runHandler(op.name, { value: ctx.value[i], path: `${ctx.path}.${i}` }, op);
   }
 });
 

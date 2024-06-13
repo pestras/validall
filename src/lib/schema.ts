@@ -16,8 +16,8 @@ export class Schema<T extends object> {
 
   constructor(
     readonly name: string,
-    private schema: ObjectSchema<T>,
-    private options: SchemaOptions = {}
+    readonly schema: ObjectSchema<T>,
+    readonly options: SchemaOptions = {}
   ) {
 
     if (!this.schema)
@@ -59,7 +59,7 @@ export class Schema<T extends object> {
       if (Object.prototype.toString.call(input) !== "[object Object]")
         return new ValidallError(ctx, `validation input is not an object!`);
 
-      if (this.options.strict) {
+      if (!prefix && this.options.strict) {
         const allowedProps = Object.keys(this.schema);
         const inputProps = Object.keys(input);
 
@@ -68,6 +68,10 @@ export class Schema<T extends object> {
             return new ValidallError(ctx, `prop "${prop}" is not allowed!`);
       }
 
+      if (Object.prototype.toString.call(input) !== "[object Object]")
+        return new ValidallError(ctx, `validation input is not an object!`);
+
+
       try {
         for (const prop in this.schema) {
           const localCtx: SchemaContext = {
@@ -75,11 +79,8 @@ export class Schema<T extends object> {
             value: input[prop]
           };
 
-          for (const op of this.schema[prop]) {
-            op instanceof Schema
-              ? op.validate(localCtx.value, localCtx.path)
-              : runHandler(op.name, localCtx, op);
-          }
+          for (const op of this.schema[prop])
+            runHandler(op.name, localCtx, op);
         }
       } catch (error) {
         if (prefix)

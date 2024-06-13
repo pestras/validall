@@ -19,9 +19,7 @@ register('and', (ctx: SchemaContext, opt: AndOperationOptions) => {
     return;
 
   for (const op of opt.operators)
-    op instanceof Schema
-      ? op.validate(ctx.value, ctx.path)
-      : runHandler(op.name, ctx, op);
+    runHandler(op.name, ctx, op);
 });
 
 // Or
@@ -42,10 +40,8 @@ register('or', (ctx: SchemaContext, opt: OrOperationOptions) => {
 
   for (const op of opt.operators) {
     try {
-      op instanceof Schema
-        ? op.validate(ctx.value, ctx.path)
-        : runHandler(op.name, ctx, op);
-
+      runHandler(op.name, ctx, op);
+      
       return;
 
     } catch (e) {
@@ -76,10 +72,8 @@ register('xor', (ctx: SchemaContext, opt: XorOperationOptions) => {
 
   for (const op of opt.operators) {
     try {
-      op instanceof Schema
-        ? op.validate(ctx.value, ctx.path)
-        : runHandler(op.name, ctx, op);
-
+      runHandler(op.name, ctx, op);
+  
       passed++;
 
       if (passed > 1) {
@@ -112,9 +106,7 @@ register('nor', (ctx: SchemaContext, opt: NorOperationOptions) => {
 
   for (const op of opt.operators) {
     try {
-      op instanceof Schema
-        ? op.validate(ctx.value, ctx.path)
-        : runHandler(op.name, ctx, op);
+      runHandler(op.name, ctx, op);
 
       error = new ValidallError(ctx, `${ctx.path}:: no operation shall pass`);
       break;
