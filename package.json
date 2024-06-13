@@ -1,6 +1,6 @@
 {
   "name": "@pestras/validall",
-  "version": "2.10.9",
+  "version": "2.11.0",
   "description": "JavaScript validator",
   "types": "./dist/index.d.ts",
   "main": "./dist/index.js",
