@@ -5,7 +5,7 @@ import { parseDate } from "../util/date/format";
 import { stringTypeMethods } from "../util/string";
 import { BaseOperatorOptions, OperationOptions } from "./base";
 
-export const stringTypes = ['notEmpty', 'email', 'URL', 'date', 'number', 'boolean'] as const;
+export const stringTypes = ['email', 'URL', 'date', 'number', 'boolean'] as const;
 export type StringType = typeof stringTypes[number];
 
 // IsString
@@ -14,8 +14,14 @@ export interface IsStringOperationOptions extends BaseOperatorOptions {
   type?: StringType | null;
 }
 
-export function IsString(type?: StringType | null, options?: OperationOptions): IsStringOperationOptions {
-  return { name: 'isString', type, options };
+export function IsString(options?: OperationOptions): IsStringOperationOptions
+export function IsString(type: StringType, options?: OperationOptions): IsStringOperationOptions
+export function IsString(arg1?: StringType | OperationOptions, arg2?: OperationOptions): IsStringOperationOptions {
+  return {
+    name: 'isString',
+    type: typeof arg1 === 'string' ? arg1 : null,
+    options: typeof arg1 === 'string' ? arg2 : arg1
+  };
 }
 
 register('isString', (ctx: SchemaContext, opt: IsStringOperationOptions) => {

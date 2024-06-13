@@ -10,7 +10,12 @@ export function IsRequired(options?: OperationOptions): BaseOperatorOptions {
 }
 
 register('isRequired', (ctx: SchemaContext, opt: BaseOperatorOptions) => {
-  if (ctx.value === undefined || ctx.value === null)
+  if (
+    ctx.value === undefined ||
+    ctx.value === null ||
+    isNaN(ctx.value) ||
+    (typeof ctx.value === 'string' && !ctx.value.trim())
+  )
     throw new ValidallError(ctx, opt.options?.message ?? `${ctx.path}: is required`);
 });
 
