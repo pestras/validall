@@ -7,10 +7,10 @@ import { BaseOperatorOptions, OperationOptions } from "./base";
 // And
 // -----------------------------------------------------------------------
 export interface AndOperationOptions extends BaseOperatorOptions {
-  operators: (BaseOperatorOptions | Schema<any>)[];
+  operators: BaseOperatorOptions[];
 }
 
-export function And(operators: (BaseOperatorOptions | Schema<any>)[], options?: OperationOptions): AndOperationOptions {
+export function And(operators: BaseOperatorOptions[], options?: OperationOptions): AndOperationOptions {
   return { name: 'and', operators, options };
 }
 
@@ -25,10 +25,10 @@ register('and', (ctx: SchemaContext, opt: AndOperationOptions) => {
 // Or
 // -----------------------------------------------------------------------
 export interface OrOperationOptions extends BaseOperatorOptions {
-  operators: (BaseOperatorOptions | Schema<any>)[];
+  operators: BaseOperatorOptions[];
 }
 
-export function Or(operators: (BaseOperatorOptions | Schema<any>)[], options?: OperationOptions): OrOperationOptions {
+export function Or(operators: BaseOperatorOptions[], options?: OperationOptions): OrOperationOptions {
   return { name: 'or', operators, options };
 }
 
@@ -56,10 +56,10 @@ register('or', (ctx: SchemaContext, opt: OrOperationOptions) => {
 // Xor
 // -----------------------------------------------------------------------
 export interface XorOperationOptions extends BaseOperatorOptions {
-  operators: (BaseOperatorOptions | Schema<any>)[];
+  operators: BaseOperatorOptions[];
 }
 
-export function Xor(operators: (BaseOperatorOptions | Schema<any>)[], options?: OperationOptions): XorOperationOptions {
+export function Xor(operators: BaseOperatorOptions[], options?: OperationOptions): XorOperationOptions {
   return { name: 'xor', operators, options };
 }
 
@@ -91,10 +91,10 @@ register('xor', (ctx: SchemaContext, opt: XorOperationOptions) => {
 // Nor
 // -----------------------------------------------------------------------
 export interface NorOperationOptions extends BaseOperatorOptions {
-  operators: (BaseOperatorOptions | Schema<any>)[];
+  operators: BaseOperatorOptions[];
 }
 
-export function Nor(operators: (BaseOperatorOptions | Schema<any>)[], options?: OperationOptions): NorOperationOptions {
+export function Nor(operators: BaseOperatorOptions[], options?: OperationOptions): NorOperationOptions {
   return { name: 'nor', operators, options };
 }
 

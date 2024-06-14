@@ -2,16 +2,15 @@
 import { SchemaContext } from "../ctx";
 import { ValidallError } from "../errors";
 import { register, runHandler } from "../registry";
-import { Schema } from "../schema";
 import { BaseOperatorOptions, OperationOptions } from "./base";
 
 // IsArray
 // ----------------------------------------------------------------------------------
 export interface IsArrayOperationOptions extends BaseOperatorOptions {
-  operations?: (BaseOperatorOptions | Schema<any>)[] | null;
+  operations?: BaseOperatorOptions[] | null;
 }
 
-export function IsArray(operations?: (BaseOperatorOptions | Schema<any>)[] | null, options?: OperationOptions): IsArrayOperationOptions {
+export function IsArray(operations?: BaseOperatorOptions[] | null, options?: OperationOptions): IsArrayOperationOptions {
   return {
     name: 'isArray',
     operations,
