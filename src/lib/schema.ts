@@ -7,7 +7,8 @@ import { ObjectSchema } from "./types/object-schema";
 type Diff<T extends object, U extends T> = Omit<U, keyof T>;
 
 export interface SchemaOptions {
-  strict?: boolean;
+  /** when true: ignores any additional fields not defined in schema */
+  lazy?: boolean;
   nullable?: boolean;
 }
 
@@ -68,7 +69,7 @@ export class Schema<T extends object> {
       if (Object.prototype.toString.call(input) !== "[object Object]")
         return new ValidallError(ctx, `validation input is not an object!`);
 
-      if (!prefix && this.options.strict) {
+      if (!prefix && !this.options.lazy) {
         const allowedProps = Object.keys(this.schema);
         const inputProps = Object.keys(input);
 

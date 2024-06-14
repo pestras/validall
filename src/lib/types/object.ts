@@ -7,7 +7,7 @@ import { BaseOperatorOptions, OperationOptions } from "./base";
 // IsObject
 // ----------------------------------------------------------------------------------
 export interface IsObjectOptions extends OperationOptions {
-  strict?: boolean;
+  lazy?: boolean;
 }
 export interface IsObjectOperationOptions<T extends object = any> extends BaseOperatorOptions {
   schema?: Schema<T> | null;
@@ -29,7 +29,7 @@ register('isObject', (ctx: SchemaContext, opt: IsObjectOperationOptions) => {
   if (Object.prototype.toString.call(ctx.value) !== "[object Object]")
     throw new ValidallError(ctx, opt.options?.message ?? `${ctx.path}: must be an object`);
 
-  if (opt.options?.strict && opt.schema) {
+  if (!opt.options?.lazy && opt.schema) {
     const keys = Object.keys(ctx.value);
     const schemaKeys = Object.keys(opt.schema.schema);
 
