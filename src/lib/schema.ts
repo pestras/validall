@@ -35,6 +35,15 @@ export class Schema<T extends object> {
     return Schema.repo.get(name) ?? null;
   }
 
+  static Alias(name: string, to: string) {
+    const src = Schema.repo.get(to);
+
+    if (!src)
+      throw `cannot alias undefined schema: ${to}`;
+
+    this.repo.set(name, src);
+  }
+
   static Register<OPTIONS extends BaseOperatorOptions>(
     name: string,
     handler: (ctx: SchemaContext, opt: OPTIONS) => void
