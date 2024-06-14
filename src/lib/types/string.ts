@@ -2,11 +2,8 @@ import { SchemaContext } from "../ctx";
 import { ValidallError } from "../errors";
 import { register } from "../registry";
 import { parseDate } from "../util/date/format";
-import { stringTypeMethods } from "../util/string";
+import { StringType, stringTypeMethods } from "../util/string";
 import { BaseOperatorOptions, OperationOptions } from "./base";
-
-export const stringTypes = ['email', 'URL', 'date', 'number', 'boolean'] as const;
-export type StringType = typeof stringTypes[number];
 
 // IsString
 // ---------------------------------------------------------------------------------

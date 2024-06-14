@@ -1,7 +1,6 @@
 import { SchemaContext } from "../ctx";
 import { ValidallError } from "../errors";
 import { register, runHandler } from "../registry";
-import { Schema } from "../schema";
 import { BaseOperatorOptions, OperationOptions } from "./base";
 
 // And
