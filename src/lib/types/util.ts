@@ -13,7 +13,7 @@ register('isRequired', (ctx: SchemaContext, opt: BaseOperatorOptions) => {
   if (
     ctx.value === undefined ||
     ctx.value === null ||
-    isNaN(ctx.value) ||
+    (typeof ctx.value === 'number' && isNaN(ctx.value)) ||
     (typeof ctx.value === 'string' && !ctx.value.trim())
   )
     throw new ValidallError(ctx, opt.options?.message ?? `${ctx.path}: is required`);
