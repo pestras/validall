@@ -26,7 +26,11 @@ export function IsNullable(options?: OperationOptions): BaseOperatorOptions {
 }
 
 register('isNullable', (ctx: SchemaContext, opt: BaseOperatorOptions) => {
-  if (!ctx.value && ctx.value !== null)
+  if (
+    ctx.value === undefined ||
+    (typeof ctx.value === 'number' && isNaN(ctx.value)) ||
+    (typeof ctx.value === 'string' && !ctx.value.trim())
+  )
     throw new ValidallError(ctx, opt.options?.message ?? `${ctx.path}: must be null`);
 });
 
