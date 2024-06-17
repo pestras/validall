@@ -5,6 +5,20 @@ import { BaseOperatorOptions, OperationOptions } from "./base";
 
 // IsRequired
 // ----------------------------------------------------------------------
+export function Log(message?: string): BaseOperatorOptions {
+  return { name: 'log', options: { message } };
+}
+
+register('log', (ctx: SchemaContext, opt: BaseOperatorOptions) => {
+  console.log('path:', ctx.path);
+  console.log('value:', ctx.value);
+
+  if (opt.options?.message)
+    console.log(opt.options.message);
+});
+
+// IsRequired
+// ----------------------------------------------------------------------
 export function IsRequired(options?: OperationOptions): BaseOperatorOptions {
   return { name: 'isRequired', options };
 }

@@ -19,5 +19,5 @@ export function runHandler(name: string, ctx: SchemaContext, opt: any) {
   if (handler)
     return handler(ctx, opt);
 
-  throw 'invalidOperator';
+  throw `invalidOperator: ${name}`;
 }
