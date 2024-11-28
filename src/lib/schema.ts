@@ -62,8 +62,12 @@ export class Schema<T extends object> {
 
     const ctx: SchemaContext = { path: prefix ?? '', value: input };
 
-    if (!prefix && !this.options.nullable && !input)
-      return new ValidallError(ctx, `validation input is required`);
+    if (!input) {
+      if (!prefix && !this.options.nullable)
+        return new ValidallError(ctx, `validation input is required`);
+      else
+        return;
+    }
 
     if (input) {
       if (Object.prototype.toString.call(input) !== "[object Object]")
@@ -77,10 +81,6 @@ export class Schema<T extends object> {
           if (!allowedProps.includes(prop))
             return new ValidallError(ctx, `prop "${prop}" is not allowed!`);
       }
-
-      if (Object.prototype.toString.call(input) !== "[object Object]")
-        return new ValidallError(ctx, `validation input is not an object!`);
-
 
       try {
         for (const prop in this.schema) {
