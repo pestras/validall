@@ -63,7 +63,7 @@ export class Schema<T extends object> {
     const ctx: SchemaContext = { path: prefix ?? '', value: input };
 
     if (!input) {
-      if (!prefix && !this.options.nullable)
+      if (!this.options.nullable)
         return new ValidallError(ctx, `validation input is required`);
       else
         return;
