@@ -52,10 +52,19 @@ export class Schema<T extends object> {
     register(name, handler);
   }
 
+  static Extend<T extends object, U extends T>(srcSchemaName: string, name: string, schema: ObjectSchema<Diff<T, U>>, options?: SchemaOptions) {
+    const src = Schema.Get(srcSchemaName);
+
+    if (!src)
+      throw `schema '${srcSchemaName}' was not found`;
+
+    return new Schema<U>(name, Object.assign({}, src.schema, schema) as ObjectSchema<U>, options ?? src.options);
+  }
+
   extend<U extends T>(name: string, schema: ObjectSchema<Diff<T, U>>, options?: SchemaOptions) {
     const extendedSchema = Object.assign({}, this.schema, schema);
 
-    return new Schema<T>(name, extendedSchema, options ?? this.options);
+    return new Schema<U>(name, extendedSchema as ObjectSchema<U>, options ?? this.options);
   }
 
   validate(input: T, prefix?: string): ValidallError | undefined {
