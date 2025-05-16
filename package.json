@@ -15,7 +15,7 @@
     "clean": "rm -rf ./dist",
     "build": "npm run clean && tsc",
     "prepack": "npm run build",
-    "test": "exit 0"
+    "test": "tsc test/index.ts && node test"
   },
   "author": "Ammar Mourad",
   "email": "amrmrdb51@gmail.com",
