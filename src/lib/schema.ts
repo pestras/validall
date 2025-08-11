@@ -4,6 +4,10 @@ import { register, runHandler } from "./registry";
 import { BaseOperatorOptions } from "./types/base";
 import { ObjectSchema } from "./types/object-schema";
 
+export interface ValidallSchema {
+  validate: (input: any, prefix?: string) => ValidallError | undefined;
+}
+
 type Diff<T extends object, U extends T> = Omit<U, keyof T>;
 
 export interface SchemaOptions {
@@ -12,7 +16,7 @@ export interface SchemaOptions {
   nullable?: boolean;
 }
 
-export class Schema<T extends object> {
+export class Schema<T extends object> implements ValidallSchema {
   private static repo = new Map<string, Schema<any>>;
 
   constructor(
@@ -107,6 +111,68 @@ export class Schema<T extends object> {
 
         return error;
       }
+    }
+  }
+}
+
+export class SchemaGroup implements ValidallSchema {
+  readonly list!: Schema<any>[];
+
+  mode: 'any' | 'all' | 'single' = 'any';
+
+  constructor(schemasList: Schema<any>[]) {
+    this.list = schemasList;
+  }
+
+  static Any(schemasList: Schema<any>[]) {
+    const schema = new SchemaGroup(schemasList);
+    schema.mode = 'any';
+  }
+
+  static All(schemasList: Schema<any>[]) {
+    const schema = new SchemaGroup(schemasList);
+    schema.mode = 'all';
+  }
+
+  static Single(schemasList: Schema<any>[]) {
+    const schema = new SchemaGroup(schemasList);
+    schema.mode = 'single';
+  }
+
+  validate(input: any, prefix?: string) {
+    return this[this.mode](input, prefix);
+  }
+
+  private any(input: any, prefix?: string) {
+    let error: ValidallError | undefined;
+
+    for (const schema of this.list) {
+      error = schema.validate(input, prefix);
+
+      if (error)
+        return;
+    }
+
+    return error;
+  }
+
+  private all(input: any, prefix?: string) {
+    for (const schema of this.list) {
+      const error = schema.validate(input, prefix);
+
+      if (error)
+        return error;
+    }
+  }
+
+  private single(input: any, prefix?: string) {
+    const errors: (ValidallError | undefined)[] = [];
+
+    for (const schema of this.list) {
+      errors.push(schema.validate(input, prefix));
+
+      if (errors.length === 2)
+        return errors[0];
     }
   }
 }
