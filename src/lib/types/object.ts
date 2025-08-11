@@ -1,7 +1,7 @@
 import { SchemaContext } from "../ctx";
 import { ValidallError } from "../errors";
 import { register } from "../registry";
-import { Schema } from "../schema";
+import { Schema, ValidallRepo } from "../schema";
 import { BaseOperatorOptions, OperationOptions } from "./base";
 
 // IsObject
@@ -28,7 +28,7 @@ register('isObject', (ctx: SchemaContext, opt: IsObjectOperationOptions) => {
 
   const schema = opt.schema
     ? typeof opt.schema === 'string'
-      ? Schema.Get(opt.schema)
+      ? ValidallRepo.GetSchema(opt.schema)
       : opt.schema
     : null;
 

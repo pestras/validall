@@ -8,6 +8,40 @@ export interface ValidallSchema {
   validate: (input: any, prefix?: string) => ValidallError | undefined;
 }
 
+export class ValidallRepo {
+  private static map = new Map<string, ValidallSchema>();
+
+  static Add(name: string, schema: ValidallSchema) {
+    this.map.set(name, schema);
+  }
+
+  static HasSchema(name: string) {
+    return !!this.GetSchema(name);
+  }
+
+  static HasGroup(name: string) {
+    return !!this.GetSchemaGroup(name);
+  }
+
+  static GetSchema<U extends object = any>(name: string) {
+    const schema = this.map.get(name);
+
+    if (!schema || !(schema instanceof Schema))
+      return null;
+
+    return schema as Schema<U>;
+  }
+
+  static GetSchemaGroup(name: string) {
+    const schema = this.map.get(name);
+
+    if (!schema || !(schema instanceof SchemaGroup))
+      return null;
+
+    return schema as SchemaGroup;
+  }
+}
+
 type Diff<T extends object, U extends T> = Omit<U, keyof T>;
 
 export interface SchemaOptions {
@@ -17,36 +51,52 @@ export interface SchemaOptions {
 }
 
 export class Schema<T extends object> implements ValidallSchema {
-  private static repo = new Map<string, Schema<any>>;
+  readonly name!: string | null;
+  readonly schema!: ObjectSchema<T>;
+  options: SchemaOptions = {};
 
   constructor(
-    readonly name: string,
-    readonly schema: ObjectSchema<T>,
-    readonly options: SchemaOptions = {}
+    schema: ObjectSchema<T>,
+    options?: SchemaOptions
+  )
+  constructor(
+    name: string,
+    schema: ObjectSchema<T>,
+    options?: SchemaOptions
+  )
+  constructor(
+    name: string | ObjectSchema<T>,
+    schema: ObjectSchema<T> | SchemaOptions,
+    options: SchemaOptions = {}
   ) {
+    if (typeof name === 'string') {
+      if (!schema)
+        throw "validation schema is required";
 
-    if (!this.schema)
-      throw "validation schema is required";
+      if (ValidallRepo.HasSchema(name))
+        throw `validation schema name '${name}' already exists`;
 
-    if (this.name) {
-      if (Schema.repo.has(this.name))
-        throw `validation schema name '${this.name}' already exists`;
+      this.name = name;
+      this.schema = schema as ObjectSchema<T>;
+      this.options = options;
 
-      Schema.repo.set(this.name, this);
+      ValidallRepo.Add(this.name, this);
+    } else {
+      if (!name)
+        throw "validation schema is required";
+
+      this.schema = name;
+      this.options = schema;
     }
   }
 
-  static Get<T extends object>(name: string): Schema<T> | null {
-    return Schema.repo.get(name) ?? null;
-  }
-
   static Alias(name: string, to: string) {
-    const src = Schema.repo.get(to);
+    const src = ValidallRepo.GetSchema(to);
 
     if (!src)
       throw `cannot alias undefined schema: ${to}`;
 
-    this.repo.set(name, src);
+    ValidallRepo.Add(name, src);
   }
 
   static Register<OPTIONS extends BaseOperatorOptions>(
@@ -57,7 +107,7 @@ export class Schema<T extends object> implements ValidallSchema {
   }
 
   static Extend<T extends object, U extends T>(srcSchemaName: string, name: string, schema: ObjectSchema<Diff<T, U>>, options?: SchemaOptions) {
-    const src = Schema.Get(srcSchemaName);
+    const src = ValidallRepo.GetSchema(srcSchemaName);
 
     if (!src)
       throw `schema '${srcSchemaName}' was not found`;
@@ -115,28 +165,30 @@ export class Schema<T extends object> implements ValidallSchema {
   }
 }
 
+export type SchemaGroupMode = 'any' | 'all' | 'single';
+
 export class SchemaGroup implements ValidallSchema {
-  readonly list!: Schema<any>[];
 
-  mode: 'any' | 'all' | 'single' = 'any';
+  constructor(readonly name: string, readonly mode: SchemaGroupMode, readonly schemasList: Schema<any>[]) {
+    if (schemasList.length === 0)
+      throw 'empty schema group is not allowed';
 
-  constructor(schemasList: Schema<any>[]) {
-    this.list = schemasList;
+    if (ValidallRepo.HasSchema(this.name))
+      throw `validation schema name '${this.name}' already exists`;
+
+    ValidallRepo.Add(this.name, this);
   }
 
-  static Any(schemasList: Schema<any>[]) {
-    const schema = new SchemaGroup(schemasList);
-    schema.mode = 'any';
+  static Any(name: string, schemasList: Schema<any>[]) {
+    return new SchemaGroup(name, 'any', schemasList);
   }
 
-  static All(schemasList: Schema<any>[]) {
-    const schema = new SchemaGroup(schemasList);
-    schema.mode = 'all';
+  static All(name: string, schemasList: Schema<any>[]) {
+    return new SchemaGroup(name, 'all', schemasList);
   }
 
-  static Single(schemasList: Schema<any>[]) {
-    const schema = new SchemaGroup(schemasList);
-    schema.mode = 'single';
+  static Single(name: string, schemasList: Schema<any>[]) {
+    return new SchemaGroup(name, 'single', schemasList);
   }
 
   validate(input: any, prefix?: string) {
@@ -146,7 +198,7 @@ export class SchemaGroup implements ValidallSchema {
   private any(input: any, prefix?: string) {
     let error: ValidallError | undefined;
 
-    for (const schema of this.list) {
+    for (const schema of this.schemasList) {
       error = schema.validate(input, prefix);
 
       if (error)
@@ -157,7 +209,7 @@ export class SchemaGroup implements ValidallSchema {
   }
 
   private all(input: any, prefix?: string) {
-    for (const schema of this.list) {
+    for (const schema of this.schemasList) {
       const error = schema.validate(input, prefix);
 
       if (error)
@@ -168,7 +220,7 @@ export class SchemaGroup implements ValidallSchema {
   private single(input: any, prefix?: string) {
     const errors: (ValidallError | undefined)[] = [];
 
-    for (const schema of this.list) {
+    for (const schema of this.schemasList) {
       errors.push(schema.validate(input, prefix));
 
       if (errors.length === 2)
