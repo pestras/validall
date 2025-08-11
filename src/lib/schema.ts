@@ -15,12 +15,20 @@ export class ValidallRepo {
     this.map.set(name, schema);
   }
 
+  static Has(name: string) {
+    return this.map.has(name);
+  }
+
   static HasSchema(name: string) {
     return !!this.GetSchema(name);
   }
 
   static HasGroup(name: string) {
     return !!this.GetSchemaGroup(name);
+  }
+
+  static Get(name: string) {
+    return this.map.get(name) ?? null;
   }
 
   static GetSchema<U extends object = any>(name: string) {
